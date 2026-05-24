@@ -8,8 +8,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.antoineromand.atlascrm.account.application.exceptions.AccountNotFoundException;
-import com.antoineromand.atlascrm.account.domain.Profile;
-import com.antoineromand.atlascrm.account.domain.repository.IProfileRepository;
+import com.antoineromand.atlascrm.account.domain.Account;
+import com.antoineromand.atlascrm.account.domain.repository.IAccountRepository;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
@@ -22,16 +22,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class UpdateAccountUseCaseTest {
 
-  @Mock private IProfileRepository profileRepository;
+  @Mock private IAccountRepository accountRepository;
 
   @Test
   void executeShouldMergeFieldsAndReturnUpdatedProfile() {
-    UpdateAccountUseCase useCase = new UpdateAccountUseCase(profileRepository);
+    UpdateAccountUseCase useCase = new UpdateAccountUseCase(accountRepository);
     UUID credentialsId = UUID.randomUUID();
     UUID profileId = UUID.randomUUID();
     Instant createdAt = Instant.now();
-    Profile existing =
-        new Profile(
+    Account existing =
+        new Account(
             profileId,
             credentialsId,
             "John",
@@ -47,8 +47,8 @@ class UpdateAccountUseCaseTest {
             "France",
             createdAt,
             null);
-    Profile updated =
-        new Profile(
+    Account updated =
+        new Account(
             profileId,
             credentialsId,
             "Jane",
@@ -65,11 +65,11 @@ class UpdateAccountUseCaseTest {
             createdAt,
             Instant.now());
 
-    when(profileRepository.findByCredentialsId(credentialsId))
+    when(accountRepository.findByCredentialsId(credentialsId))
         .thenReturn(Optional.of(existing), Optional.of(updated));
-    when(profileRepository.save(any(Profile.class))).thenReturn(profileId);
+    when(accountRepository.save(any(Account.class))).thenReturn(profileId);
 
-    Profile result =
+    Account result =
         useCase.execute(
             credentialsId,
             new UpdateAccountCommand(
@@ -85,9 +85,9 @@ class UpdateAccountUseCaseTest {
                 "Lyon",
                 null));
 
-    ArgumentCaptor<Profile> captor = ArgumentCaptor.forClass(Profile.class);
-    verify(profileRepository).save(captor.capture());
-    Profile saved = captor.getValue();
+    ArgumentCaptor<Account> captor = ArgumentCaptor.forClass(Account.class);
+    verify(accountRepository).save(captor.capture());
+    Account saved = captor.getValue();
 
     assertEquals(profileId, result.getId());
     assertEquals("Jane", saved.getFirstName());
@@ -100,10 +100,10 @@ class UpdateAccountUseCaseTest {
 
   @Test
   void executeShouldThrowWhenProfileDoesNotExist() {
-    UpdateAccountUseCase useCase = new UpdateAccountUseCase(profileRepository);
+    UpdateAccountUseCase useCase = new UpdateAccountUseCase(accountRepository);
     UUID credentialsId = UUID.randomUUID();
 
-    when(profileRepository.findByCredentialsId(credentialsId)).thenReturn(Optional.empty());
+    when(accountRepository.findByCredentialsId(credentialsId)).thenReturn(Optional.empty());
 
     assertThrows(
         AccountNotFoundException.class,

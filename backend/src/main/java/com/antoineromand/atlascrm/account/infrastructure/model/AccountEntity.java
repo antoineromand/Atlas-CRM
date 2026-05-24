@@ -1,6 +1,6 @@
 package com.antoineromand.atlascrm.account.infrastructure.model;
 
-import com.antoineromand.atlascrm.account.domain.Profile;
+import com.antoineromand.atlascrm.account.domain.Account;
 import com.antoineromand.atlascrm.authentication.infrastructure.model.CredentialsEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -19,7 +19,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Table(name = "profiles")
 @Entity
 @EntityListeners(AuditingEntityListener.class)
-public class ProfileEntity {
+public class AccountEntity {
   @Id
   @Column(name = "profile_id", columnDefinition = "uuid", updatable = false, nullable = false)
   private UUID id = UUID.randomUUID();
@@ -69,9 +69,9 @@ public class ProfileEntity {
   @Column(name = "updated_at")
   private Instant updatedAt;
 
-  public ProfileEntity() {}
+  public AccountEntity() {}
 
-  public ProfileEntity(
+  public AccountEntity(
       UUID id,
       CredentialsEntity credentials,
       String firstName,
@@ -104,27 +104,27 @@ public class ProfileEntity {
     this.updatedAt = updatedAt;
   }
 
-  public static ProfileEntity fromDomain(Profile profile, CredentialsEntity credentials) {
-    return new ProfileEntity(
-        profile.getId(),
+  public static AccountEntity fromDomain(Account account, CredentialsEntity credentials) {
+    return new AccountEntity(
+        account.getId(),
         credentials,
-        profile.getFirstName(),
-        profile.getLastName(),
-        profile.getCompanyName(),
-        profile.getSiretNumber(),
-        profile.getVatNumber(),
-        profile.getBillingEmail(),
-        profile.getBillingAddressLine1(),
-        profile.getBillingAddressLine2(),
-        profile.getBillingPostalCode(),
-        profile.getBillingCity(),
-        profile.getBillingCountry(),
-        profile.getCreatedAt(),
-        profile.getUpdatedAt());
+        account.getFirstName(),
+        account.getLastName(),
+        account.getCompanyName(),
+        account.getSiretNumber(),
+        account.getVatNumber(),
+        account.getBillingEmail(),
+        account.getBillingAddressLine1(),
+        account.getBillingAddressLine2(),
+        account.getBillingPostalCode(),
+        account.getBillingCity(),
+        account.getBillingCountry(),
+        account.getCreatedAt(),
+        account.getUpdatedAt());
   }
 
-  public Profile toDomain() {
-    return new Profile(
+  public Account toDomain() {
+    return new Account(
         id,
         credentials.getId(),
         firstName,

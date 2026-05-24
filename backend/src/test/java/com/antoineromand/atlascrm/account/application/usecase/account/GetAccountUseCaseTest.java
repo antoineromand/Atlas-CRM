@@ -5,8 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import com.antoineromand.atlascrm.account.application.exceptions.AccountNotFoundException;
-import com.antoineromand.atlascrm.account.domain.Profile;
-import com.antoineromand.atlascrm.account.domain.repository.IProfileRepository;
+import com.antoineromand.atlascrm.account.domain.Account;
+import com.antoineromand.atlascrm.account.domain.repository.IAccountRepository;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
@@ -18,14 +18,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class GetAccountUseCaseTest {
 
-  @Mock private IProfileRepository profileRepository;
+  @Mock private IAccountRepository accountRepository;
 
   @Test
   void executeShouldReturnExistingProfile() {
-    GetAccountUseCase useCase = new GetAccountUseCase(profileRepository);
+    GetAccountUseCase useCase = new GetAccountUseCase(accountRepository);
     UUID credentialsId = UUID.randomUUID();
-    Profile profile =
-        new Profile(
+    Account account =
+        new Account(
             UUID.randomUUID(),
             credentialsId,
             "John",
@@ -42,22 +42,22 @@ class GetAccountUseCaseTest {
             Instant.now(),
             null);
 
-    when(profileRepository.findByCredentialsId(credentialsId)).thenReturn(Optional.of(profile));
+    when(accountRepository.findByCredentialsId(credentialsId)).thenReturn(Optional.of(account));
 
-    Profile result = useCase.execute(credentialsId);
+    Account result = useCase.execute(credentialsId);
 
-    assertEquals(profile.getId(), result.getId());
-    assertEquals(profile.getCredentialsId(), result.getCredentialsId());
-    assertEquals(profile.getFirstName(), result.getFirstName());
-    assertEquals(profile.getLastName(), result.getLastName());
+    assertEquals(account.getId(), result.getId());
+    assertEquals(account.getCredentialsId(), result.getCredentialsId());
+    assertEquals(account.getFirstName(), result.getFirstName());
+    assertEquals(account.getLastName(), result.getLastName());
   }
 
   @Test
   void executeShouldThrowWhenProfileDoesNotExist() {
-    GetAccountUseCase useCase = new GetAccountUseCase(profileRepository);
+    GetAccountUseCase useCase = new GetAccountUseCase(accountRepository);
     UUID credentialsId = UUID.randomUUID();
 
-    when(profileRepository.findByCredentialsId(credentialsId)).thenReturn(Optional.empty());
+    when(accountRepository.findByCredentialsId(credentialsId)).thenReturn(Optional.empty());
 
     assertThrows(AccountNotFoundException.class, () -> useCase.execute(credentialsId));
   }

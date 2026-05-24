@@ -1,8 +1,8 @@
 package com.antoineromand.atlascrm.account.application.usecase.account;
 
 import com.antoineromand.atlascrm.account.application.exceptions.AccountNotFoundException;
-import com.antoineromand.atlascrm.account.domain.Profile;
-import com.antoineromand.atlascrm.account.domain.repository.IProfileRepository;
+import com.antoineromand.atlascrm.account.domain.Account;
+import com.antoineromand.atlascrm.account.domain.repository.IAccountRepository;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,20 +11,20 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class UpdateAccountUseCase implements IUpdateAccountUseCase {
 
-  private final IProfileRepository profileRepository;
+  private final IAccountRepository accountRepository;
 
-  public UpdateAccountUseCase(IProfileRepository profileRepository) {
-    this.profileRepository = profileRepository;
+  public UpdateAccountUseCase(IAccountRepository accountRepository) {
+    this.accountRepository = accountRepository;
   }
 
   @Override
-  public Profile execute(UUID credentialsId, UpdateAccountCommand command) {
-    Profile existing =
-        this.profileRepository.findByCredentialsId(credentialsId)
+  public Account execute(UUID credentialsId, UpdateAccountCommand command) {
+    Account existing =
+        this.accountRepository.findByCredentialsId(credentialsId)
             .orElseThrow(AccountNotFoundException::new);
 
-    Profile updated =
-        new Profile(
+    Account updated =
+        new Account(
             existing.getId(),
             existing.getCredentialsId(),
             command.firstName() != null ? command.firstName() : existing.getFirstName(),
@@ -47,8 +47,8 @@ public class UpdateAccountUseCase implements IUpdateAccountUseCase {
             existing.getCreatedAt(),
             existing.getUpdatedAt());
 
-    this.profileRepository.save(updated);
-    return this.profileRepository.findByCredentialsId(credentialsId)
+    this.accountRepository.save(updated);
+    return this.accountRepository.findByCredentialsId(credentialsId)
         .orElseThrow(AccountNotFoundException::new);
   }
 }

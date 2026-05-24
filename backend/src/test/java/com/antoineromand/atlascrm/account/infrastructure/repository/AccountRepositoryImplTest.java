@@ -3,8 +3,7 @@ package com.antoineromand.atlascrm.account.infrastructure.repository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.antoineromand.atlascrm.authentication.domain.Credentials;
-import com.antoineromand.atlascrm.account.domain.Profile;
+import com.antoineromand.atlascrm.account.domain.Account;
 import com.antoineromand.atlascrm.authentication.domain.valueobject.CredentialsStatus;
 import com.antoineromand.atlascrm.authentication.domain.valueobject.RoleName;
 import com.antoineromand.atlascrm.authentication.infrastructure.database.AbstractPostgresJpaTest;
@@ -16,10 +15,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 
-@Import(ProfileRepositoryImpl.class)
-class ProfileRepositoryImplTest extends AbstractPostgresJpaTest {
+@Import(AccountRepositoryImpl.class)
+class AccountRepositoryImplTest extends AbstractPostgresJpaTest {
 
-  @Autowired private ProfileRepositoryImpl profileRepository;
+  @Autowired private AccountRepositoryImpl accountRepository;
   @Autowired private CredentialsJpaRepository credentialsJpaRepository;
 
   @Test
@@ -36,8 +35,8 @@ class ProfileRepositoryImplTest extends AbstractPostgresJpaTest {
                 CredentialsStatus.ACTIVE,
                 true));
 
-    Profile profile =
-        new Profile(
+    Account account =
+        new Account(
             null,
             credentialsEntity.getId(),
             "John",
@@ -54,11 +53,11 @@ class ProfileRepositoryImplTest extends AbstractPostgresJpaTest {
             Instant.now(),
             null);
 
-    UUID profileId = profileRepository.save(profile);
+    UUID accountId = accountRepository.save(account);
 
-    Profile found = profileRepository.findByCredentialsId(credentialsEntity.getId()).orElseThrow();
+    Account found = accountRepository.findByCredentialsId(credentialsEntity.getId()).orElseThrow();
 
-    assertEquals(profileId, found.getId());
+    assertEquals(accountId, found.getId());
     assertEquals(credentialsEntity.getId(), found.getCredentialsId());
     assertEquals("John", found.getFirstName());
     assertEquals("Doe", found.getLastName());

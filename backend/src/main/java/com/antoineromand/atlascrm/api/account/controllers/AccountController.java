@@ -3,7 +3,7 @@ package com.antoineromand.atlascrm.api.account.controllers;
 import com.antoineromand.atlascrm.account.application.usecase.account.IGetAccountUseCase;
 import com.antoineromand.atlascrm.account.application.usecase.account.IUpdateAccountUseCase;
 import com.antoineromand.atlascrm.account.application.usecase.account.UpdateAccountCommand;
-import com.antoineromand.atlascrm.account.domain.Profile;
+import com.antoineromand.atlascrm.account.domain.Account;
 import com.antoineromand.atlascrm.api.account.dto.AccountResponseDto;
 import com.antoineromand.atlascrm.api.account.dto.UpdateAccountRequestDto;
 import jakarta.validation.Valid;
@@ -37,7 +37,7 @@ public class AccountController {
   @PatchMapping("/me")
   public ResponseEntity<AccountResponseDto> updateMyAccount(
       Principal principal, @Valid @RequestBody UpdateAccountRequestDto dto) {
-    Profile profile =
+    Account account =
         this.updateAccountUseCase.execute(
             this.extractCredentialsId(principal),
             new UpdateAccountCommand(
@@ -52,29 +52,29 @@ public class AccountController {
                 dto.billingPostalCode(),
                 dto.billingCity(),
                 dto.billingCountry()));
-    return ResponseEntity.ok(this.toResponse(profile));
+    return ResponseEntity.ok(this.toResponse(account));
   }
 
   private UUID extractCredentialsId(Principal principal) {
     return UUID.fromString(principal.getName());
   }
 
-  private AccountResponseDto toResponse(Profile profile) {
+  private AccountResponseDto toResponse(Account account) {
     return new AccountResponseDto(
-        profile.getId(),
-        profile.getCredentialsId(),
-        profile.getFirstName(),
-        profile.getLastName(),
-        profile.getCompanyName(),
-        profile.getSiretNumber(),
-        profile.getVatNumber(),
-        profile.getBillingEmail(),
-        profile.getBillingAddressLine1(),
-        profile.getBillingAddressLine2(),
-        profile.getBillingPostalCode(),
-        profile.getBillingCity(),
-        profile.getBillingCountry(),
-        profile.getCreatedAt(),
-        profile.getUpdatedAt());
+        account.getId(),
+        account.getCredentialsId(),
+        account.getFirstName(),
+        account.getLastName(),
+        account.getCompanyName(),
+        account.getSiretNumber(),
+        account.getVatNumber(),
+        account.getBillingEmail(),
+        account.getBillingAddressLine1(),
+        account.getBillingAddressLine2(),
+        account.getBillingPostalCode(),
+        account.getBillingCity(),
+        account.getBillingCountry(),
+        account.getCreatedAt(),
+        account.getUpdatedAt());
   }
 }

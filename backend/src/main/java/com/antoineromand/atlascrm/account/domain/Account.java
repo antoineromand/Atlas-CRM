@@ -3,7 +3,7 @@ package com.antoineromand.atlascrm.account.domain;
 import java.time.Instant;
 import java.util.UUID;
 
-public class Profile {
+public class Account {
   private final UUID id;
   private final UUID credentialsId;
   private final String firstName;
@@ -20,7 +20,7 @@ public class Profile {
   private final Instant createdAt;
   private final Instant updatedAt;
 
-  public Profile(
+  public Account(
       UUID id,
       UUID credentialsId,
       String firstName,

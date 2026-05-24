@@ -1,23 +1,23 @@
 package com.antoineromand.atlascrm.account.application.usecase.account;
 
 import com.antoineromand.atlascrm.account.application.exceptions.AccountNotFoundException;
-import com.antoineromand.atlascrm.account.domain.Profile;
-import com.antoineromand.atlascrm.account.domain.repository.IProfileRepository;
+import com.antoineromand.atlascrm.account.domain.Account;
+import com.antoineromand.atlascrm.account.domain.repository.IAccountRepository;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 @Service
 public class GetAccountUseCase implements IGetAccountUseCase {
 
-  private final IProfileRepository profileRepository;
+  private final IAccountRepository accountRepository;
 
-  public GetAccountUseCase(IProfileRepository profileRepository) {
-    this.profileRepository = profileRepository;
+  public GetAccountUseCase(IAccountRepository accountRepository) {
+    this.accountRepository = accountRepository;
   }
 
   @Override
-  public Profile execute(UUID credentialsId) {
-    return this.profileRepository.findByCredentialsId(credentialsId)
+  public Account execute(UUID credentialsId) {
+    return this.accountRepository.findByCredentialsId(credentialsId)
         .orElseThrow(AccountNotFoundException::new);
   }
 }

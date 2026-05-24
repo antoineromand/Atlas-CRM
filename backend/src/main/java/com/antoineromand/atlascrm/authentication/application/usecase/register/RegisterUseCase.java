@@ -3,9 +3,9 @@ package com.antoineromand.atlascrm.authentication.application.usecase.register;
 import com.antoineromand.atlascrm.authentication.application.exceptions.EmailAlreadyUsedException;
 import com.antoineromand.atlascrm.authentication.application.exceptions.AuthenticationException;
 import com.antoineromand.atlascrm.authentication.domain.Credentials;
-import com.antoineromand.atlascrm.account.domain.Profile;
+import com.antoineromand.atlascrm.account.domain.Account;
 import com.antoineromand.atlascrm.authentication.domain.repository.ICredentialsRepository;
-import com.antoineromand.atlascrm.account.domain.repository.IProfileRepository;
+import com.antoineromand.atlascrm.account.domain.repository.IAccountRepository;
 import com.antoineromand.atlascrm.authentication.domain.service.IPasswordService;
 import com.antoineromand.atlascrm.authentication.domain.valueobject.CredentialsStatus;
 import com.antoineromand.atlascrm.authentication.domain.valueobject.RoleName;
@@ -19,15 +19,15 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class RegisterUseCase implements IRegisterUseCase {
   private final ICredentialsRepository credentialsRepository;
-  private final IProfileRepository profileRepository;
+  private final IAccountRepository accountRepository;
   private final IPasswordService passwordService;
 
   public RegisterUseCase(
       ICredentialsRepository credentialsRepository,
-      IProfileRepository profileRepository,
+      IAccountRepository accountRepository,
       IPasswordService passwordService) {
     this.credentialsRepository = credentialsRepository;
-    this.profileRepository = profileRepository;
+    this.accountRepository = accountRepository;
     this.passwordService = passwordService;
   }
 
@@ -38,7 +38,7 @@ public class RegisterUseCase implements IRegisterUseCase {
     String hashedPassword = this.hashPassword(command.password());
     Credentials credentials = this.createCredentials(command, hashedPassword);
     UUID credentialsId = this.persistCredentials(credentials);
-    this.createUserProfile(credentialsId, command);
+    this.createUserAccount(credentialsId, command);
     return credentialsId;
   }
 
@@ -73,9 +73,9 @@ public class RegisterUseCase implements IRegisterUseCase {
     }
   }
 
-  private void createUserProfile(UUID credentialsId, RegisterCommand command) {
-    Profile profile =
-        new Profile(
+  private void createUserAccount(UUID credentialsId, RegisterCommand command) {
+    Account account =
+        new Account(
             null,
             credentialsId,
             command.firstName(),
@@ -91,6 +91,6 @@ public class RegisterUseCase implements IRegisterUseCase {
             null,
             Instant.now(),
             null);
-    this.profileRepository.save(profile);
+    this.accountRepository.save(account);
   }
 }

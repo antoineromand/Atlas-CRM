@@ -9,9 +9,9 @@ import static org.mockito.Mockito.when;
 
 import com.antoineromand.atlascrm.authentication.application.exceptions.EmailAlreadyUsedException;
 import com.antoineromand.atlascrm.authentication.domain.Credentials;
-import com.antoineromand.atlascrm.account.domain.Profile;
+import com.antoineromand.atlascrm.account.domain.Account;
 import com.antoineromand.atlascrm.authentication.domain.repository.ICredentialsRepository;
-import com.antoineromand.atlascrm.account.domain.repository.IProfileRepository;
+import com.antoineromand.atlascrm.account.domain.repository.IAccountRepository;
 import com.antoineromand.atlascrm.authentication.domain.service.IPasswordService;
 import com.antoineromand.atlascrm.authentication.domain.valueobject.CredentialsStatus;
 import com.antoineromand.atlascrm.authentication.domain.valueobject.RoleName;
@@ -29,7 +29,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class RegisterUseCaseTest {
 
   @Mock private ICredentialsRepository credentialsRepository;
-  @Mock private IProfileRepository profileRepository;
+  @Mock private IAccountRepository accountRepository;
   @Mock private IPasswordService passwordService;
 
   @InjectMocks private RegisterUseCase registerUseCase;
@@ -43,14 +43,14 @@ class RegisterUseCaseTest {
     when(credentialsRepository.findByEmail(command.email())).thenReturn(Optional.empty());
     when(passwordService.hashPassword(command.password())).thenReturn("hashed-password");
     when(credentialsRepository.save(any(Credentials.class))).thenReturn(credentialsId);
-    when(profileRepository.save(any(Profile.class))).thenReturn(UUID.randomUUID());
+    when(accountRepository.save(any(Account.class))).thenReturn(UUID.randomUUID());
 
     UUID result = registerUseCase.execute(command);
 
     assertEquals(credentialsId, result);
-    ArgumentCaptor<Profile> profileCaptor = ArgumentCaptor.forClass(Profile.class);
-    verify(profileRepository).save(profileCaptor.capture());
-    Profile savedProfile = profileCaptor.getValue();
+    ArgumentCaptor<Account> profileCaptor = ArgumentCaptor.forClass(Account.class);
+    verify(accountRepository).save(profileCaptor.capture());
+    Account savedProfile = profileCaptor.getValue();
     assertEquals(credentialsId, savedProfile.getCredentialsId());
     assertEquals("John", savedProfile.getFirstName());
     assertEquals("Doe", savedProfile.getLastName());
@@ -77,7 +77,7 @@ class RegisterUseCaseTest {
     assertThrows(EmailAlreadyUsedException.class, () -> registerUseCase.execute(command));
     verify(passwordService, never()).hashPassword(any());
     verify(credentialsRepository, never()).save(any());
-    verify(profileRepository, never()).save(any());
+    verify(accountRepository, never()).save(any());
   }
 
   @Test
@@ -89,11 +89,11 @@ class RegisterUseCaseTest {
     when(credentialsRepository.findByEmail(command.email())).thenReturn(Optional.empty());
     when(passwordService.hashPassword(command.password())).thenReturn("hashed-password");
     when(credentialsRepository.save(any(Credentials.class))).thenReturn(credentialsId);
-    when(profileRepository.save(any(Profile.class))).thenReturn(UUID.randomUUID());
+    when(accountRepository.save(any(Account.class))).thenReturn(UUID.randomUUID());
 
     registerUseCase.execute(command);
 
     verify(credentialsRepository).save(any(Credentials.class));
-    verify(profileRepository).save(any(Profile.class));
+    verify(accountRepository).save(any(Account.class));
   }
 }
