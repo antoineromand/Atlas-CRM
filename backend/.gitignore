@@ -1,0 +1,14 @@
+application-local.yml
+application-local.yaml
+application-dev.yml
+application-dev.yaml
+
+.gradle/
+build/
+out/
+
+# Logs
+*.log
+
+coverage/
+jacoco.exec
