@@ -44,7 +44,8 @@ public class AuthenticationController {
   @PostMapping("/register")
   public ResponseEntity<RegisterResponseDto> register(@Valid @RequestBody RegisterRequestDto dto) {
     UUID credentialsId =
-        this.registerUseCase.execute(new RegisterCommand(dto.email(), dto.password()));
+        this.registerUseCase.execute(
+            new RegisterCommand(dto.email(), dto.password(), dto.firstName(), dto.lastName()));
     return ResponseEntity.status(HttpStatus.CREATED)
         .body(
             new RegisterResponseDto(

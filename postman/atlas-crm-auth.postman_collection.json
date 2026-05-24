@@ -1,0 +1,149 @@
+{
+  "info": {
+    "name": "Atlas CRM Auth",
+    "_postman_id": "c0f1b7b0-0f5f-4b8e-9b2d-2fd56df5e2a1",
+    "description": "Postman collection for Atlas CRM authentication endpoints. Register creates credentials and an empty profile for users. Admins do not require a profile. Email verification is manual for now.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Register",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"Password123!\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/authentication/register",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "authentication",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Sign In",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"Password123!\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/authentication/sign-in",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "authentication",
+            "sign-in"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const response = pm.response.json();",
+              "if (response && response.refreshToken) {",
+              "  pm.collectionVariables.set('refreshToken', response.refreshToken);",
+              "}",
+              "if (response && response.accessToken) {",
+              "  pm.collectionVariables.set('accessToken', response.accessToken);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "Refresh Token",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{refreshToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/authentication/refresh-token",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "authentication",
+            "refresh-token"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Sign Out",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{refreshToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/authentication/sign-out",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "authentication",
+            "sign-out"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "refreshToken",
+      "value": ""
+    }
+  ]
+}

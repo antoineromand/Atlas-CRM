@@ -38,7 +38,7 @@ public class RegisterUseCase implements IRegisterUseCase {
     String hashedPassword = this.hashPassword(command.password());
     Credentials credentials = this.createCredentials(command, hashedPassword);
     UUID credentialsId = this.persistCredentials(credentials);
-    this.createUserProfile(credentialsId);
+    this.createUserProfile(credentialsId, command);
     return credentialsId;
   }
 
@@ -73,13 +73,13 @@ public class RegisterUseCase implements IRegisterUseCase {
     }
   }
 
-  private void createUserProfile(UUID credentialsId) {
+  private void createUserProfile(UUID credentialsId, RegisterCommand command) {
     Profile profile =
         new Profile(
             null,
             credentialsId,
-            null,
-            null,
+            command.firstName(),
+            command.lastName(),
             null,
             null,
             null,
