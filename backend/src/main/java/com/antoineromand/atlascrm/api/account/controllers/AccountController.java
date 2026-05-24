@@ -6,9 +6,9 @@ import com.antoineromand.atlascrm.account.application.usecase.account.PatchValue
 import com.antoineromand.atlascrm.account.application.usecase.account.UpdateAccountCommand;
 import com.antoineromand.atlascrm.account.domain.Account;
 import com.antoineromand.atlascrm.api.account.dto.AccountResponseDto;
-import com.fasterxml.jackson.databind.JsonNode;
 import java.security.Principal;
 import java.util.UUID;
+import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -36,7 +36,7 @@ public class AccountController {
 
   @PatchMapping("/me")
   public ResponseEntity<AccountResponseDto> updateMyAccount(
-      Principal principal, @RequestBody JsonNode body) {
+      Principal principal, @RequestBody Map<String, Object> body) {
     Account account =
         this.updateAccountUseCase.execute(
             this.extractCredentialsId(principal),
@@ -78,16 +78,20 @@ public class AccountController {
         account.getUpdatedAt());
   }
 
-  private PatchValue<String> patchString(JsonNode body, String fieldName, int maxLength) {
-    if (!body.has(fieldName)) {
+  private PatchValue<String> patchString(Map<String, Object> body, String fieldName, int maxLength) {
+    if (!body.containsKey(fieldName)) {
       return PatchValue.absent();
     }
 
-    if (body.get(fieldName).isNull()) {
+    Object rawValue = body.get(fieldName);
+    if (rawValue == null) {
       return PatchValue.of(null);
     }
 
-    String value = body.get(fieldName).asText();
+    if (!(rawValue instanceof String value)) {
+      throw new IllegalArgumentException(fieldName + " must be a string or null");
+    }
+
     if (value.length() > maxLength) {
       throw new IllegalArgumentException(fieldName + " exceeds max length of " + maxLength);
     }
@@ -95,16 +99,20 @@ public class AccountController {
     return PatchValue.of(value);
   }
 
-  private PatchValue<String> patchEmail(JsonNode body, String fieldName, int maxLength) {
-    if (!body.has(fieldName)) {
+  private PatchValue<String> patchEmail(Map<String, Object> body, String fieldName, int maxLength) {
+    if (!body.containsKey(fieldName)) {
       return PatchValue.absent();
     }
 
-    if (body.get(fieldName).isNull()) {
+    Object rawValue = body.get(fieldName);
+    if (rawValue == null) {
       return PatchValue.of(null);
     }
 
-    String value = body.get(fieldName).asText();
+    if (!(rawValue instanceof String value)) {
+      throw new IllegalArgumentException(fieldName + " must be a string or null");
+    }
+
     if (value.length() > maxLength) {
       throw new IllegalArgumentException(fieldName + " exceeds max length of " + maxLength);
     }

@@ -12,7 +12,6 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
-
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<ApiErrorResponse> handleValidationExceptions(
       MethodArgumentNotValidException ex) {
@@ -64,7 +63,7 @@ public class ApiExceptionHandler {
         .body(
             new ApiErrorResponse(
                 "INTERNAL_SERVER_ERROR",
-                "The server encountered an internal error.",
+                ex.getMessage() != null ? ex.getMessage() : "The server encountered an internal error.",
                 500,
                 null));
   }
