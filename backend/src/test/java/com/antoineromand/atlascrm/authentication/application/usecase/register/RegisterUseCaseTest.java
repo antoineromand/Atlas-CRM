@@ -9,9 +9,9 @@ import static org.mockito.Mockito.when;
 
 import com.antoineromand.atlascrm.authentication.application.exceptions.EmailAlreadyUsedException;
 import com.antoineromand.atlascrm.authentication.domain.Credentials;
-import com.antoineromand.atlascrm.authentication.domain.Profile;
+import com.antoineromand.atlascrm.account.domain.Profile;
 import com.antoineromand.atlascrm.authentication.domain.repository.ICredentialsRepository;
-import com.antoineromand.atlascrm.authentication.domain.repository.IProfileRepository;
+import com.antoineromand.atlascrm.account.domain.repository.IProfileRepository;
 import com.antoineromand.atlascrm.authentication.domain.service.IPasswordService;
 import com.antoineromand.atlascrm.authentication.domain.valueobject.CredentialsStatus;
 import com.antoineromand.atlascrm.authentication.domain.valueobject.RoleName;

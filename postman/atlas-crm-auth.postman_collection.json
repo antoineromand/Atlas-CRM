@@ -2,7 +2,7 @@
   "info": {
     "name": "Atlas CRM Auth",
     "_postman_id": "c0f1b7b0-0f5f-4b8e-9b2d-2fd56df5e2a1",
-    "description": "Postman collection for Atlas CRM authentication and profile endpoints. Register creates credentials and a profile for users. Admins do not require a profile. Email verification is manual for now.",
+    "description": "Postman collection for Atlas CRM authentication and account endpoints. Register creates credentials and an account profile for users. Admins do not require a profile. Email verification is manual for now.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -82,7 +82,7 @@
       "response": []
     },
     {
-      "name": "Get My Profile",
+      "name": "Get My Account",
       "request": {
         "method": "GET",
         "header": [
@@ -92,14 +92,14 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/v1/profile/me",
+          "raw": "{{baseUrl}}/api/v1/account/me",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
             "api",
             "v1",
-            "profile",
+            "account",
             "me"
           ]
         }
@@ -107,7 +107,7 @@
       "response": []
     },
     {
-      "name": "Update My Profile",
+      "name": "Update My Account",
       "request": {
         "method": "PATCH",
         "header": [
@@ -125,14 +125,14 @@
           "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"companyName\": \"JD Consulting\",\n  \"siretNumber\": \"12345678901234\",\n  \"vatNumber\": \"FR12345678901\",\n  \"billingEmail\": \"billing@example.com\",\n  \"billingAddressLine1\": \"10 rue de Paris\",\n  \"billingAddressLine2\": null,\n  \"billingPostalCode\": \"75000\",\n  \"billingCity\": \"Paris\",\n  \"billingCountry\": \"France\"\n}"
         },
         "url": {
-          "raw": "{{baseUrl}}/api/v1/profile/me",
+          "raw": "{{baseUrl}}/api/v1/account/me",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
             "api",
             "v1",
-            "profile",
+            "account",
             "me"
           ]
         }

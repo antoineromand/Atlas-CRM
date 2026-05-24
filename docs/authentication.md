@@ -7,9 +7,9 @@ Atlas CRM uses an email-first authentication flow with JWT access and refresh to
 The auth model is split into two parts:
 
 - `credentials` stores auth-only fields
-- `profile` stores user identity and billing data
+- `account` stores user identity and billing data
 
-`ADMIN` accounts do not need a profile. `USER` accounts get a profile and must provide `firstName` and `lastName` at registration.
+`ADMIN` accounts do not need a profile. `USER` accounts get an account profile and must provide `firstName` and `lastName` at registration.
 
 ## Data Model
 
@@ -25,9 +25,9 @@ The auth model is split into two parts:
 
 `status` is the account state, not the email validation flag.
 
-### Profile
+### Account
 
-`profile` contains:
+`account` contains:
 
 - `firstName`
 - `lastName`
@@ -47,7 +47,7 @@ Only the identifiers and timestamps are required in storage. The billing fields 
 
 ### Register
 
-- `USER` registration creates a `credentials` record and a matching `profile` record.
+- `USER` registration creates a `credentials` record and a matching account profile record.
 - `ADMIN` registration only needs `credentials`.
 - Email verification is manual for now. You can set `emailVerified = true` directly in the database when testing.
 
@@ -70,11 +70,11 @@ Only the identifiers and timestamps are required in storage. The billing fields 
 - Deletes the JTI from Redis
 - Revokes the token immediately
 
-### Profile
+### Account
 
-- `GET /api/v1/profile/me` returns the current user's profile
-- `PATCH /api/v1/profile/me` updates the current user's profile
-- `ADMIN` accounts return `404` on these routes because they do not have a profile
+- `GET /api/v1/account/me` returns the current user's account
+- `PATCH /api/v1/account/me` updates the current user's account
+- `ADMIN` accounts return `404` on these routes because they do not have an account profile
 - The payload is partial on `PATCH`, so only provided fields are updated
 
 ## Routes
@@ -83,8 +83,8 @@ Only the identifiers and timestamps are required in storage. The billing fields 
 - `POST /api/v1/authentication/sign-in`
 - `POST /api/v1/authentication/refresh-token`
 - `POST /api/v1/authentication/sign-out`
-- `GET /api/v1/profile/me`
-- `PATCH /api/v1/profile/me`
+- `GET /api/v1/account/me`
+- `PATCH /api/v1/account/me`
 
 ## Local Testing
 
@@ -92,4 +92,4 @@ The repository includes a Postman collection:
 
 - `postman/atlas-crm-auth.postman_collection.json`
 
-It covers the current authentication and profile endpoints and stores the access/refresh tokens in collection variables after sign-in.
+It covers the current authentication and account endpoints and stores the access/refresh tokens in collection variables after sign-in.
