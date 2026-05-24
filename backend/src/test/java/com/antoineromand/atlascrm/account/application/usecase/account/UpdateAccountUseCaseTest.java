@@ -54,7 +54,7 @@ class UpdateAccountUseCaseTest {
             "Jane",
             "Doe",
             "JD Consulting",
-            "12345678901234",
+            null,
             "FR12345678901",
             "billing@example.com",
             "20 rue de Lyon",
@@ -73,17 +73,17 @@ class UpdateAccountUseCaseTest {
         useCase.execute(
             credentialsId,
             new UpdateAccountCommand(
-                "Jane",
-                null,
-                null,
-                null,
-                null,
-                null,
-                "20 rue de Lyon",
-                null,
-                "69000",
-                "Lyon",
-                null));
+                PatchValue.of("Jane"),
+                PatchValue.absent(),
+                PatchValue.absent(),
+                PatchValue.of(null),
+                PatchValue.absent(),
+                PatchValue.absent(),
+                PatchValue.of("20 rue de Lyon"),
+                PatchValue.absent(),
+                PatchValue.of("69000"),
+                PatchValue.of("Lyon"),
+                PatchValue.absent()));
 
     ArgumentCaptor<Account> captor = ArgumentCaptor.forClass(Account.class);
     verify(accountRepository).save(captor.capture());
@@ -92,6 +92,7 @@ class UpdateAccountUseCaseTest {
     assertEquals(accountId, result.getId());
     assertEquals("Jane", saved.getFirstName());
     assertEquals("Doe", saved.getLastName());
+    assertEquals(null, saved.getSiretNumber());
     assertEquals("20 rue de Lyon", saved.getBillingAddressLine1());
     assertEquals("69000", saved.getBillingPostalCode());
     assertEquals("Lyon", saved.getBillingCity());
@@ -107,6 +108,20 @@ class UpdateAccountUseCaseTest {
 
     assertThrows(
         AccountNotFoundException.class,
-        () -> useCase.execute(credentialsId, new UpdateAccountCommand(null, null, null, null, null, null, null, null, null, null, null)));
+        () ->
+            useCase.execute(
+                credentialsId,
+                new UpdateAccountCommand(
+                    PatchValue.absent(),
+                    PatchValue.absent(),
+                    PatchValue.absent(),
+                    PatchValue.absent(),
+                    PatchValue.absent(),
+                    PatchValue.absent(),
+                    PatchValue.absent(),
+                    PatchValue.absent(),
+                    PatchValue.absent(),
+                    PatchValue.absent(),
+                    PatchValue.absent())));
   }
 }

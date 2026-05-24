@@ -73,7 +73,9 @@ Only the identifiers and timestamps are required in storage. The billing fields 
 ### Account
 
 - `GET /api/v1/account/me` returns the current user's account
-- `PATCH /api/v1/account/me` updates the current user's account
+- `PATCH /api/v1/account/me` updates only the fields present in the payload
+- If a field is omitted, it is left unchanged
+- If a field is sent as `null`, it is cleared
 - `ADMIN` accounts return `404` on these routes because they do not have an account
 - The payload is partial on `PATCH`, so only provided fields are updated
 

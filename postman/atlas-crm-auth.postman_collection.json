@@ -122,7 +122,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"companyName\": \"JD Consulting\",\n  \"siretNumber\": \"12345678901234\",\n  \"vatNumber\": \"FR12345678901\",\n  \"billingEmail\": \"billing@example.com\",\n  \"billingAddressLine1\": \"10 rue de Paris\",\n  \"billingAddressLine2\": null,\n  \"billingPostalCode\": \"75000\",\n  \"billingCity\": \"Paris\",\n  \"billingCountry\": \"France\"\n}"
+          "raw": "{\n  \"billingEmail\": \"billing@example.com\",\n  \"billingAddressLine1\": \"10 rue de Paris\",\n  \"billingPostalCode\": \"75000\",\n  \"billingCity\": \"Paris\"\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/api/v1/account/me",

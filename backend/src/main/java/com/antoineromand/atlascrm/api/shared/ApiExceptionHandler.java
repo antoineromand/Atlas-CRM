@@ -35,6 +35,12 @@ public class ApiExceptionHandler {
         .body(new ApiErrorResponse("MISSING_HEADER", ex.getMessage(), 400, null));
   }
 
+  @ExceptionHandler(IllegalArgumentException.class)
+  public ResponseEntity<ApiErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
+    return ResponseEntity.badRequest()
+        .body(new ApiErrorResponse("INVALID_PARAMETERS", ex.getMessage(), 400, null));
+  }
+
   @ExceptionHandler(AuthenticationException.class)
   public ResponseEntity<ApiErrorResponse> handleAuthenticationException(
       AuthenticationException ex) {

@@ -1,14 +1,14 @@
 package com.antoineromand.atlascrm.account.application.usecase.account;
 
 public record UpdateAccountCommand(
-    String firstName,
-    String lastName,
-    String companyName,
-    String siretNumber,
-    String vatNumber,
-    String billingEmail,
-    String billingAddressLine1,
-    String billingAddressLine2,
-    String billingPostalCode,
-    String billingCity,
-    String billingCountry) {}
+    PatchValue<String> firstName,
+    PatchValue<String> lastName,
+    PatchValue<String> companyName,
+    PatchValue<String> siretNumber,
+    PatchValue<String> vatNumber,
+    PatchValue<String> billingEmail,
+    PatchValue<String> billingAddressLine1,
+    PatchValue<String> billingAddressLine2,
+    PatchValue<String> billingPostalCode,
+    PatchValue<String> billingCity,
+    PatchValue<String> billingCountry) {}
