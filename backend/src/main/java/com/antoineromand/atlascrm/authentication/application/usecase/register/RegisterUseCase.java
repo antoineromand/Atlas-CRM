@@ -3,7 +3,9 @@ package com.antoineromand.atlascrm.authentication.application.usecase.register;
 import com.antoineromand.atlascrm.authentication.application.exceptions.EmailAlreadyUsedException;
 import com.antoineromand.atlascrm.authentication.application.exceptions.AuthenticationException;
 import com.antoineromand.atlascrm.authentication.domain.Credentials;
+import com.antoineromand.atlascrm.authentication.domain.Profile;
 import com.antoineromand.atlascrm.authentication.domain.repository.ICredentialsRepository;
+import com.antoineromand.atlascrm.authentication.domain.repository.IProfileRepository;
 import com.antoineromand.atlascrm.authentication.domain.service.IPasswordService;
 import com.antoineromand.atlascrm.authentication.domain.valueobject.CredentialsStatus;
 import com.antoineromand.atlascrm.authentication.domain.valueobject.RoleName;
@@ -17,11 +19,15 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class RegisterUseCase implements IRegisterUseCase {
   private final ICredentialsRepository credentialsRepository;
+  private final IProfileRepository profileRepository;
   private final IPasswordService passwordService;
 
   public RegisterUseCase(
-      ICredentialsRepository credentialsRepository, IPasswordService passwordService) {
+      ICredentialsRepository credentialsRepository,
+      IProfileRepository profileRepository,
+      IPasswordService passwordService) {
     this.credentialsRepository = credentialsRepository;
+    this.profileRepository = profileRepository;
     this.passwordService = passwordService;
   }
 
@@ -31,7 +37,9 @@ public class RegisterUseCase implements IRegisterUseCase {
 
     String hashedPassword = this.hashPassword(command.password());
     Credentials credentials = this.createCredentials(command, hashedPassword);
-    return this.persistCredentials(credentials);
+    UUID credentialsId = this.persistCredentials(credentials);
+    this.createUserProfile(credentialsId);
+    return credentialsId;
   }
 
   private void ensureEmailIsUnique(String email) {
@@ -63,5 +71,26 @@ public class RegisterUseCase implements IRegisterUseCase {
       throw new AuthenticationException(
           "DUPLICATED_CREDENTIALS", "A credentials record already exists.");
     }
+  }
+
+  private void createUserProfile(UUID credentialsId) {
+    Profile profile =
+        new Profile(
+            null,
+            credentialsId,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            Instant.now(),
+            null);
+    this.profileRepository.save(profile);
   }
 }
