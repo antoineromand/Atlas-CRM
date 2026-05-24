@@ -1,0 +1,11 @@
+.git
+.idea
+.DS_Store
+node_modules
+**/node_modules
+backend/build
+backend/.gradle
+**/.gradle
+frontend/build
+**/build
+dockerfiles/backend/.DS_Store
