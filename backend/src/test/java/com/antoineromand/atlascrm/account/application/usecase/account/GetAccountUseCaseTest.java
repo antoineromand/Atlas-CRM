@@ -21,7 +21,7 @@ class GetAccountUseCaseTest {
   @Mock private IAccountRepository accountRepository;
 
   @Test
-  void executeShouldReturnExistingProfile() {
+  void executeShouldReturnExistingAccount() {
     GetAccountUseCase useCase = new GetAccountUseCase(accountRepository);
     UUID credentialsId = UUID.randomUUID();
     Account account =
@@ -53,7 +53,7 @@ class GetAccountUseCaseTest {
   }
 
   @Test
-  void executeShouldThrowWhenProfileDoesNotExist() {
+  void executeShouldThrowWhenAccountDoesNotExist() {
     GetAccountUseCase useCase = new GetAccountUseCase(accountRepository);
     UUID credentialsId = UUID.randomUUID();
 

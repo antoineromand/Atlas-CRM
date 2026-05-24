@@ -25,14 +25,14 @@ class UpdateAccountUseCaseTest {
   @Mock private IAccountRepository accountRepository;
 
   @Test
-  void executeShouldMergeFieldsAndReturnUpdatedProfile() {
+  void executeShouldMergeFieldsAndReturnUpdatedAccount() {
     UpdateAccountUseCase useCase = new UpdateAccountUseCase(accountRepository);
     UUID credentialsId = UUID.randomUUID();
-    UUID profileId = UUID.randomUUID();
+    UUID accountId = UUID.randomUUID();
     Instant createdAt = Instant.now();
     Account existing =
         new Account(
-            profileId,
+            accountId,
             credentialsId,
             "John",
             "Doe",
@@ -49,7 +49,7 @@ class UpdateAccountUseCaseTest {
             null);
     Account updated =
         new Account(
-            profileId,
+            accountId,
             credentialsId,
             "Jane",
             "Doe",
@@ -67,7 +67,7 @@ class UpdateAccountUseCaseTest {
 
     when(accountRepository.findByCredentialsId(credentialsId))
         .thenReturn(Optional.of(existing), Optional.of(updated));
-    when(accountRepository.save(any(Account.class))).thenReturn(profileId);
+    when(accountRepository.save(any(Account.class))).thenReturn(accountId);
 
     Account result =
         useCase.execute(
@@ -89,7 +89,7 @@ class UpdateAccountUseCaseTest {
     verify(accountRepository).save(captor.capture());
     Account saved = captor.getValue();
 
-    assertEquals(profileId, result.getId());
+    assertEquals(accountId, result.getId());
     assertEquals("Jane", saved.getFirstName());
     assertEquals("Doe", saved.getLastName());
     assertEquals("20 rue de Lyon", saved.getBillingAddressLine1());
@@ -99,7 +99,7 @@ class UpdateAccountUseCaseTest {
   }
 
   @Test
-  void executeShouldThrowWhenProfileDoesNotExist() {
+  void executeShouldThrowWhenAccountDoesNotExist() {
     UpdateAccountUseCase useCase = new UpdateAccountUseCase(accountRepository);
     UUID credentialsId = UUID.randomUUID();
 

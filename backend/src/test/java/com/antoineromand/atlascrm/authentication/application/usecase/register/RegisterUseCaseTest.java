@@ -35,7 +35,7 @@ class RegisterUseCaseTest {
   @InjectMocks private RegisterUseCase registerUseCase;
 
   @Test
-  void executeShouldPersistCredentialsAndCreateProfileWithIdentity() {
+  void executeShouldPersistCredentialsAndCreateAccountWithIdentity() {
     RegisterCommand command =
         new RegisterCommand("user@example.com", "Password123!", "John", "Doe");
     UUID credentialsId = UUID.randomUUID();
@@ -48,13 +48,13 @@ class RegisterUseCaseTest {
     UUID result = registerUseCase.execute(command);
 
     assertEquals(credentialsId, result);
-    ArgumentCaptor<Account> profileCaptor = ArgumentCaptor.forClass(Account.class);
-    verify(accountRepository).save(profileCaptor.capture());
-    Account savedProfile = profileCaptor.getValue();
-    assertEquals(credentialsId, savedProfile.getCredentialsId());
-    assertEquals("John", savedProfile.getFirstName());
-    assertEquals("Doe", savedProfile.getLastName());
-    assertEquals(null, savedProfile.getCompanyName());
+    ArgumentCaptor<Account> accountCaptor = ArgumentCaptor.forClass(Account.class);
+    verify(accountRepository).save(accountCaptor.capture());
+    Account savedAccount = accountCaptor.getValue();
+    assertEquals(credentialsId, savedAccount.getCredentialsId());
+    assertEquals("John", savedAccount.getFirstName());
+    assertEquals("Doe", savedAccount.getLastName());
+    assertEquals(null, savedAccount.getCompanyName());
     verify(credentialsRepository).save(any(Credentials.class));
   }
 
@@ -81,7 +81,7 @@ class RegisterUseCaseTest {
   }
 
   @Test
-  void executeShouldPropagateProfileCreationAfterCredentialsSave() {
+  void executeShouldPropagateAccountCreationAfterCredentialsSave() {
     RegisterCommand command =
         new RegisterCommand("user@example.com", "Password123!", "John", "Doe");
     UUID credentialsId = UUID.randomUUID();

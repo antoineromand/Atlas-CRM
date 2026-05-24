@@ -16,12 +16,12 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-@Table(name = "profiles")
+@Table(name = "accounts")
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 public class AccountEntity {
   @Id
-  @Column(name = "profile_id", columnDefinition = "uuid", updatable = false, nullable = false)
+  @Column(name = "account_id", columnDefinition = "uuid", updatable = false, nullable = false)
   private UUID id = UUID.randomUUID();
 
   @OneToOne(fetch = FetchType.LAZY)

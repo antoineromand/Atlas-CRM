@@ -2,7 +2,7 @@
   "info": {
     "name": "Atlas CRM Auth",
     "_postman_id": "c0f1b7b0-0f5f-4b8e-9b2d-2fd56df5e2a1",
-    "description": "Postman collection for Atlas CRM authentication and account endpoints. Register creates credentials and an account profile for users. Admins do not require a profile. Email verification is manual for now.",
+    "description": "Postman collection for Atlas CRM authentication and account endpoints. Register creates credentials and an account for users. Admins do not require an account. Email verification is manual for now.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [

@@ -9,7 +9,7 @@ The auth model is split into two parts:
 - `credentials` stores auth-only fields
 - `account` stores user identity and billing data
 
-`ADMIN` accounts do not need a profile. `USER` accounts get an account profile and must provide `firstName` and `lastName` at registration.
+`ADMIN` accounts do not need an account. `USER` accounts get an account and must provide `firstName` and `lastName` at registration.
 
 ## Data Model
 
@@ -47,7 +47,7 @@ Only the identifiers and timestamps are required in storage. The billing fields 
 
 ### Register
 
-- `USER` registration creates a `credentials` record and a matching account profile record.
+- `USER` registration creates a `credentials` record and a matching account record.
 - `ADMIN` registration only needs `credentials`.
 - Email verification is manual for now. You can set `emailVerified = true` directly in the database when testing.
 
@@ -74,7 +74,7 @@ Only the identifiers and timestamps are required in storage. The billing fields 
 
 - `GET /api/v1/account/me` returns the current user's account
 - `PATCH /api/v1/account/me` updates the current user's account
-- `ADMIN` accounts return `404` on these routes because they do not have an account profile
+- `ADMIN` accounts return `404` on these routes because they do not have an account
 - The payload is partial on `PATCH`, so only provided fields are updated
 
 ## Routes
