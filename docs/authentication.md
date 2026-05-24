@@ -70,12 +70,21 @@ Only the identifiers and timestamps are required in storage. The billing fields 
 - Deletes the JTI from Redis
 - Revokes the token immediately
 
+### Profile
+
+- `GET /api/v1/profile/me` returns the current user's profile
+- `PATCH /api/v1/profile/me` updates the current user's profile
+- `ADMIN` accounts return `404` on these routes because they do not have a profile
+- The payload is partial on `PATCH`, so only provided fields are updated
+
 ## Routes
 
 - `POST /api/v1/authentication/register`
 - `POST /api/v1/authentication/sign-in`
 - `POST /api/v1/authentication/refresh-token`
 - `POST /api/v1/authentication/sign-out`
+- `GET /api/v1/profile/me`
+- `PATCH /api/v1/profile/me`
 
 ## Local Testing
 
@@ -83,4 +92,4 @@ The repository includes a Postman collection:
 
 - `postman/atlas-crm-auth.postman_collection.json`
 
-It covers the current authentication endpoints and stores the refresh token in a collection variable after sign-in.
+It covers the current authentication and profile endpoints and stores the access/refresh tokens in collection variables after sign-in.

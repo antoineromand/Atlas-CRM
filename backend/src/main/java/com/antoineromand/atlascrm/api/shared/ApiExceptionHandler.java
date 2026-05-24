@@ -7,7 +7,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -43,7 +42,7 @@ public class ApiExceptionHandler {
         switch (ex.getCode()) {
           case "EMAIL_ALREADY_USED", "DUPLICATED_CREDENTIALS" -> HttpStatus.CONFLICT;
           case "CREDENTIALS_NOT_ACTIVE" -> HttpStatus.FORBIDDEN;
-          case "CREDENTIALS_NOT_FOUND" -> HttpStatus.NOT_FOUND;
+          case "CREDENTIALS_NOT_FOUND", "PROFILE_NOT_FOUND" -> HttpStatus.NOT_FOUND;
           case "INVALID_TOKEN", "TOKEN_REVOKED", "INVALID_CREDENTIALS", "EMAIL_NOT_VERIFIED" ->
               HttpStatus.UNAUTHORIZED;
           default -> HttpStatus.BAD_REQUEST;
