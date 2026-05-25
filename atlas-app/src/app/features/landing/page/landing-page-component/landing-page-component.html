@@ -1,0 +1,83 @@
+<app-marketing-header [links]="navLinks" ctaLabel="Join us" ctaHref="/login" />
+
+<main class="landing-page">
+  <app-hero-section
+    eyebrow="The essential tool for independents"
+    title="Run your freelance business with calm and clarity"
+    description="Atlas CRM centralizes your clients, invoices, and missions in a stripped-back interface built for focus."
+    primaryLabel="Join us"
+    secondaryLabel="Explore the theme"
+    primaryHref="/login"
+    secondaryHref="#dashboard"
+    screenSrc="/atlas/screens/dashboard/screen.png"
+    screenAlt="Atlas CRM dashboard screenshot"
+    screenLabel="Dashboard"
+    [stats]="heroStats" />
+
+  <section id="features" class="section-shell">
+    <div class="container-shell">
+      <app-section-heading
+        eyebrow="What the product covers"
+        title="Everything you need"
+        description="A minimalist interface that reduces visual noise and keeps the useful work in focus."
+        align="center" />
+
+      <div class="landing-page__feature-grid">
+        @for (feature of features; track feature.title) {
+          <app-feature-card
+            [icon]="feature.icon"
+            [title]="feature.title"
+            [description]="feature.description"
+            [tone]="feature.tone" />
+        }
+      </div>
+    </div>
+  </section>
+
+  <section id="dashboard" class="section-shell section-shell--soft">
+    <div class="container-shell">
+      <app-section-heading
+        eyebrow="Reference screens"
+        title="Real screens instead of a fake mockup"
+        description="The landing relies on the existing theme screenshots to stay faithful to the Atlas CRM design system."
+        align="center" />
+
+      <div class="landing-page__screen-grid">
+        @for (screen of screens; track screen.title) {
+          <app-screen-card
+            [imageSrc]="screen.imageSrc"
+            [imageAlt]="screen.imageAlt"
+            [title]="screen.title"
+            [description]="screen.description"
+            [frameLabel]="screen.frameLabel" />
+        }
+      </div>
+    </div>
+  </section>
+
+  <section id="benefits" class="section-shell">
+    <div class="container-shell">
+      <app-section-heading
+        eyebrow="Why it works"
+        title="Trust starts with clarity"
+        description="The visual identity stays sober, structured, and credible, just like the project reference dashboard."
+        align="center" />
+
+      <div class="landing-page__benefit-grid">
+        @for (benefit of benefits; track benefit.title) {
+          <app-feature-card
+            [icon]="benefit.icon"
+            [title]="benefit.title"
+            [description]="benefit.description"
+            [tone]="benefit.tone" />
+        }
+      </div>
+
+      <div class="landing-page__testimony-wrap">
+        <app-testimonial-band [items]="testimonials" />
+      </div>
+    </div>
+  </section>
+
+  <app-marketing-footer />
+</main>

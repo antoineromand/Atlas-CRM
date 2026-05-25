@@ -1,0 +1,7 @@
+<article class="stat-card" [class.stat-card--secondary]="tone === 'secondary'" [class.stat-card--accent]="tone === 'accent'" [class.stat-card--danger]="tone === 'danger'">
+  <p class="stat-card__label">{{ label }}</p>
+  <div class="stat-card__value">{{ value }}</div>
+  @if (meta) {
+    <p class="stat-card__meta">{{ meta }}</p>
+  }
+</article>

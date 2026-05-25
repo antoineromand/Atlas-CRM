@@ -1,0 +1,21 @@
+:host {
+  display: inline-flex;
+}
+
+.brand-mark {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 0.75rem;
+  background: linear-gradient(135deg, #1e293b 0%, #091426 100%);
+  box-shadow: var(--shadow-soft);
+}
+
+.brand-mark__letter {
+  color: var(--color-on-primary);
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.08em;
+}

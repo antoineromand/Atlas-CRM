@@ -1,0 +1,24 @@
+<section class="testimonial-band" aria-label="Customer testimonials">
+  <div class="testimonial-band__track">
+    @for (item of items; track $index) {
+      <article class="testimonial-band__item">
+        <blockquote class="testimonial-band__quote">"{{ item.quote }}"</blockquote>
+        <div class="testimonial-band__meta">
+          <span class="testimonial-band__author">{{ item.author }}</span>
+          <span class="testimonial-band__divider">•</span>
+          <span class="testimonial-band__role">{{ item.role }}</span>
+        </div>
+      </article>
+    }
+    @for (item of items; track $index) {
+      <article class="testimonial-band__item" aria-hidden="true">
+        <blockquote class="testimonial-band__quote">"{{ item.quote }}"</blockquote>
+        <div class="testimonial-band__meta">
+          <span class="testimonial-band__author">{{ item.author }}</span>
+          <span class="testimonial-band__divider">•</span>
+          <span class="testimonial-band__role">{{ item.role }}</span>
+        </div>
+      </article>
+    }
+  </div>
+</section>
