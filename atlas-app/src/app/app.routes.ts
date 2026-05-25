@@ -13,10 +13,10 @@ export const routes: Routes = [
             .then(m => m.LandingPageComponent)
       },
       {
-        path: 'login',
+        path: 'register',
         loadComponent: () =>
-          import('./features/auth/page/login-page-component/login-page-component')
-            .then(m => m.LoginPageComponent)
+          import('./features/auth/page/register-page-component/register-page-component')
+            .then(m => m.RegisterPageComponent)
       },
     ],
   },
