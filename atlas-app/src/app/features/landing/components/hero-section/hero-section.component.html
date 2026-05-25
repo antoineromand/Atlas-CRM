@@ -1,0 +1,29 @@
+<section class="hero-section">
+  <div class="container-shell hero-section__grid">
+    <div class="hero-section__copy">
+      <span class="pill hero-section__pill">{{ eyebrow }}</span>
+      <h1 class="display-title hero-section__title">{{ title }}</h1>
+      <p class="hero-section__description">{{ description }}</p>
+
+      <div class="hero-section__actions">
+        <a class="btn btn--primary" [routerLink]="primaryHref">{{ primaryLabel }}</a>
+        <a class="btn btn--secondary" [attr.href]="secondaryHref">{{ secondaryLabel }}</a>
+      </div>
+
+      <div class="hero-section__stats">
+        @for (stat of stats; track stat.label) {
+          <app-stat-card
+            [label]="stat.label"
+            [value]="stat.value"
+            [meta]="stat.meta"
+            [tone]="stat.tone" />
+        }
+      </div>
+    </div>
+
+    <app-screen-card
+      [imageSrc]="screenSrc"
+      [imageAlt]="screenAlt"
+      [frameLabel]="screenLabel" />
+  </div>
+</section>

@@ -1,0 +1,67 @@
+:host {
+  display: block;
+}
+
+.testimonial-band {
+  overflow: hidden;
+  padding: 0;
+  border-top: 1px solid rgba(197, 198, 205, 0.35);
+  border-bottom: 1px solid rgba(197, 198, 205, 0.35);
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.testimonial-band__track {
+  display: flex;
+  gap: 2rem;
+  width: max-content;
+  padding: 1rem 0;
+  animation: testimonial-scroll 24s linear infinite;
+}
+
+.testimonial-band__item {
+  width: min(30rem, 88vw);
+  flex: 0 0 auto;
+  padding: 0 1.5rem;
+  display: grid;
+  gap: 0.75rem;
+  border-left: 1px solid rgba(197, 198, 205, 0.35);
+}
+
+.testimonial-band__quote {
+  margin: 0;
+  color: var(--color-primary);
+  font-family: var(--font-display);
+  font-size: clamp(1.1rem, 1.8vw, 1.4rem);
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.03em;
+}
+
+.testimonial-band__meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.testimonial-band__author,
+.testimonial-band__role {
+  color: var(--color-secondary);
+  font-family: var(--font-label);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.testimonial-band__divider {
+  color: var(--color-outline-soft);
+}
+
+@keyframes testimonial-scroll {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}

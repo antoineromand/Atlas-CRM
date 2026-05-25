@@ -1,0 +1,22 @@
+<header class="marketing-header">
+  <div class="container-shell marketing-header__inner">
+    <a class="marketing-header__brand" routerLink="/">
+      <app-brand-mark />
+      <span class="marketing-header__name">Atlas CRM</span>
+    </a>
+
+    <div class="marketing-header__actions">
+    <nav class="marketing-header__nav" aria-label="Main navigation">
+        @for (link of links; track link.label) {
+          <a class="marketing-header__link" [href]="link.href">{{ link.label }}</a>
+        }
+      </nav>
+
+      <a class="btn btn--primary marketing-header__cta" [routerLink]="ctaHref">{{ ctaLabel }}</a>
+    </div>
+
+    <button class="marketing-header__menu" type="button" aria-label="Open navigation">
+      <span class="material-symbols-outlined">menu</span>
+    </button>
+  </div>
+</header>

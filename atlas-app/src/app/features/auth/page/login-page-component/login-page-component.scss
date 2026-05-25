@@ -1,0 +1,56 @@
+:host {
+  display: block;
+}
+
+.login-page {
+  min-height: 100vh;
+  padding: 1.5rem;
+}
+
+.login-page__layout {
+  width: min(100%, 80rem);
+  margin: 0 auto;
+  min-height: calc(100vh - 3rem);
+  display: grid;
+  gap: 2rem;
+  align-items: center;
+  grid-template-columns: 0.95fr 1.05fr;
+}
+
+.login-page__copy {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.login-page__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.login-page__brand-name {
+  color: var(--color-primary);
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-weight: 700;
+}
+
+.login-page__title {
+  max-width: 13ch;
+}
+
+.login-page__description {
+  max-width: 34rem;
+}
+
+.login-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+@media (max-width: 64rem) {
+  .login-page__layout {
+    grid-template-columns: 1fr;
+  }
+}
