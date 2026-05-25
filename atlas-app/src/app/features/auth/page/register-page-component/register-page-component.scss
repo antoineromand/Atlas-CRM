@@ -1,0 +1,13 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+}
+
+.container-body {
+  flex: 1;
+}
+
+.container-footer {
+  padding: 3rem;
+}
