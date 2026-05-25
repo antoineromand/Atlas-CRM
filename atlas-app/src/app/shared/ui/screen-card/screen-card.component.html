@@ -1,0 +1,25 @@
+<article class="screen-card surface-card">
+  <div class="screen-card__chrome">
+    <div class="screen-card__dots" aria-hidden="true">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    <span class="screen-card__frame-label">{{ frameLabel }}</span>
+  </div>
+
+  <div class="screen-card__viewport">
+    <img class="screen-card__image" [src]="imageSrc" [alt]="imageAlt" loading="lazy">
+  </div>
+
+  @if (title || description) {
+    <div class="screen-card__meta">
+      @if (title) {
+        <h3 class="screen-card__title">{{ title }}</h3>
+      }
+      @if (description) {
+        <p class="screen-card__description">{{ description }}</p>
+      }
+    </div>
+  }
+</article>
