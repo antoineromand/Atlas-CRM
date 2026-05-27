@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { RegisterFormComponent } from './register-form-component';
 
@@ -9,13 +10,23 @@ describe('RegisterFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [RegisterFormComponent],
+      imports: [RegisterFormComponent, ReactiveFormsModule],
       providers: [provideRouter([])],
     })
     .compileComponents();
 
     fixture = TestBed.createComponent(RegisterFormComponent);
     component = fixture.componentInstance;
+
+    fixture.componentRef.setInput(
+      'form',
+      new FormGroup({
+        email: new FormControl<string | null>(null, [Validators.required, Validators.email]),
+        password: new FormControl<string | null>(null, [Validators.required, Validators.minLength(8)]),
+        firstName: new FormControl<string | null>(null, [Validators.required, Validators.minLength(2)]),
+        lastName: new FormControl<string | null>(null, [Validators.required, Validators.minLength(2)]),
+      })
+    );
     fixture.detectChanges();
   });
 
