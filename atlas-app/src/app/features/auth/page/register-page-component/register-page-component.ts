@@ -10,7 +10,6 @@ import {NotificationService} from '../../../../core/services/notification/notifi
   selector: 'app-register-page-component',
   standalone: true,
   imports: [RegisterHeaderComponent, RegisterFormComponent, ReactiveFormsModule],
-  providers: [AuthService],
   templateUrl: './register-page-component.html',
   styleUrl: './register-page-component.scss',
 })

@@ -20,4 +20,10 @@ describe('RegisterHeaderComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('should render the brand copy', () => {
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('h1')?.textContent).toContain('Atlas CRM');
+    expect(compiled.querySelector('.quote')?.textContent).toContain('Professional client management made simple.');
+  });
 });

@@ -18,6 +18,12 @@ export const routes: Routes = [
           import('./features/auth/page/register-page-component/register-page-component')
             .then(m => m.RegisterPageComponent)
       },
+      {
+        path: 'login',
+        loadComponent: () =>
+          import('./features/auth/page/login-page-component/login-page-component')
+            .then(m => m.LoginPageComponent)
+      },
     ],
   },
 ];

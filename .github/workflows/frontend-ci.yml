@@ -1,0 +1,42 @@
+name: Frontend CI
+
+on:
+  pull_request:
+    paths:
+      - "atlas-app/**"
+      - ".github/workflows/frontend-ci.yml"
+
+concurrency:
+  group: frontend-ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  test-and-build:
+    name: Test and build frontend
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: atlas-app
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js 20 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.19.0"
+          cache: npm
+          cache-dependency-path: atlas-app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm test -- --watch=false --browsers=ChromeHeadless --progress=false
+
+      - name: Build application
+        run: npm run build
