@@ -17,5 +17,5 @@ export interface MarketingLink {
 export class MarketingHeaderComponent {
   @Input() links: readonly MarketingLink[] = [];
   @Input() ctaLabel = 'Join us';
-  @Input() ctaHref = '/login';
+  @Input() ctaHref = '/register';
 }
