@@ -1,0 +1,74 @@
+<section class="register-form surface-card surface-card--strong">
+  <div class="register-form__header">
+    <p class="eyebrow">Create account</p>
+    <h2 class="register-form__title">Start your Atlas CRM workspace.</h2>
+    <p class="register-form__quote">
+      Join thousands of independent professionals who keep clients, missions, and invoices in one place.
+    </p>
+  </div>
+
+  <form class="register-form__form" [formGroup]="form()" (ngSubmit)="submit()">
+    <div class="register-form__row">
+      <label class="register-form__field register-form__field--full" [class.register-form__field--error]="hasError('email')">
+        <span>Email address</span>
+        <input
+          type="email"
+          name="email"
+          formControlName="email"
+          placeholder="jane@studio.com"
+          autocomplete="email" />
+        @if (hasError('email')) {
+          <small class="register-form__error">{{ errorMessage('email') }}</small>
+        }
+      </label>
+
+      <label class="register-form__field register-form__field--full" [class.register-form__field--error]="hasError('password')">
+        <span>Password</span>
+        <input
+          type="password"
+          name="password"
+          formControlName="password"
+          placeholder="••••••••"
+          autocomplete="new-password" />
+        @if (hasError('password')) {
+          <small class="register-form__error">{{ errorMessage('password') }}</small>
+        }
+      </label>
+
+      <label class="register-form__field" [class.register-form__field--error]="hasError('firstName')">
+        <span>First name</span>
+        <input
+          type="text"
+          name="firstName"
+          formControlName="firstName"
+          placeholder="Jane"
+          autocomplete="given-name" />
+        @if (hasError('firstName')) {
+          <small class="register-form__error">{{ errorMessage('firstName') }}</small>
+        }
+      </label>
+
+      <label class="register-form__field" [class.register-form__field--error]="hasError('lastName')">
+        <span>Last name</span>
+        <input
+          type="text"
+          name="lastName"
+          formControlName="lastName"
+          placeholder="Doe"
+          autocomplete="family-name" />
+        @if (hasError('lastName')) {
+          <small class="register-form__error">{{ errorMessage('lastName') }}</small>
+        }
+      </label>
+    </div>
+
+    <button class="btn btn--primary register-form__submit" type="submit">
+      Create account
+    </button>
+
+    <p class="register-form__note">
+      Already have an account?
+      <a routerLink="/login">Sign in</a>
+    </p>
+  </form>
+</section>

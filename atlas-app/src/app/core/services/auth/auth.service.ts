@@ -8,8 +8,8 @@ import {HttpClient} from '@angular/common/http';
 export class AuthService {
 
   // TODO: replace baseUrl with environment variable
-  private baseUrl: string = "http://localhost:3000";
-  private authEndpoint: string = "api/v1/authentication";
+  private baseUrl: string = 'http://localhost:3000/api';
+  private authEndpoint: string = 'v1/authentication';
   private httpClient = inject(HttpClient);
 
   public register(command: RegisterCommand): Observable<RegisterResponse>{

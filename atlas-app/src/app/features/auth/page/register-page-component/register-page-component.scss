@@ -6,8 +6,10 @@
 
 .container-body {
   flex: 1;
-}
-
-.container-footer {
-  padding: 3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  padding: 2rem 1.5rem;
 }
