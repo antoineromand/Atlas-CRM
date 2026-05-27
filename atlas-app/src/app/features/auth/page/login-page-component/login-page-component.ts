@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { BrandMarkComponent } from '../../../../shared/ui/brand-mark/brand-mark.component';
 import { AuthService } from '../../../../core/services/auth/auth.service';
+import { AuthStateService } from '../../../../core/services/auth/auth-state.service';
 import { LoginCommand } from '../../../../core/interface/auth.interface';
 import { NotificationService } from '../../../../core/services/notification/notification.service';
 
@@ -16,6 +17,7 @@ import { NotificationService } from '../../../../core/services/notification/noti
 })
 export class LoginPageComponent {
   private readonly authService = inject(AuthService);
+  private readonly authStateService = inject(AuthStateService);
   private readonly notificationService = inject(NotificationService);
   private readonly router = inject(Router);
 
@@ -47,7 +49,7 @@ export class LoginPageComponent {
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({
         next: (tokens) => {
-          this.authService.setSession(tokens);
+          this.authStateService.setAccessToken(tokens.accessToken);
           this.notificationService.success('Welcome back.');
           void this.router.navigateByUrl('/');
         },
