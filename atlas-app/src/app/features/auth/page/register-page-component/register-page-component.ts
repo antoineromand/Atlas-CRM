@@ -4,6 +4,7 @@ import {RegisterFormComponent} from '../../components/register-form-component/re
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {RegisterCommand} from '../../../../core/interface/auth.interface';
 import {AuthService} from '../../../../core/services/auth/auth.service';
+import {NotificationService} from '../../../../core/services/notification/notification.service';
 
 @Component({
   selector: 'app-register-page-component',
@@ -15,6 +16,7 @@ import {AuthService} from '../../../../core/services/auth/auth.service';
 })
 export class RegisterPageComponent {
     authService = inject(AuthService);
+    notificationService = inject(NotificationService);
     registerForm = new FormGroup({
       email: new FormControl<string | null>(null, [Validators.required, Validators.minLength(2), Validators.email]),
       password: new FormControl<string | null>(null, [
@@ -33,9 +35,14 @@ export class RegisterPageComponent {
         return;
       }
       const request: RegisterCommand = this.registerForm.value as RegisterCommand;
-      console.log(request);
-      this.authService.register(request).subscribe((data) => {
-        console.log(data.message);
-      })
+      this.authService.register(request).subscribe({
+        next: (data) => {
+          this.notificationService.success(data.message || 'Account created successfully.');
+        },
+        error: (error) => {
+          const message = error?.error?.message ?? 'Registration failed. Please try again.';
+          this.notificationService.error(message);
+        },
+      });
     }
 }

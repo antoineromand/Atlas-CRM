@@ -1,0 +1,18 @@
+<div class="toast-stack" aria-live="polite" aria-atomic="true">
+  @for (notification of notifications(); track notification.id) {
+    <article class="toast toast--{{ notification.variant }}" [attr.role]="notification.variant === 'error' ? 'alert' : 'status'">
+      <div class="toast__icon" aria-hidden="true">
+        <span class="material-symbols-outlined">{{ iconFor(notification.variant) }}</span>
+      </div>
+
+      <div class="toast__body">
+        <p class="toast__title">{{ notification.title }}</p>
+        <p class="toast__message">{{ notification.message }}</p>
+      </div>
+
+      <button type="button" class="toast__close" (click)="close(notification)" aria-label="Dismiss notification">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </article>
+  }
+</div>
