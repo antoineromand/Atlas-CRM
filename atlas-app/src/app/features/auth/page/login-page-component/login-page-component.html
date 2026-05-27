@@ -1,0 +1,66 @@
+<section class="login-page container-shell">
+  <div class="login-page__grid">
+    <aside class="login-page__intro surface-card">
+      <app-brand-mark size="4rem" />
+
+      <div class="login-page__intro-copy">
+        <p class="eyebrow">Welcome back</p>
+        <h1 class="display-title login-page__title">Sign in to Atlas CRM.</h1>
+        <p class="section-copy">
+          Resume your client work with a calm workspace designed for independent professionals.
+        </p>
+      </div>
+
+      <ul class="login-page__benefits" aria-label="Login benefits">
+        <li>Keep your access tokens safe with a refresh cookie.</li>
+        <li>Get instant feedback with Atlas notifications.</li>
+        <li>Move between client work and onboarding without friction.</li>
+      </ul>
+    </aside>
+
+    <section class="login-page__card surface-card surface-card--strong">
+      <div class="login-page__header">
+        <p class="eyebrow">Secure access</p>
+        <h2 class="login-page__heading">Continue with your account</h2>
+        <p class="login-page__subcopy">Use the email and password you created during registration.</p>
+      </div>
+
+      <form class="login-page__form" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <label class="login-page__field" [class.login-page__field--error]="hasError('email')">
+          <span>Email address</span>
+          <input
+            type="email"
+            name="email"
+            formControlName="email"
+            placeholder="jane@studio.com"
+            autocomplete="email" />
+          @if (hasError('email')) {
+            <small class="login-page__error">{{ errorMessage('email') }}</small>
+          }
+        </label>
+
+        <label class="login-page__field" [class.login-page__field--error]="hasError('password')">
+          <span>Password</span>
+          <input
+            type="password"
+            name="password"
+            formControlName="password"
+            placeholder="••••••••"
+            autocomplete="current-password" />
+          @if (hasError('password')) {
+            <small class="login-page__error">{{ errorMessage('password') }}</small>
+          }
+        </label>
+
+        <button class="btn btn--primary login-page__submit" type="submit" [disabled]="isSubmitting()">
+          {{ isSubmitting() ? 'Signing in...' : 'Sign in' }}
+        </button>
+
+        <p class="login-page__note">
+          Need an account?
+          <a routerLink="/register">Create one</a>
+        </p>
+      </form>
+    </section>
+  </div>
+</section>

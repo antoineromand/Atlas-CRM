@@ -5,6 +5,20 @@ export interface RegisterCommand {
   lastName: string
 }
 
+export interface LoginCommand {
+  email: string,
+  password: string
+}
+
+export interface TokenPair {
+  accessToken: string,
+  refreshToken: string
+}
+
 export interface RegisterResponse {
+  message: string;
+}
+
+export interface MessageResponse {
   message: string;
 }
