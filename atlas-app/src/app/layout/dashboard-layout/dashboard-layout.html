@@ -1,22 +1,87 @@
-<div class="dashboard-shell">
-  <aside class="dashboard-sidebar">
-    <div class="brand">
-      <span class="brand__label">Atlas CRM</span>
-      <span class="brand__subtitle">Dashboard</span>
+@if (menuOpen()) {
+  <button class="dashboard-backdrop" type="button" aria-label="Close menu" (click)="closeMenu()"></button>
+}
+
+<aside class="dashboard-sidebar" [class.dashboard-sidebar--open]="menuOpen()">
+  <div class="dashboard-sidebar__brand">
+    <img
+      alt="Atlas CRM Logo"
+      class="dashboard-sidebar__logo"
+      src="data:image/png;base64,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"
+    />
+    <div>
+      <h1 class="dashboard-sidebar__title">Atlas CRM</h1>
+      <p class="dashboard-sidebar__subtitle">Independent Professional</p>
     </div>
 
-    <nav class="sidebar-nav" aria-label="Dashboard navigation">
-      <a routerLink="/dashboard" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">
-        Dashboard
-      </a>
-    </nav>
-
-    <button type="button" class="logout-button" (click)="logout()">
-      Se déconnecter
+    <button class="dashboard-sidebar__close" type="button" aria-label="Close menu" (click)="closeMenu()">
+      <span class="material-symbols-outlined" aria-hidden="true">close</span>
     </button>
-  </aside>
+  </div>
 
-  <main class="dashboard-content">
-    <router-outlet />
-  </main>
-</div>
+  <nav class="dashboard-sidebar__nav" aria-label="Dashboard navigation">
+    @for (item of sidebarItems; track item.label) {
+      @if (!item.disabled && item.route) {
+        <a
+          class="dashboard-sidebar__link"
+          [routerLink]="item.route"
+          routerLinkActive="is-active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          (click)="closeMenu()"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">{{ item.icon }}</span>
+          <span>{{ item.label }}</span>
+        </a>
+      } @else {
+        <button class="dashboard-sidebar__link" type="button" disabled>
+          <span class="material-symbols-outlined" aria-hidden="true">{{ item.icon }}</span>
+          <span>{{ item.label }}</span>
+        </button>
+      }
+    }
+  </nav>
+
+  <div class="dashboard-sidebar__footer">
+    <button class="dashboard-sidebar__new-mission" type="button">
+      <span class="material-symbols-outlined" aria-hidden="true">add</span>
+      <span>New Mission</span>
+    </button>
+  </div>
+</aside>
+
+<header class="dashboard-topbar">
+  <button class="dashboard-topbar__menu-button" type="button" aria-label="Open menu" (click)="toggleMenu()">
+    <span class="material-symbols-outlined" aria-hidden="true">menu</span>
+  </button>
+
+  <div class="dashboard-topbar__search">
+    <span class="material-symbols-outlined" aria-hidden="true">search</span>
+    <input
+      type="search"
+      placeholder="Search for clients or invoices..."
+      aria-label="Search for clients or invoices"
+    />
+  </div>
+
+  <div class="dashboard-topbar__actions">
+    <button class="dashboard-topbar__icon-button" type="button" aria-label="Notifications">
+      <span class="material-symbols-outlined" aria-hidden="true">notifications</span>
+      <span class="dashboard-topbar__notification-dot" aria-hidden="true"></span>
+    </button>
+
+    <button class="dashboard-topbar__icon-button" type="button" aria-label="Settings">
+      <span class="material-symbols-outlined" aria-hidden="true">settings</span>
+    </button>
+
+    <button class="dashboard-topbar__avatar-button" type="button" aria-label="User profile">
+      <img
+        alt="User avatar"
+        src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2X0ZLWb5Kh-MINZY5y-j99VehsaN50JY07O0MI614H6ZBaW_ON3YuDYt4X7oMQa5GAwYKvbRZ-8UVfC2eZOn5yBtZJ6wVlAJSH30PXYlRmE7HyBi_RYrLm9Wv6bLVW1yfwzN433UIR3N55iss_61h1hNgZG412NfFDPKupiesqhCHZoZoIc47JRTglr82PvI4y-xXTOX019Fqyrd6o9feavvQWcVbO1qnsz6qxR4xzJc6jdiSa-1EF8YxJTSDLoAtA5XrNEFTWmY"
+      />
+    </button>
+  </div>
+</header>
+
+<main class="dashboard-content">
+  <router-outlet />
+</main>
