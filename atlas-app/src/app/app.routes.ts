@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { PublicLayoutComponent } from './layout/public-layout/public-layout';
+import { DashboardLayoutComponent } from './layout/dashboard-layout/dashboard-layout';
 
 export const routes: Routes = [
   {
@@ -24,6 +25,18 @@ export const routes: Routes = [
           import('./features/auth/page/login-page-component/login-page-component')
             .then(m => m.LoginPageComponent)
       },
+    ],
+  },
+  {
+    path: 'dashboard',
+    component: DashboardLayoutComponent,
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import('./features/dashboard/pages/main-dashboard-page-component//main-dashboard-page-component')
+            .then(m => m.MainDashboardPageComponent),
+      }
     ],
   },
 ];
