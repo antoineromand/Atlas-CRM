@@ -73,7 +73,7 @@ describe('LoginPageComponent', () => {
     });
     expect(authStateServiceSpy.setAccessToken).toHaveBeenCalledWith('access-token');
     expect(notificationServiceSpy.success).toHaveBeenCalledWith('Welcome back.');
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/');
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/dashboard');
     expect((component as any).isSubmitting()).toBeFalse();
   });
 

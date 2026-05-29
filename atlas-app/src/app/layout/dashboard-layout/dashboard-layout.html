@@ -1,1 +1,22 @@
-<router-outlet />
+<div class="dashboard-shell">
+  <aside class="dashboard-sidebar">
+    <div class="brand">
+      <span class="brand__label">Atlas CRM</span>
+      <span class="brand__subtitle">Dashboard</span>
+    </div>
+
+    <nav class="sidebar-nav" aria-label="Dashboard navigation">
+      <a routerLink="/dashboard" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">
+        Dashboard
+      </a>
+    </nav>
+
+    <button type="button" class="logout-button" (click)="logout()">
+      Se déconnecter
+    </button>
+  </aside>
+
+  <main class="dashboard-content">
+    <router-outlet />
+  </main>
+</div>

@@ -7,6 +7,19 @@ import { AuthStateService } from '../services/auth/auth-state.service';
 import { AuthService } from '../services/auth/auth.service';
 import { NotificationService } from '../services/notification/notification.service';
 
+function createJwt(expSecondsFromNow: number): string {
+  const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/g, '');
+  const payload = btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + expSecondsFromNow }))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/g, '');
+
+  return `${header}.${payload}.signature`;
+}
+
 describe('authInterceptor', () => {
   let http: HttpClient;
   let httpMock: HttpTestingController;
@@ -38,19 +51,19 @@ describe('authInterceptor', () => {
   });
 
   it('should attach the access token to authenticated requests', () => {
-    authStateService.setAccessToken('access-token');
+    authStateService.setAccessToken(createJwt(60));
 
     http.get('/api/private').subscribe((response) => {
       expect(response).toEqual({ ok: true });
     });
 
     const req = httpMock.expectOne('/api/private');
-    expect(req.request.headers.get('Authorization')).toBe('Bearer access-token');
+    expect(req.request.headers.get('Authorization')).toBe(`Bearer ${authStateService.getAccessToken()}`);
     req.flush({ ok: true });
   });
 
   it('should refresh the access token and retry the request after a 401', () => {
-    authStateService.setAccessToken('expired-token');
+    authStateService.setAccessToken(createJwt(-60));
     let result: unknown;
 
     http.get('/api/private').subscribe((response) => {
@@ -58,7 +71,7 @@ describe('authInterceptor', () => {
     });
 
     const initialReq = httpMock.expectOne('/api/private');
-    expect(initialReq.request.headers.get('Authorization')).toBe('Bearer expired-token');
+    expect(initialReq.request.headers.get('Authorization')).toBeNull();
     initialReq.flush({ message: 'Unauthorized' }, { status: 401, statusText: 'Unauthorized' });
 
     const refreshReq = httpMock.expectOne('http://localhost:3000/api/v1/authentication/refresh-token');
@@ -74,7 +87,7 @@ describe('authInterceptor', () => {
   });
 
   it('should redirect to login when refresh fails', () => {
-    authStateService.setAccessToken('expired-token');
+    authStateService.setAccessToken(createJwt(-60));
     let errorResponse: unknown;
 
     http.get('/api/private').subscribe({

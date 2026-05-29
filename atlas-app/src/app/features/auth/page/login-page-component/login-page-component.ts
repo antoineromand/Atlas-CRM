@@ -51,7 +51,7 @@ export class LoginPageComponent {
         next: (tokens) => {
           this.authStateService.setAccessToken(tokens.accessToken);
           this.notificationService.success('Welcome back.');
-          void this.router.navigateByUrl('/');
+          void this.router.navigateByUrl('/dashboard');
         },
         error: (error) => {
           const message = error?.error?.message ?? 'Unable to sign in. Please verify your credentials.';
