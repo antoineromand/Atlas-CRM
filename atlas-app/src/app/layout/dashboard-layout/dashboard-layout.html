@@ -2,6 +2,15 @@
   <button class="dashboard-backdrop" type="button" aria-label="Close menu" (click)="closeMenu()"></button>
 }
 
+@if (profileMenuOpen()) {
+  <button
+    class="dashboard-profile-backdrop"
+    type="button"
+    aria-label="Close profile menu"
+    (click)="closeProfileMenu()"
+  ></button>
+}
+
 <aside class="dashboard-sidebar" [class.dashboard-sidebar--open]="menuOpen()">
   <div class="dashboard-sidebar__brand">
     <app-brand-mark />
@@ -65,16 +74,35 @@
       <span class="dashboard-topbar__notification-dot" aria-hidden="true"></span>
     </button>
 
-    <button class="dashboard-topbar__icon-button" type="button" aria-label="Settings">
-      <span class="material-symbols-outlined" aria-hidden="true">settings</span>
-    </button>
+    <div class="dashboard-profile">
+      <button
+        class="dashboard-topbar__avatar-button"
+        type="button"
+        aria-label="User profile"
+        aria-haspopup="menu"
+        [attr.aria-expanded]="profileMenuOpen()"
+        (click)="toggleProfileMenu()"
+      >
+        <img
+          alt="User avatar"
+          src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2X0ZLWb5Kh-MINZY5y-j99VehsaN50JY07O0MI614H6ZBaW_ON3YuDYt4X7oMQa5GAwYKvbRZ-8UVfC2eZOn5yBtZJ6wVlAJSH30PXYlRmE7HyBi_RYrLm9Wv6bLVW1yfwzN433UIR3N55iss_61h1hNgZG412NfFDPKupiesqhCHZoZoIc47JRTglr82PvI4y-xXTOX019Fqyrd6o9feavvQWcVbO1qnsz6qxR4xzJc6jdiSa-1EF8YxJTSDLoAtA5XrNEFTWmY"
+        />
+      </button>
 
-    <button class="dashboard-topbar__avatar-button" type="button" aria-label="User profile">
-      <img
-        alt="User avatar"
-        src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2X0ZLWb5Kh-MINZY5y-j99VehsaN50JY07O0MI614H6ZBaW_ON3YuDYt4X7oMQa5GAwYKvbRZ-8UVfC2eZOn5yBtZJ6wVlAJSH30PXYlRmE7HyBi_RYrLm9Wv6bLVW1yfwzN433UIR3N55iss_61h1hNgZG412NfFDPKupiesqhCHZoZoIc47JRTglr82PvI4y-xXTOX019Fqyrd6o9feavvQWcVbO1qnsz6qxR4xzJc6jdiSa-1EF8YxJTSDLoAtA5XrNEFTWmY"
-      />
-    </button>
+      @if (profileMenuOpen()) {
+        <div class="dashboard-profile__menu" role="menu" aria-label="Profile actions">
+          <button class="dashboard-profile__item dashboard-profile__item--disabled" type="button" disabled>
+            <span class="material-symbols-outlined" aria-hidden="true">settings</span>
+            <span>Settings</span>
+          </button>
+
+          <button class="dashboard-profile__item dashboard-profile__item--danger" type="button" (click)="logout()">
+            <span class="material-symbols-outlined" aria-hidden="true">logout</span>
+            <span>Sign out</span>
+          </button>
+        </div>
+      }
+    </div>
   </div>
 </header>
 

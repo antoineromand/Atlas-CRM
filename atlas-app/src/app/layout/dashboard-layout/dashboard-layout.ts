@@ -20,6 +20,7 @@ interface DashboardNavItem {
 })
 export class DashboardLayoutComponent {
   protected readonly menuOpen = signal(false);
+  protected readonly profileMenuOpen = signal(false);
   protected readonly sidebarItems: DashboardNavItem[] = [
     { label: 'Dashboard', icon: 'dashboard', route: '/dashboard' },
     { label: 'Clients', icon: 'group', disabled: true },
@@ -39,7 +40,16 @@ export class DashboardLayoutComponent {
     this.menuOpen.update((current) => !current);
   }
 
+  closeProfileMenu(): void {
+    this.profileMenuOpen.set(false);
+  }
+
+  toggleProfileMenu(): void {
+    this.profileMenuOpen.update((current) => !current);
+  }
+
   logout(): void {
+    this.closeProfileMenu();
     this.authService.logout().subscribe({
       next: () => this.finishLogout(),
       error: () => this.finishLogout(),
