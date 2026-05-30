@@ -96,6 +96,13 @@
   flex: 1 1 22rem;
 }
 
+.main-dashboard__income-report,
+.main-dashboard__recent-activity {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
 @media (max-width: 48rem) {
   .main-dashboard__header {
     flex-direction: column;
@@ -111,6 +118,11 @@
 
   .main-dashboard__main__section {
     flex-direction: column;
+  }
+
+  .main-dashboard__recent-activity,
+  .main-dashboard__income-report {
+    width: 100%;
   }
 }
 

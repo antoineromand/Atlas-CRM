@@ -24,8 +24,12 @@
       }
     </div>
     <div class="main-dashboard__main__section">
-      <section>Monthly Income</section>
-      <section>Recent Activity</section>
+      <section class="main-dashboard__income-report">
+        <app-income-report-card />
+      </section>
+      <section class="main-dashboard__recent-activity">
+        <app-recent-activity-card [items]="recentActivities" />
+      </section>
     </div>
   </div>
 </div>

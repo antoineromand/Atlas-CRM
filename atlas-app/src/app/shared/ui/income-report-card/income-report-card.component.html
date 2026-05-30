@@ -1,0 +1,31 @@
+<article class="income-report-card">
+  <div class="income-report-card__header">
+    <div class="income-report-card__heading">
+      <h2>{{ title }}</h2>
+      <p>{{ subtitle }}</p>
+    </div>
+
+    <label class="income-report-card__range">
+      <span class="sr-only">Select report period</span>
+      <select [value]="selectedRange()" (change)="onRangeChange($event)">
+        @for (option of rangeOptions; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select>
+      <span class="material-symbols-outlined" aria-hidden="true">expand_more</span>
+    </label>
+  </div>
+
+  <div class="income-report-card__chart">
+    <apx-chart
+      [series]="chartSeries()"
+      [chart]="chartOptions().chart"
+      [stroke]="chartOptions().stroke"
+      [fill]="chartOptions().fill"
+      [grid]="chartOptions().grid"
+      [tooltip]="chartOptions().tooltip"
+      [xaxis]="chartOptions().xaxis"
+      [yaxis]="chartOptions().yaxis"
+    />
+  </div>
+</article>
