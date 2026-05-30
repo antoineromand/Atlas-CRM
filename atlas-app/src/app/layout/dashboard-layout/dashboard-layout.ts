@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../core/services/auth/auth.service';
 import { AuthStateService } from '../../core/services/auth/auth-state.service';
+import {BrandMarkComponent} from '../../shared/ui/brand-mark/brand-mark.component';
 
 interface DashboardNavItem {
   label: string;
@@ -13,7 +14,7 @@ interface DashboardNavItem {
 @Component({
   selector: 'app-dashboard-layout',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, RouterOutlet],
+  imports: [RouterLink, RouterLinkActive, RouterOutlet, BrandMarkComponent],
   templateUrl: './dashboard-layout.html',
   styleUrl: './dashboard-layout.scss',
 })
