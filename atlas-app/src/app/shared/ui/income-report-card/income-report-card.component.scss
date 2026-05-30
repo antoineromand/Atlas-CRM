@@ -5,9 +5,9 @@
 .income-report-card {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1rem;
   min-height: 100%;
-  padding: 1.25rem;
+  padding: 1rem;
   border: 1px solid rgba(197, 198, 205, 0.42);
   border-radius: var(--radius-2xl);
   background: rgba(255, 255, 255, 0.94);
@@ -18,7 +18,8 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 0.875rem;
+  min-width: 0;
 }
 
 .income-report-card__heading {
@@ -36,43 +37,66 @@
 }
 
 .income-report-card__heading p {
-  margin: 0.35rem 0 0;
+  margin: 0.25rem 0 0;
   color: var(--color-secondary);
   font-size: 0.95rem;
   line-height: 1.5;
 }
 
 .income-report-card__range {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.35rem;
+  width: clamp(9.5rem, 28vw, 12.5rem);
+  min-width: 0;
+}
+
+.income-report-card__range-control {
   position: relative;
-  display: inline-flex;
-  align-items: center;
-  flex: 0 0 auto;
-  min-width: 10.5rem;
-  min-height: 2.75rem;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(197, 198, 205, 0.45);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-muted);
 }
 
 .income-report-card__range select {
   width: 100%;
-  min-height: 2.75rem;
-  padding: 0 2.2rem 0 0.9rem;
-  border: 1px solid rgba(197, 198, 205, 0.45);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface-muted);
+  min-width: 0;
+  box-sizing: border-box;
+  min-height: 2.5rem;
+  padding: 0.55rem 2.2rem 0.55rem 0.9rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   color: var(--color-primary);
   font-family: var(--font-label);
   font-size: 0.875rem;
+  line-height: 1.2;
   appearance: none;
 }
 
 .income-report-card__range .material-symbols-outlined {
   position: absolute;
+  top: 50%;
   right: 0.65rem;
+  transform: translateY(-50%);
   color: var(--color-secondary);
   pointer-events: none;
 }
 
 .income-report-card__chart {
-  min-height: 20rem;
+  width: 100%;
+  height: clamp(18rem, 34vw, 22rem);
+}
+
+.income-report-card__chart apx-chart {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .sr-only {
@@ -89,7 +113,7 @@
 
 @media (max-width: 40rem) {
   .income-report-card {
-    padding: 1rem;
+    padding: 0.95rem;
   }
 
   .income-report-card__header {
@@ -101,7 +125,22 @@
     min-width: 0;
   }
 
+  .income-report-card__range-control {
+    border-radius: 0.8rem;
+  }
+
+  .income-report-card__range select {
+    height: 2rem;
+    min-height: 2rem;
+    padding: 0 2rem 0 0.8rem;
+    line-height: 2rem;
+  }
+
+  .income-report-card__range .material-symbols-outlined {
+    right: 0.6rem;
+  }
+
   .income-report-card__chart {
-    min-height: 16rem;
+    height: clamp(18rem, 72vw, 20rem);
   }
 }

@@ -5,15 +5,18 @@
       <p>{{ subtitle }}</p>
     </div>
 
-    <label class="income-report-card__range">
-      <span class="sr-only">Select report period</span>
-      <select [value]="selectedRange()" (change)="onRangeChange($event)">
-        @for (option of rangeOptions; track option.value) {
-          <option [value]="option.value">{{ option.label }}</option>
-        }
-      </select>
-      <span class="material-symbols-outlined" aria-hidden="true">expand_more</span>
-    </label>
+    <div class="income-report-card__range">
+      <label class="sr-only" for="income-report-range">Select report period</label>
+
+      <div class="income-report-card__range-control">
+        <select id="income-report-range" [value]="selectedRange()" (change)="onRangeChange($event)">
+          @for (option of rangeOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+        <span class="material-symbols-outlined" aria-hidden="true">expand_more</span>
+      </div>
+    </div>
   </div>
 
   <div class="income-report-card__chart">

@@ -72,7 +72,10 @@ export class IncomeReportCardComponent {
     return {
       chart: {
         type: 'area',
-        height: 320,
+        width: '100%',
+        height: '100%',
+        redrawOnParentResize: true,
+        redrawOnWindowResize: true,
         toolbar: { show: false },
         zoom: { enabled: false },
         animations: {
