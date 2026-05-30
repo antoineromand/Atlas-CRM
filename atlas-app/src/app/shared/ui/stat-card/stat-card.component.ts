@@ -15,6 +15,7 @@ export class StatCardComponent {
   @Input() value = '';
   @Input() footer = '';
   @Input() meta = '';
+  @Input() loading = false;
   @Input() tone: StatTone = 'primary';
 
   get footerText(): string {

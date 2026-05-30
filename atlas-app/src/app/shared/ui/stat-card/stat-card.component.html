@@ -1,31 +1,47 @@
 <article
   class="stat-card"
+  [class.stat-card--loading]="loading"
   [class.stat-card--compact]="!icon && !badge"
   [class.stat-card--primary]="tone === 'primary'"
   [class.stat-card--secondary]="tone === 'secondary'"
   [class.stat-card--accent]="tone === 'accent'"
   [class.stat-card--danger]="tone === 'danger'"
+  [attr.aria-busy]="loading"
 >
-  @if (icon || badge) {
+  @if (loading) {
     <div class="stat-card__header">
-      @if (icon) {
-        <span class="stat-card__icon" aria-hidden="true">
-          <span class="material-symbols-outlined">{{ icon }}</span>
-        </span>
-      }
-
-      @if (badge) {
-        <span class="stat-card__badge">{{ badge }}</span>
-      }
+      <span class="stat-card__skeleton stat-card__skeleton--icon"></span>
+      <span class="stat-card__skeleton stat-card__skeleton--badge"></span>
     </div>
-  }
 
-  <div class="stat-card__main">
-    <span class="stat-card__label">{{ label }}</span>
-    <span class="stat-card__value">{{ value }}</span>
-  </div>
+    <div class="stat-card__main">
+      <span class="stat-card__skeleton stat-card__skeleton--label"></span>
+      <span class="stat-card__skeleton stat-card__skeleton--value"></span>
+    </div>
 
-  @if (footerText) {
-    <p class="stat-card__footer">{{ footerText }}</p>
+    <span class="stat-card__skeleton stat-card__skeleton--footer"></span>
+  } @else {
+    @if (icon || badge) {
+      <div class="stat-card__header">
+        @if (icon) {
+          <span class="stat-card__icon" aria-hidden="true">
+            <span class="material-symbols-outlined">{{ icon }}</span>
+          </span>
+        }
+
+        @if (badge) {
+          <span class="stat-card__badge">{{ badge }}</span>
+        }
+      </div>
+    }
+
+    <div class="stat-card__main">
+      <span class="stat-card__label">{{ label }}</span>
+      <span class="stat-card__value">{{ value }}</span>
+    </div>
+
+    @if (footerText) {
+      <p class="stat-card__footer">{{ footerText }}</p>
+    }
   }
 </article>

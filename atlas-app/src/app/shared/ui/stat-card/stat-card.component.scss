@@ -5,6 +5,7 @@
 .stat-card {
   height: 100%;
   min-height: 12.5rem;
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
@@ -98,6 +99,10 @@
   background: rgba(254, 242, 242, 0.88);
 }
 
+.stat-card--loading {
+  overflow: hidden;
+}
+
 .stat-card--compact .stat-card__main {
   margin-top: 0.2rem;
 }
@@ -139,6 +144,63 @@
 .stat-card--danger .stat-card__badge {
   background: rgba(254, 226, 226, 0.95);
   color: #b91c1c;
+}
+
+.stat-card__skeleton {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: rgba(226, 232, 240, 0.78);
+}
+
+.stat-card__skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.72) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: stat-card-shimmer 1.35s infinite;
+}
+
+.stat-card__skeleton--icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+}
+
+.stat-card__skeleton--badge {
+  width: 3.25rem;
+  height: 1.5rem;
+  margin-left: auto;
+}
+
+.stat-card__skeleton--label {
+  width: 7rem;
+  height: 0.75rem;
+}
+
+.stat-card__skeleton--value {
+  width: 60%;
+  height: 2rem;
+  border-radius: 0.85rem;
+}
+
+.stat-card__skeleton--footer {
+  width: 45%;
+  height: 0.875rem;
+  margin-top: auto;
+}
+
+@keyframes stat-card-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 @media (max-width: 40rem) {
