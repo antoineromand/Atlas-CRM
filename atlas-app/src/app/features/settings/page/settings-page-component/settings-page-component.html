@@ -4,16 +4,16 @@
       <p class="eyebrow">Settings</p>
       <h1 class="display-title">Account settings</h1>
       <p class="section-copy">
-        A first pass at the account settings page backed by `GET /api/v1/account/me` and
-        `PATCH /api/v1/account/me`.
+        Manage profile, company, and billing information from one place.
       </p>
     </div>
 
     <div class="settings-page__hero-actions">
-      <span class="pill">Profile + billing</span>
+      <span class="pill">Private workspace</span>
       <button
         class="btn btn--primary"
         type="button"
+        [class.btn--pulse]="savePulse()"
         (click)="onSubmit()"
         [disabled]="isLoading() || isSaving() || settingsForm.invalid || settingsForm.pristine"
       >
@@ -25,8 +25,8 @@
   @if (loadError()) {
     <section class="settings-page__error surface-card">
       <div>
-        <p class="eyebrow">Load error</p>
-        <h2>Could not load account details</h2>
+        <p class="eyebrow">Unavailable</p>
+        <h2>We couldn't load the account data</h2>
         <p class="section-copy">{{ loadError() }}</p>
       </div>
 
@@ -40,6 +40,7 @@
       [form]="settingsForm"
       [loading]="isLoading()"
       [saving]="isSaving()"
+      [actionPulse]="savePulse()"
       (submitted)="onSubmit()"
     />
   </div>

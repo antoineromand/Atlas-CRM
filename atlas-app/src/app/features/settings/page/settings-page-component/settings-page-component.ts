@@ -39,11 +39,13 @@ interface SettingsFormValue {
 export class SettingsPageComponent implements OnInit {
   private readonly accountService = inject(AccountService);
   private readonly notificationService = inject(NotificationService);
+  private savePulseTimer: ReturnType<typeof setTimeout> | null = null;
 
   protected readonly account = signal<AccountResponse | null>(null);
   protected readonly isLoading = signal(true);
   protected readonly isSaving = signal(false);
   protected readonly loadError = signal<string | null>(null);
+  protected readonly savePulse = signal(false);
 
   protected readonly settingsForm = new FormGroup<SettingsFormValue>({
     firstName: new FormControl<string | null>('', {
@@ -106,6 +108,7 @@ export class SettingsPageComponent implements OnInit {
       return;
     }
 
+    this.pulseSaveButton();
     this.isSaving.set(true);
 
     const payload: UpdateAccountPayload = {
@@ -184,5 +187,19 @@ export class SettingsPageComponent implements OnInit {
   private normalize(value: string | null | undefined): string | null {
     const trimmed = value?.trim() ?? '';
     return trimmed.length > 0 ? trimmed : null;
+  }
+
+  private pulseSaveButton(): void {
+    this.savePulse.set(false);
+
+    if (this.savePulseTimer) {
+      clearTimeout(this.savePulseTimer);
+    }
+
+    this.savePulse.set(true);
+    this.savePulseTimer = setTimeout(() => {
+      this.savePulse.set(false);
+      this.savePulseTimer = null;
+    }, 420);
   }
 }

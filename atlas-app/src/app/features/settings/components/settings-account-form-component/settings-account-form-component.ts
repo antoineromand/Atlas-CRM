@@ -21,6 +21,7 @@ export class SettingsAccountFormComponent {
   @Input({ required: true }) form!: FormGroup;
   @Input() loading = false;
   @Input() saving = false;
+  @Input() actionPulse = false;
   @Output() submitted = new EventEmitter<void>();
 
   protected readonly identityFields: readonly AccountFieldConfig[] = [

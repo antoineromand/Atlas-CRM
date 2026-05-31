@@ -1,10 +1,10 @@
 <article class="settings-form-card surface-card">
   <div class="settings-form-card__header">
     <div>
-      <p class="eyebrow">Update account</p>
-      <h2>Profile and billing details</h2>
+      <p class="eyebrow">Account details</p>
+      <h2>Profile and billing</h2>
       <p class="section-copy">
-        The form is wired to `PATCH /api/v1/account/me` and keeps the dashboard account state in sync.
+        Keep the essentials clear, current, and ready for every quote and invoice flow.
       </p>
     </div>
 
@@ -14,8 +14,8 @@
   <form class="settings-form-card__form" [formGroup]="form" (ngSubmit)="submit()">
     <section class="settings-form-card__section">
       <div class="settings-form-card__section-header">
-        <h3>Identity</h3>
-        <p>Account owner and company information.</p>
+        <h3>Profile</h3>
+        <p>Identity and company details at a glance.</p>
       </div>
 
       <div class="settings-form-card__grid settings-form-card__grid--identity">
@@ -70,8 +70,13 @@
     </section>
 
     <footer class="settings-form-card__footer">
-      <p>Changes are saved against the authenticated account returned by the backend.</p>
-      <button class="btn btn--primary" type="submit" [disabled]="loading || saving || form.invalid || form.pristine">
+      <p>Review the details, then save your changes.</p>
+      <button
+        class="btn btn--primary"
+        type="submit"
+        [class.btn--pulse]="actionPulse"
+        [disabled]="loading || saving || form.invalid || form.pristine"
+      >
         @if (saving) {
           Saving...
         } @else {

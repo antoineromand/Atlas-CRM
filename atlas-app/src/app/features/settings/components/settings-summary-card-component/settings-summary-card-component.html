@@ -8,11 +8,11 @@
   } @else if (account) {
     <div class="settings-summary-card__header">
       <div>
-        <p class="eyebrow">Account snapshot</p>
+        <p class="eyebrow">Overview</p>
         <h2>{{ account.firstName }} {{ account.lastName }}</h2>
       </div>
 
-      <span class="pill">Live data</span>
+      <span class="pill">In sync</span>
     </div>
 
     <div class="settings-summary-card__identity">
@@ -25,31 +25,31 @@
 
     <dl class="settings-summary-card__details">
       <div>
-        <dt>Account ID</dt>
+        <dt>Account</dt>
         <dd>{{ account.id }}</dd>
       </div>
       <div>
-        <dt>Billing city</dt>
+        <dt>City</dt>
         <dd>{{ account.billingCity || 'Not set' }}</dd>
       </div>
       <div>
-        <dt>Billing country</dt>
+        <dt>Country</dt>
         <dd>{{ account.billingCountry || 'Not set' }}</dd>
       </div>
       <div>
-        <dt>Last updated</dt>
+        <dt>Updated</dt>
         <dd>{{ formatDate(account.updatedAt) }}</dd>
       </div>
       <div>
-        <dt>Created at</dt>
+        <dt>Created</dt>
         <dd>{{ formatDate(account.createdAt) }}</dd>
       </div>
     </dl>
   } @else {
     <div class="settings-summary-card__empty">
-      <p class="eyebrow">Account snapshot</p>
+      <p class="eyebrow">Overview</p>
       <h2>No account loaded</h2>
-      <p class="section-copy">The account endpoint returned no data.</p>
+      <p class="section-copy">There is nothing to display yet.</p>
     </div>
   }
 </article>

@@ -72,6 +72,14 @@ select {
   font: inherit;
 }
 
+button:not(:disabled) {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
 ::selection {
   color: var(--color-on-primary);
   background: var(--color-primary);
@@ -122,6 +130,7 @@ select {
     background-color 180ms ease,
     color 180ms ease,
     box-shadow 180ms ease;
+  will-change: transform;
 }
 
 .btn:hover {
@@ -129,17 +138,103 @@ select {
 }
 
 .btn:active {
-  transform: translateY(0);
+  transform: translateY(1px) scale(0.985);
+  box-shadow: none;
+}
+
+.btn:disabled {
+  transform: none;
+  box-shadow: none;
+  opacity: 0.68;
+  filter: saturate(0.72);
+}
+
+button:not(:disabled) {
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    filter 180ms ease;
+  will-change: transform;
+}
+
+button:not(:disabled):active {
+  transform: translateY(1px) scale(0.985);
+  filter: saturate(1.02);
 }
 
 .btn--primary {
+  position: relative;
+  overflow: hidden;
   color: var(--color-on-primary);
-  background: var(--color-primary-soft);
+  background: linear-gradient(135deg, var(--color-primary-soft) 0%, var(--color-primary) 100%);
+  background-size: 200% 200%;
+  background-position: 0% 50%;
   box-shadow: var(--shadow-soft);
+  transition:
+    opacity 220ms ease,
+    transform 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease,
+    background-position 520ms ease;
 }
 
 .btn--primary:hover {
-  background: var(--color-primary);
+  opacity: 0.8;
+  background-position: 100% 50%;
+  transition:
+    opacity 520ms ease,
+    transform 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease,
+    background-position 520ms ease;
+}
+
+.btn--primary:hover:not(:disabled) {
+  opacity: 0.8;
+}
+
+.btn--primary:not(:hover):not(:disabled) {
+  opacity: 1;
+}
+
+.btn--primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    120deg,
+    rgba(255, 255, 255, 0) 28%,
+    rgba(255, 255, 255, 0.18) 50%,
+    rgba(255, 255, 255, 0) 72%
+  );
+  transform: translateX(-120%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.btn--primary.btn--pulse {
+  animation: btn-primary-sweep 420ms ease-out;
+}
+
+.btn--primary.btn--pulse::after {
+  opacity: 1;
+  animation: btn-primary-sheen 420ms ease-out;
+}
+
+.btn--primary:disabled {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.48) 0%, rgba(9, 20, 38, 0.38) 100%);
+  color: rgba(255, 255, 255, 0.82);
+  border-color: rgba(9, 20, 38, 0.08);
+  opacity: 0.68;
+  filter: saturate(0.72);
+}
+
+.btn--primary:disabled::after {
+  opacity: 0;
 }
 
 .btn--secondary {
@@ -150,6 +245,36 @@ select {
 
 .btn--secondary:hover {
   background: var(--color-surface-muted);
+}
+
+.btn--secondary:disabled {
+  background: rgba(255, 255, 255, 0.6);
+  border-color: rgba(197, 198, 205, 0.5);
+  color: rgba(80, 95, 118, 0.7);
+}
+
+@keyframes btn-primary-sweep {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  45% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes btn-primary-sheen {
+  0% {
+    transform: translateX(-120%);
+  }
+
+  100% {
+    transform: translateX(120%);
+  }
 }
 
 .pill {
