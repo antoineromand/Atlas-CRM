@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 
 import { DashboardLayoutComponent } from './dashboard-layout';
@@ -11,26 +11,27 @@ describe('DashboardLayoutComponent', () => {
   let fixture: ComponentFixture<DashboardLayoutComponent>;
   let authServiceSpy: jasmine.SpyObj<AuthService>;
   let authStateServiceSpy: jasmine.SpyObj<AuthStateService>;
-  let routerSpy: jasmine.SpyObj<Router>;
+  let router: Router;
 
   beforeEach(async () => {
     authServiceSpy = jasmine.createSpyObj<AuthService>('AuthService', ['logout']);
     authServiceSpy.logout.and.returnValue(of({ message: 'ok' }));
 
     authStateServiceSpy = jasmine.createSpyObj<AuthStateService>('AuthStateService', ['clear']);
-    routerSpy = jasmine.createSpyObj<Router>('Router', ['navigate']);
 
     await TestBed.configureTestingModule({
       imports: [DashboardLayoutComponent],
       providers: [
+        provideRouter([]),
         { provide: AuthService, useValue: authServiceSpy },
         { provide: AuthStateService, useValue: authStateServiceSpy },
-        { provide: Router, useValue: routerSpy },
       ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(DashboardLayoutComponent);
     component = fixture.componentInstance;
+    router = TestBed.inject(Router);
+    spyOn(router, 'navigate').and.resolveTo(true);
     fixture.detectChanges();
   });
 
@@ -43,6 +44,6 @@ describe('DashboardLayoutComponent', () => {
 
     expect(authServiceSpy.logout).toHaveBeenCalled();
     expect(authStateServiceSpy.clear).toHaveBeenCalled();
-    expect(routerSpy.navigate).toHaveBeenCalledWith(['/login']);
+    expect(router.navigate).toHaveBeenCalledWith(['/login']);
   });
 });
