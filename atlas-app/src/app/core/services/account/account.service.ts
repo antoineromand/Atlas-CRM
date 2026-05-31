@@ -2,12 +2,13 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AccountResponse, UpdateAccountPayload } from '../../interface/account.interface';
+import { environment } from '../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AccountService {
-  private readonly baseUrl = 'http://localhost:3000/api/v1/account';
+  private readonly baseUrl = `${environment.apiBaseUrl}/v1/account`;
   private readonly httpClient = inject(HttpClient);
 
   getMyAccount(): Observable<AccountResponse> {
