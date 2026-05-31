@@ -9,8 +9,16 @@ type StatTone = 'primary' | 'secondary' | 'accent' | 'danger';
   styleUrl: './stat-card.component.scss',
 })
 export class StatCardComponent {
+  @Input() icon = '';
+  @Input() badge = '';
   @Input() label = '';
   @Input() value = '';
+  @Input() footer = '';
   @Input() meta = '';
+  @Input() loading = false;
   @Input() tone: StatTone = 'primary';
+
+  get footerText(): string {
+    return this.footer || this.meta;
+  }
 }

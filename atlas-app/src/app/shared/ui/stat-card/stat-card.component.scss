@@ -4,16 +4,65 @@
 
 .stat-card {
   height: 100%;
+  min-height: 12.5rem;
+  position: relative;
   display: flex;
   flex-direction: column;
+  gap: 1.25rem;
   padding: 1.25rem;
-  border-radius: 1rem;
-  border: 1px solid rgba(197, 198, 205, 0.35);
-  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(197, 198, 205, 0.42);
+  border-radius: var(--radius-2xl);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--shadow-soft);
+}
+
+.stat-card--compact {
+  gap: 0.9rem;
+}
+
+.stat-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 2.5rem;
+}
+
+.stat-card__icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 0.75rem;
+  background: rgba(241, 245, 249, 0.96);
+  color: var(--color-primary);
+}
+
+.stat-card__icon .material-symbols-outlined {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.stat-card__badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.5rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 9999px;
+  background: rgba(16, 185, 129, 0.12);
+  color: #15803d;
+  font-family: var(--font-label);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.stat-card__main {
+  display: grid;
+  gap: 0.35rem;
 }
 
 .stat-card__label {
-  margin: 0;
   color: var(--color-secondary);
   font-family: var(--font-label);
   font-size: 0.75rem;
@@ -23,30 +72,152 @@
 }
 
 .stat-card__value {
-  margin-top: 0.5rem;
   color: var(--color-primary);
   font-family: var(--font-display);
-  font-size: clamp(1.5rem, 3vw, 2rem);
-  font-weight: 600;
-  line-height: 1.1;
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
 }
 
-.stat-card__meta {
-  margin: 0.5rem 0 0;
-  margin-top: auto;
+.stat-card__footer {
+  margin: auto 0 0;
   color: var(--color-secondary);
   font-size: 0.875rem;
   line-height: 1.5;
 }
 
 .stat-card--secondary {
-  background: rgba(208, 225, 251, 0.2);
+  background: rgba(255, 255, 255, 0.94);
 }
 
 .stat-card--accent {
-  background: rgba(201, 230, 255, 0.25);
+  background: rgba(236, 253, 245, 0.88);
 }
 
 .stat-card--danger {
-  background: rgba(255, 218, 214, 0.25);
+  background: rgba(254, 242, 242, 0.88);
+}
+
+.stat-card--loading {
+  overflow: hidden;
+}
+
+.stat-card--compact .stat-card__main {
+  margin-top: 0.2rem;
+}
+
+.stat-card--compact .stat-card__value {
+  font-size: clamp(1.6rem, 3vw, 2.35rem);
+}
+
+.stat-card--secondary .stat-card__icon {
+  background: rgba(226, 232, 240, 0.95);
+  color: var(--color-secondary);
+}
+
+.stat-card--accent .stat-card__icon {
+  background: rgba(14, 165, 233, 0.1);
+  color: #0284c7;
+}
+
+.stat-card--danger .stat-card__icon {
+  background: rgba(254, 242, 242, 0.98);
+  color: #dc2626;
+}
+
+.stat-card--primary .stat-card__badge {
+  background: rgba(220, 252, 231, 0.75);
+  color: #15803d;
+}
+
+.stat-card--secondary .stat-card__badge {
+  background: rgba(226, 232, 240, 0.9);
+  color: var(--color-secondary);
+}
+
+.stat-card--accent .stat-card__badge {
+  background: rgba(224, 242, 254, 0.92);
+  color: #0369a1;
+}
+
+.stat-card--danger .stat-card__badge {
+  background: rgba(254, 226, 226, 0.95);
+  color: #b91c1c;
+}
+
+.stat-card__skeleton {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: rgba(226, 232, 240, 0.78);
+}
+
+.stat-card__skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.72) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: stat-card-shimmer 1.35s infinite;
+}
+
+.stat-card__skeleton--icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+}
+
+.stat-card__skeleton--badge {
+  width: 3.25rem;
+  height: 1.5rem;
+  margin-left: auto;
+}
+
+.stat-card__skeleton--label {
+  width: 7rem;
+  height: 0.75rem;
+}
+
+.stat-card__skeleton--value {
+  width: 60%;
+  height: 2rem;
+  border-radius: 0.85rem;
+}
+
+.stat-card__skeleton--footer {
+  width: 45%;
+  height: 0.875rem;
+  margin-top: auto;
+}
+
+@keyframes stat-card-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@media (max-width: 40rem) {
+  .stat-card {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .stat-card--compact {
+    gap: 0.75rem;
+  }
+
+  .stat-card__value {
+    font-size: clamp(1.5rem, 7vw, 2.25rem);
+  }
+
+  .stat-card--compact .stat-card__value {
+    font-size: clamp(1.4rem, 7vw, 2rem);
+  }
 }

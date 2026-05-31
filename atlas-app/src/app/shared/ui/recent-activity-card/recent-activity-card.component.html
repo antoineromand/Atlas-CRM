@@ -1,0 +1,21 @@
+<article class="recent-activity-card">
+  <div class="recent-activity-card__header">
+    <h2>{{ title }}</h2>
+    <a [attr.href]="viewAllHref">{{ viewAllLabel }}</a>
+  </div>
+
+  @if (items.length > 0) {
+    <ul class="recent-activity-card__list">
+      @for (item of items; track item.title) {
+        <li class="recent-activity-card__item">
+          <p>
+            {{ item.title }} <strong>{{ item.subject }}</strong>
+          </p>
+          <span>{{ item.meta }}</span>
+        </li>
+      }
+    </ul>
+  } @else {
+    <p class="recent-activity-card__empty">No activity yet.</p>
+  }
+</article>

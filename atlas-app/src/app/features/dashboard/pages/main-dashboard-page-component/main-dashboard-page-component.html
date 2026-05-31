@@ -1,0 +1,35 @@
+<div class="main-dashboard-shell">
+  <div class="main-dashboard__header">
+    <div class="left-side">
+      <h1>Overview</h1>
+      <p class="subquote">Welcome back ! Here's what's happening with your business today.</p>
+    </div>
+    <div class="btns">
+      <button>Download Report</button>
+      <button>New Mission</button>
+    </div>
+  </div>
+
+  <div class="main-dashboard__main">
+    <div class="main-dashboard__main__stats">
+      @for (stat of stats; track stat.label) {
+        <app-stat-card
+          [icon]="stat.icon"
+          [badge]="stat.badge"
+          [label]="stat.label"
+          [value]="stat.value"
+          [footer]="stat.footer"
+          [tone]="stat.tone"
+        />
+      }
+    </div>
+    <div class="main-dashboard__main__section">
+      <section class="main-dashboard__income-report">
+        <app-income-report-card />
+      </section>
+      <section class="main-dashboard__recent-activity">
+        <app-recent-activity-card [items]="recentActivities" />
+      </section>
+    </div>
+  </div>
+</div>
