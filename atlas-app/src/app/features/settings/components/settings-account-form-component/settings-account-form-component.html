@@ -1,0 +1,83 @@
+<article class="settings-form-card surface-card">
+  <div class="settings-form-card__header">
+    <div>
+      <p class="eyebrow">Update account</p>
+      <h2>Profile and billing details</h2>
+      <p class="section-copy">
+        The form is wired to `PATCH /api/v1/account/me` and keeps the dashboard account state in sync.
+      </p>
+    </div>
+
+    <span class="pill">Editable</span>
+  </div>
+
+  <form class="settings-form-card__form" [formGroup]="form" (ngSubmit)="submit()">
+    <section class="settings-form-card__section">
+      <div class="settings-form-card__section-header">
+        <h3>Identity</h3>
+        <p>Account owner and company information.</p>
+      </div>
+
+      <div class="settings-form-card__grid settings-form-card__grid--identity">
+        @for (field of identityFields; track field.controlName) {
+          <label class="settings-form-card__field" [class.settings-form-card__field--wide]="field.controlName === 'companyName' || field.controlName === 'vatNumber' || field.controlName === 'siretNumber'">
+            <span>{{ field.label }}</span>
+            <input
+              [type]="field.type || 'text'"
+              [placeholder]="field.placeholder || ''"
+              [autocomplete]="field.autocomplete || 'off'"
+              [formControlName]="field.controlName"
+            />
+            @if (field.help) {
+              <small>{{ field.help }}</small>
+            }
+            @if (hasError(field.controlName)) {
+              <strong>{{ errorMessage(field.controlName) }}</strong>
+            }
+          </label>
+        }
+      </div>
+    </section>
+
+    <section class="settings-form-card__section">
+      <div class="settings-form-card__section-header">
+        <h3>Billing</h3>
+        <p>Where invoices and receipts should be sent.</p>
+      </div>
+
+      <div class="settings-form-card__grid settings-form-card__grid--billing">
+        @for (field of billingFields; track field.controlName) {
+          <label
+            class="settings-form-card__field"
+            [class.settings-form-card__field--wide]="field.controlName === 'billingAddressLine1' || field.controlName === 'billingAddressLine2' || field.controlName === 'billingEmail'"
+          >
+            <span>{{ field.label }}</span>
+            <input
+              [type]="field.type || 'text'"
+              [placeholder]="field.placeholder || ''"
+              [autocomplete]="field.autocomplete || 'off'"
+              [formControlName]="field.controlName"
+            />
+            @if (field.help) {
+              <small>{{ field.help }}</small>
+            }
+            @if (hasError(field.controlName)) {
+              <strong>{{ errorMessage(field.controlName) }}</strong>
+            }
+          </label>
+        }
+      </div>
+    </section>
+
+    <footer class="settings-form-card__footer">
+      <p>Changes are saved against the authenticated account returned by the backend.</p>
+      <button class="btn btn--primary" type="submit" [disabled]="loading || saving || form.invalid || form.pristine">
+        @if (saving) {
+          Saving...
+        } @else {
+          Save changes
+        }
+      </button>
+    </footer>
+  </form>
+</article>

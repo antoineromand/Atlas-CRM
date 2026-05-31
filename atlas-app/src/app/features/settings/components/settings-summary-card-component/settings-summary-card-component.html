@@ -1,0 +1,55 @@
+<article class="settings-summary-card surface-card">
+  @if (loading) {
+    <div class="settings-summary-card__skeleton settings-summary-card__skeleton--header"></div>
+    <div class="settings-summary-card__skeleton settings-summary-card__skeleton--avatar"></div>
+    <div class="settings-summary-card__skeleton settings-summary-card__skeleton--line"></div>
+    <div class="settings-summary-card__skeleton settings-summary-card__skeleton--line"></div>
+    <div class="settings-summary-card__skeleton settings-summary-card__skeleton--line"></div>
+  } @else if (account) {
+    <div class="settings-summary-card__header">
+      <div>
+        <p class="eyebrow">Account snapshot</p>
+        <h2>{{ account.firstName }} {{ account.lastName }}</h2>
+      </div>
+
+      <span class="pill">Live data</span>
+    </div>
+
+    <div class="settings-summary-card__identity">
+      <div class="settings-summary-card__avatar" aria-hidden="true">{{ getInitials() }}</div>
+      <div>
+        <p class="settings-summary-card__company">{{ account.companyName || 'No company name yet' }}</p>
+        <p class="settings-summary-card__email">{{ account.billingEmail || 'No billing email configured' }}</p>
+      </div>
+    </div>
+
+    <dl class="settings-summary-card__details">
+      <div>
+        <dt>Account ID</dt>
+        <dd>{{ account.id }}</dd>
+      </div>
+      <div>
+        <dt>Billing city</dt>
+        <dd>{{ account.billingCity || 'Not set' }}</dd>
+      </div>
+      <div>
+        <dt>Billing country</dt>
+        <dd>{{ account.billingCountry || 'Not set' }}</dd>
+      </div>
+      <div>
+        <dt>Last updated</dt>
+        <dd>{{ formatDate(account.updatedAt) }}</dd>
+      </div>
+      <div>
+        <dt>Created at</dt>
+        <dd>{{ formatDate(account.createdAt) }}</dd>
+      </div>
+    </dl>
+  } @else {
+    <div class="settings-summary-card__empty">
+      <p class="eyebrow">Account snapshot</p>
+      <h2>No account loaded</h2>
+      <p class="section-copy">The account endpoint returned no data.</p>
+    </div>
+  }
+</article>
