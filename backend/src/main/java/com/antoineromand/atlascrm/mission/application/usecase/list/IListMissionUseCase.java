@@ -6,4 +6,6 @@ import java.util.UUID;
 
 public interface IListMissionUseCase {
   List<Mission> execute(UUID accountId);
+
+  List<Mission> execute(UUID accountId, String search);
 }

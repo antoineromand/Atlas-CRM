@@ -19,4 +19,15 @@ public class ListMissionUseCase implements IListMissionUseCase {
   public List<Mission> execute(UUID accountId) {
     return this.missionRepository.findAllByAccountId(accountId);
   }
+
+  @Override
+  public List<Mission> execute(UUID accountId, String search) {
+    String normalizedSearch = search == null ? null : search.trim();
+
+    if (normalizedSearch == null || normalizedSearch.isBlank()) {
+      return this.missionRepository.findAllByAccountId(accountId);
+    }
+
+    return this.missionRepository.findAllByAccountIdAndSearch(accountId, normalizedSearch);
+  }
 }

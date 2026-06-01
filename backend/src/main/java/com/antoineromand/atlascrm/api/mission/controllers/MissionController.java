@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -77,10 +78,11 @@ public class MissionController {
   }
 
   @GetMapping
-  public ResponseEntity<List<MissionResponseDto>> listMyMissions(Principal principal) {
+  public ResponseEntity<List<MissionResponseDto>> listMyMissions(
+      Principal principal, @RequestParam(required = false) String search) {
     Account account = this.getAccountUseCase.execute(this.extractCredentialsId(principal));
     return ResponseEntity.ok(
-        this.listMissionUseCase.execute(account.getId()).stream().map(this::toResponse).toList());
+        this.listMissionUseCase.execute(account.getId(), search).stream().map(this::toResponse).toList());
   }
 
   @GetMapping("/{missionId}")

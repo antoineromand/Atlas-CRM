@@ -244,8 +244,14 @@
                 "value": "Bearer {{accessToken}}"
               }
             ],
+            "query": [
+              {
+                "key": "search",
+                "value": "{{missionSearch}}"
+              }
+            ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/missions",
+              "raw": "{{baseUrl}}/api/v1/missions?search={{missionSearch}}",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -359,6 +365,10 @@
     },
     {
       "key": "missionId",
+      "value": ""
+    },
+    {
+      "key": "missionSearch",
       "value": ""
     }
   ]

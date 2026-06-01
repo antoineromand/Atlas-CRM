@@ -64,7 +64,7 @@
     </label>
 
     <div class="missions-page__chips">
-      <span class="pill">{{ filteredMissions().length }} visible</span>
+      <span class="pill">{{ missions().length }} visible</span>
       <span class="pill">Private workspace</span>
       <span class="pill">Invoices linked later</span>
     </div>
@@ -91,7 +91,7 @@
         </article>
       }
     </section>
-  } @else if (filteredMissions().length === 0) {
+  } @else if (missions().length === 0) {
     <section class="missions-page__empty surface-card">
       <div>
         <p class="eyebrow">No missions yet</p>
@@ -108,7 +108,7 @@
     </section>
   } @else if (viewMode() === 'cards') {
     <section class="missions-page__grid">
-      @for (mission of filteredMissions(); track trackMission($index, mission)) {
+      @for (mission of missions(); track trackMission($index, mission)) {
         <article class="missions-page__card surface-card">
           <div class="missions-page__card-top">
             <div>
@@ -173,7 +173,7 @@
         <span>Actions</span>
       </div>
 
-      @for (mission of filteredMissions(); track trackMission($index, mission)) {
+      @for (mission of missions(); track trackMission($index, mission)) {
         <article class="missions-page__list-row">
           <div>
             <strong>{{ mission.title }}</strong>

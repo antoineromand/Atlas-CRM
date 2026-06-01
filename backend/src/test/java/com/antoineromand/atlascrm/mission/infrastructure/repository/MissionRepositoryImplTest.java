@@ -67,6 +67,31 @@ class MissionRepositoryImplTest extends AbstractPostgresJpaTest {
   }
 
   @Test
+  void findAllByAccountIdAndSearchShouldFilterPersistedMission() {
+    AccountEntity account = persistAccount(uniqueEmail());
+    Mission mission =
+        new Mission(
+            null,
+            account.getId(),
+            "Website redesign",
+            "Lead developer",
+            "Redesign the marketing website",
+            "in_progress",
+            "high",
+            LocalDate.of(2026, 6, 1),
+            LocalDate.of(2026, 6, 30),
+            Instant.parse("2026-06-01T10:00:00Z"),
+            null);
+
+    missionRepository.save(mission);
+
+    List<Mission> found = missionRepository.findAllByAccountIdAndSearch(account.getId(), "website");
+
+    assertEquals(1, found.size());
+    assertEquals("Website redesign", found.get(0).getTitle());
+  }
+
+  @Test
   void deleteByIdShouldRemovePersistedMission() {
     AccountEntity account = persistAccount(uniqueEmail());
     Mission mission =

@@ -22,6 +22,15 @@ export class MissionService {
     });
   }
 
+  searchMyMissions(search: string | null | undefined): Observable<MissionResponse[]> {
+    const normalizedSearch = search?.trim() ?? '';
+
+    return this.httpClient.get<MissionResponse[]>(this.baseUrl, {
+      withCredentials: true,
+      params: normalizedSearch ? { search: normalizedSearch } : undefined,
+    });
+  }
+
   getMissionById(missionId: string): Observable<MissionResponse> {
     return this.httpClient.get<MissionResponse>(`${this.baseUrl}/${missionId}`, {
       withCredentials: true,

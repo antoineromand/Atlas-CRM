@@ -50,6 +50,13 @@ public class MissionRepositoryImpl implements IMissionRepository {
   }
 
   @Override
+  public List<Mission> findAllByAccountIdAndSearch(UUID accountId, String search) {
+    return this.missionJpaRepository.findAllByAccountIdAndSearch(accountId, search).stream()
+        .map(MissionEntity::toDomain)
+        .toList();
+  }
+
+  @Override
   public void deleteById(UUID missionId) {
     this.missionJpaRepository.deleteById(missionId);
   }

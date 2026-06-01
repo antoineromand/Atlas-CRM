@@ -1,6 +1,7 @@
 package com.antoineromand.atlascrm.mission.application.usecase.list;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.antoineromand.atlascrm.mission.domain.Mission;
@@ -44,5 +45,33 @@ class ListMissionUseCaseTest {
 
     assertEquals(1, result.size());
     assertEquals(accountId, result.get(0).getAccountId());
+  }
+
+  @Test
+  void executeShouldFilterMissionsWhenSearchIsProvided() {
+    ListMissionUseCase useCase = new ListMissionUseCase(missionRepository);
+    UUID accountId = UUID.randomUUID();
+    List<Mission> missions =
+        List.of(
+            new Mission(
+                UUID.randomUUID(),
+                accountId,
+                "Website redesign",
+                null,
+                null,
+                "in_progress",
+                "high",
+                LocalDate.of(2026, 6, 1),
+                LocalDate.of(2026, 6, 30),
+                Instant.now(),
+                null));
+
+    when(missionRepository.findAllByAccountIdAndSearch(accountId, "website")).thenReturn(missions);
+
+    List<Mission> result = useCase.execute(accountId, " website ");
+
+    assertEquals(1, result.size());
+    assertEquals("Website redesign", result.get(0).getTitle());
+    verify(missionRepository).findAllByAccountIdAndSearch(accountId, "website");
   }
 }

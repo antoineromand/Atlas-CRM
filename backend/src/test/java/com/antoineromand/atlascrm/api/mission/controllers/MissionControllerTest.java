@@ -139,7 +139,7 @@ class MissionControllerTest {
                 null,
                 Instant.now(),
                 null));
-    when(listMissionUseCase.execute(accountId))
+    when(listMissionUseCase.execute(accountId, null))
         .thenReturn(
             List.of(
                 new Mission(
@@ -155,11 +155,52 @@ class MissionControllerTest {
                     Instant.parse("2026-06-01T10:00:00Z"),
                     null)));
 
-    ResponseEntity<List<MissionResponseDto>> response = controller.listMyMissions(principal);
+    ResponseEntity<List<MissionResponseDto>> response = controller.listMyMissions(principal, null);
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertEquals(1, response.getBody().size());
     assertEquals("Website redesign", response.getBody().get(0).title());
+  }
+
+  @Test
+  void listMyMissionsShouldForwardSearchToUseCase() {
+    MissionController controller =
+        new MissionController(
+            createMissionUseCase,
+            getAccountUseCase,
+            getMissionUseCase,
+            listMissionUseCase,
+            updateMissionUseCase,
+            deleteMissionUseCase);
+    UUID credentialsId = UUID.randomUUID();
+    UUID accountId = UUID.randomUUID();
+    Principal principal = () -> credentialsId.toString();
+
+    when(getAccountUseCase.execute(credentialsId))
+        .thenReturn(
+            new Account(
+                accountId,
+                credentialsId,
+                "John",
+                "Doe",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                Instant.now(),
+                null));
+    when(listMissionUseCase.execute(accountId, "website")).thenReturn(List.of());
+
+    ResponseEntity<List<MissionResponseDto>> response =
+        controller.listMyMissions(principal, "website");
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals(0, response.getBody().size());
   }
 
   @Test

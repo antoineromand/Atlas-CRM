@@ -14,5 +14,7 @@ public interface IMissionRepository {
 
   List<Mission> findAllByAccountId(UUID accountId);
 
+  List<Mission> findAllByAccountIdAndSearch(UUID accountId, String search);
+
   void deleteById(UUID missionId);
 }
