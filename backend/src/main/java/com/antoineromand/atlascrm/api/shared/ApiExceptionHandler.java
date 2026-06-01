@@ -1,6 +1,9 @@
 package com.antoineromand.atlascrm.api.shared;
 
 import com.antoineromand.atlascrm.authentication.application.exceptions.AuthenticationException;
+import com.antoineromand.atlascrm.mission.application.exceptions.MissionCreationException;
+import com.antoineromand.atlascrm.mission.application.exceptions.MissionNotFoundException;
+import com.antoineromand.atlascrm.mission.application.exceptions.MissionUpdateException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -52,6 +55,30 @@ public class ApiExceptionHandler {
               HttpStatus.UNAUTHORIZED;
           default -> HttpStatus.BAD_REQUEST;
         };
+
+    return ResponseEntity.status(status)
+        .body(new ApiErrorResponse(ex.getCode(), ex.getMessage(), status.value(), null));
+  }
+
+  @ExceptionHandler(MissionCreationException.class)
+  public ResponseEntity<ApiErrorResponse> handleMissionCreationException(
+      MissionCreationException ex) {
+    HttpStatus status = "ACCOUNT_NOT_FOUND".equals(ex.getCode()) ? HttpStatus.NOT_FOUND : HttpStatus.BAD_REQUEST;
+
+    return ResponseEntity.status(status)
+        .body(new ApiErrorResponse(ex.getCode(), ex.getMessage(), status.value(), null));
+  }
+
+  @ExceptionHandler(MissionNotFoundException.class)
+  public ResponseEntity<ApiErrorResponse> handleMissionNotFoundException(
+      MissionNotFoundException ex) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+        .body(new ApiErrorResponse(ex.getCode(), ex.getMessage(), 404, null));
+  }
+
+  @ExceptionHandler(MissionUpdateException.class)
+  public ResponseEntity<ApiErrorResponse> handleMissionUpdateException(MissionUpdateException ex) {
+    HttpStatus status = "MISSION_NOT_FOUND".equals(ex.getCode()) ? HttpStatus.NOT_FOUND : HttpStatus.BAD_REQUEST;
 
     return ResponseEntity.status(status)
         .body(new ApiErrorResponse(ex.getCode(), ex.getMessage(), status.value(), null));
