@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import {
   CreateMissionPayload,
   CreateMissionResponse,
+  MissionPageResponse,
   MissionResponse,
   UpdateMissionPayload,
 } from '../../interface/mission.interface';
@@ -16,18 +17,35 @@ export class MissionService {
   private readonly baseUrl = `${environment.apiBaseUrl}/v1/missions`;
   private readonly httpClient = inject(HttpClient);
 
-  listMyMissions(): Observable<MissionResponse[]> {
-    return this.httpClient.get<MissionResponse[]>(this.baseUrl, {
+  listMyMissions(page = 1, size = 6): Observable<MissionPageResponse> {
+    return this.httpClient.get<MissionPageResponse>(this.baseUrl, {
       withCredentials: true,
+      params: {
+        page,
+        size,
+      },
     });
   }
 
-  searchMyMissions(search: string | null | undefined): Observable<MissionResponse[]> {
+  searchMyMissions(
+    search: string | null | undefined,
+    page = 1,
+    size = 6,
+  ): Observable<MissionPageResponse> {
     const normalizedSearch = search?.trim() ?? '';
 
-    return this.httpClient.get<MissionResponse[]>(this.baseUrl, {
+    return this.httpClient.get<MissionPageResponse>(this.baseUrl, {
       withCredentials: true,
-      params: normalizedSearch ? { search: normalizedSearch } : undefined,
+      params: normalizedSearch
+        ? {
+            search: normalizedSearch,
+            page,
+            size,
+          }
+        : {
+            page,
+            size,
+          },
     });
   }
 

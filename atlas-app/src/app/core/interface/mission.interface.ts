@@ -15,6 +15,16 @@ export interface MissionResponse {
   updatedAt: string | null;
 }
 
+export interface MissionPageResponse {
+  items: MissionResponse[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
+}
+
 export interface CreateMissionPayload {
   title: string;
   roleInProject: string | null;

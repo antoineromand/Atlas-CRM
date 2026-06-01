@@ -52,21 +52,51 @@
   </section>
 
   <section class="missions-page__toolbar surface-card">
-    <label class="missions-page__search">
-      <span class="missions-page__search-icon material-symbols-outlined" aria-hidden="true">search</span>
-      <input
-        type="search"
-        [value]="searchTerm()"
-        (input)="setSearchTerm(($any($event.target)).value)"
-        placeholder="Search missions, roles, or notes..."
-        aria-label="Search missions"
-      />
-    </label>
+    <div class="missions-page__search-group">
+      <div class="missions-page__search-label-row">
+        <span class="missions-page__search-label">Mission search</span>
+        <div class="missions-page__search-meta">
+          <span class="pill missions-page__visible-pill">
+            {{ pagination()?.totalElements ?? missions().length }} total
+          </span>
+        </div>
+      </div>
+      <label
+        class="missions-page__search"
+        [class.missions-page__search--invalid]="!!searchWarning()"
+        [class.missions-page__search--filled]="!!searchTerm()"
+      >
+        <span class="missions-page__search-icon-wrap" aria-hidden="true">
+          <span class="missions-page__search-icon material-symbols-outlined">search</span>
+        </span>
+        <input
+          type="search"
+          [value]="searchTerm()"
+          (input)="setSearchTerm(($any($event.target)).value)"
+          placeholder="Search missions by title or role..."
+          aria-label="Search missions"
+        />
+        @if (searchTerm()) {
+          <button class="missions-page__search-clear" type="button" aria-label="Clear search" (click)="clearSearch()">
+            <span class="material-symbols-outlined" aria-hidden="true">close</span>
+          </button>
+        }
+      </label>
+
+      @if (searchWarning()) {
+        <p class="missions-page__search-hint" aria-live="polite">
+          {{ searchWarning() }}
+        </p>
+      }
+    </div>
 
     <div class="missions-page__chips">
-      <span class="pill">{{ missions().length }} visible</span>
-      <span class="pill">Private workspace</span>
-      <span class="pill">Invoices linked later</span>
+      @if (isRefreshing()) {
+        <span class="pill missions-page__pill--updating">
+          <span class="missions-page__pill-dot" aria-hidden="true"></span>
+          Updating
+        </span>
+      }
     </div>
   </section>
 
@@ -107,7 +137,12 @@
       </button>
     </section>
   } @else if (viewMode() === 'cards') {
-    <section class="missions-page__grid">
+    <section class="missions-page__grid" [class.missions-page__grid--refreshing]="isRefreshing()">
+      @if (isRefreshing()) {
+        <div class="missions-page__refresh-overlay" aria-hidden="true">
+          <span class="missions-page__refresh-pill">Updating results</span>
+        </div>
+      }
       @for (mission of missions(); track trackMission($index, mission)) {
         <article class="missions-page__card surface-card">
           <div class="missions-page__card-top">
@@ -120,28 +155,23 @@
                 {{ mission.roleInProject || 'Role not set yet' }}
               </p>
             </div>
-
-            <div class="missions-page__priority missions-page__priority--{{ mission.priority }}">
-              {{ priorityLabel(mission.priority) }}
-            </div>
           </div>
 
           <p class="missions-page__card-copy">
             {{ mission.description || 'No description has been added yet for this mission.' }}
           </p>
 
-          <div class="missions-page__meta">
-            <div>
-              <span>Start</span>
-              <strong>{{ formatDate(mission.startDate) }}</strong>
-            </div>
-            <div>
+          <div class="missions-page__card-details">
+            <div class="missions-page__card-detail">
               <span>Deadline</span>
               <strong>{{ formatDate(mission.deadline) }}</strong>
             </div>
-            <div>
-              <span>Focus</span>
-              <strong>{{ formatRelativeStatus(mission) }}</strong>
+            <div class="missions-page__card-detail">
+              <span>Priority</span>
+              <div class="missions-page__priority-inline missions-page__priority-inline--{{ mission.priority }}">
+                <span class="missions-page__priority-dot" aria-hidden="true"></span>
+                <strong>{{ priorityLabel(mission.priority) }}</strong>
+              </div>
             </div>
           </div>
 
@@ -163,7 +193,12 @@
       }
     </section>
   } @else {
-    <section class="missions-page__list surface-card">
+    <section class="missions-page__list surface-card" [class.missions-page__list--refreshing]="isRefreshing()">
+      @if (isRefreshing()) {
+        <div class="missions-page__refresh-overlay missions-page__refresh-overlay--list" aria-hidden="true">
+          <span class="missions-page__refresh-pill">Updating results</span>
+        </div>
+      }
       <div class="missions-page__list-header">
         <span>Mission</span>
         <span>Role</span>
@@ -199,6 +234,50 @@
           </div>
         </article>
       }
+    </section>
+  }
+
+  @if (pagination() && pagination()!.totalPages > 1) {
+    <section class="missions-page__pagination surface-card" aria-label="Mission pagination">
+      <div class="missions-page__pagination-info">
+        Showing page {{ pagination()!.page }} of {{ pagination()!.totalPages }}
+      </div>
+
+      <div class="missions-page__pagination-controls">
+        <button
+          class="missions-page__pagination-button"
+          type="button"
+          (click)="goToPreviousPage()"
+          [disabled]="!pagination()!.hasPrevious || isRefreshing()"
+        >
+          Previous
+        </button>
+
+        @for (item of paginationItems(); track item.key) {
+          @if (item.kind === 'ellipsis') {
+            <span class="missions-page__pagination-ellipsis">…</span>
+          } @else {
+            <button
+              class="missions-page__pagination-button missions-page__pagination-button--page"
+              type="button"
+              [class.is-active]="item.page === pagination()!.page"
+              (click)="goToPage(item.page)"
+              [disabled]="isRefreshing()"
+            >
+              {{ item.page }}
+            </button>
+          }
+        }
+
+        <button
+          class="missions-page__pagination-button"
+          type="button"
+          (click)="goToNextPage()"
+          [disabled]="!pagination()!.hasNext || isRefreshing()"
+        >
+          Next
+        </button>
+      </div>
     </section>
   }
 

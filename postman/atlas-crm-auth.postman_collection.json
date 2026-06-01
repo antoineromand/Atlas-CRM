@@ -248,10 +248,18 @@
               {
                 "key": "search",
                 "value": "{{missionSearch}}"
+              },
+              {
+                "key": "page",
+                "value": "{{missionPage}}"
+              },
+              {
+                "key": "size",
+                "value": "{{missionPageSize}}"
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/missions?search={{missionSearch}}",
+              "raw": "{{baseUrl}}/api/v1/missions?search={{missionSearch}}&page={{missionPage}}&size={{missionPageSize}}",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -370,6 +378,14 @@
     {
       "key": "missionSearch",
       "value": ""
+    },
+    {
+      "key": "missionPage",
+      "value": "1"
+    },
+    {
+      "key": "missionPageSize",
+      "value": "6"
     }
   ]
 }

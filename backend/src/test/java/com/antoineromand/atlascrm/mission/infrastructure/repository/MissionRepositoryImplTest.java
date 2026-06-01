@@ -19,6 +19,8 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 @Import(MissionRepositoryImpl.class)
 class MissionRepositoryImplTest extends AbstractPostgresJpaTest {
@@ -89,6 +91,72 @@ class MissionRepositoryImplTest extends AbstractPostgresJpaTest {
 
     assertEquals(1, found.size());
     assertEquals("Website redesign", found.get(0).getTitle());
+  }
+
+  @Test
+  void findAllByAccountIdAndSearchShouldNotMatchDescriptionOnly() {
+    AccountEntity account = persistAccount(uniqueEmail());
+    Mission mission =
+        new Mission(
+            null,
+            account.getId(),
+            "Marketing site refresh",
+            "Frontend developer",
+            "Includes devops documentation",
+            "in_progress",
+            "medium",
+            LocalDate.of(2026, 6, 1),
+            null,
+            Instant.parse("2026-06-01T10:00:00Z"),
+            null);
+
+    missionRepository.save(mission);
+
+    List<Mission> found = missionRepository.findAllByAccountIdAndSearch(account.getId(), "devops");
+
+    assertEquals(0, found.size());
+  }
+
+  @Test
+  void findAllByAccountIdAndSearchPagedShouldFilterAndPagePersistedMissions() {
+    AccountEntity account = persistAccount(uniqueEmail());
+    Mission first =
+        new Mission(
+            null,
+            account.getId(),
+            "Website redesign",
+            "Lead developer",
+            "Redesign the marketing website",
+            "in_progress",
+            "high",
+            LocalDate.of(2026, 6, 1),
+            LocalDate.of(2026, 6, 30),
+            Instant.parse("2026-06-01T10:00:00Z"),
+            null);
+    Mission second =
+        new Mission(
+            null,
+            account.getId(),
+            "Ops dashboard",
+            "DevOps consultant",
+            "Deploy and monitor infrastructure",
+            "in_progress",
+            "medium",
+            LocalDate.of(2026, 6, 2),
+            null,
+            Instant.parse("2026-06-02T10:00:00Z"),
+            null);
+
+    missionRepository.save(first);
+    missionRepository.save(second);
+
+    var page =
+        missionRepository.findAllByAccountIdAndSearch(
+            account.getId(), "devops", PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt")));
+
+    assertEquals(1, page.getTotalElements());
+    assertEquals(1, page.getContent().size());
+    assertEquals("Ops dashboard", page.getContent().get(0).getTitle());
   }
 
   @Test
