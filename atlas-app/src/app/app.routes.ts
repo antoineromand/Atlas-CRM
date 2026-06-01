@@ -44,6 +44,12 @@ export const routes: Routes = [
             .then((m) => m.MainDashboardPageComponent),
       },
       {
+        path: 'missions',
+        loadComponent: () =>
+          import('./features/missions/pages/missions-page-component/missions-page-component')
+            .then((m) => m.MissionsPageComponent),
+      },
+      {
         path: 'settings',
         loadComponent: () =>
           import('./features/settings/page/settings-page-component/settings-page-component')
