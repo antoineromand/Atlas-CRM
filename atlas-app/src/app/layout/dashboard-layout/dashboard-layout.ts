@@ -25,7 +25,7 @@ export class DashboardLayoutComponent {
     { label: 'Dashboard', icon: 'dashboard', route: '/dashboard' },
     { label: 'Clients', icon: 'group', disabled: true },
     { label: 'Invoices/Quotes', icon: 'receipt_long', disabled: true },
-    { label: 'Missions', icon: 'assignment', disabled: true },
+    { label: 'Missions', icon: 'assignment', route: '/dashboard/missions' },
   ];
 
   private readonly authService = inject(AuthService);
@@ -46,6 +46,13 @@ export class DashboardLayoutComponent {
 
   toggleProfileMenu(): void {
     this.profileMenuOpen.update((current) => !current);
+  }
+
+  openMissionCreator(): void {
+    void this.router.navigate(['/dashboard/missions'], {
+      queryParams: { create: '1' },
+    });
+    this.closeMenu();
   }
 
   logout(): void {

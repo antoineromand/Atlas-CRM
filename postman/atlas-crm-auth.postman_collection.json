@@ -244,8 +244,22 @@
                 "value": "Bearer {{accessToken}}"
               }
             ],
+            "query": [
+              {
+                "key": "search",
+                "value": "{{missionSearch}}"
+              },
+              {
+                "key": "page",
+                "value": "{{missionPage}}"
+              },
+              {
+                "key": "size",
+                "value": "{{missionPageSize}}"
+              }
+            ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/missions",
+              "raw": "{{baseUrl}}/api/v1/missions?search={{missionSearch}}&page={{missionPage}}&size={{missionPageSize}}",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -253,6 +267,31 @@
                 "api",
                 "v1",
                 "missions"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Mission Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/missions/summary",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "missions",
+                "summary"
               ]
             }
           },
@@ -360,6 +399,18 @@
     {
       "key": "missionId",
       "value": ""
+    },
+    {
+      "key": "missionSearch",
+      "value": ""
+    },
+    {
+      "key": "missionPage",
+      "value": "1"
+    },
+    {
+      "key": "missionPageSize",
+      "value": "6"
     }
   ]
 }

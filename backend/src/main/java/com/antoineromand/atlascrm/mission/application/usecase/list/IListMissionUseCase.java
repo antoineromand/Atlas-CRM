@@ -6,4 +6,8 @@ import java.util.UUID;
 
 public interface IListMissionUseCase {
   List<Mission> execute(UUID accountId);
+
+  List<Mission> execute(UUID accountId, String search);
+
+  MissionPageResult execute(UUID accountId, String search, int page, int size);
 }

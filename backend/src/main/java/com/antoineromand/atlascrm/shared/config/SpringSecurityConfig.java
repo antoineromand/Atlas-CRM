@@ -1,6 +1,7 @@
 package com.antoineromand.atlascrm.shared.config;
 
 import com.antoineromand.atlascrm.authentication.infrastructure.web.JwtAuthenticationFilter;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,6 +33,14 @@ public class SpringSecurityConfig {
         http.formLogin(FormLoginConfigurer::disable);
         http.sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        http.exceptionHandling(
+            exceptions ->
+                exceptions.authenticationEntryPoint(
+                    (request, response, authException) ->
+                        response.sendError(HttpServletResponse.SC_UNAUTHORIZED))
+                    .accessDeniedHandler(
+                        (request, response, accessDeniedException) ->
+                            response.sendError(HttpServletResponse.SC_FORBIDDEN)));
         http.authorizeHttpRequests(
             auth -> auth.requestMatchers("/api/v1/authentication/**").permitAll()
                 .anyRequest().authenticated());

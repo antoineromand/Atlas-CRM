@@ -5,12 +5,17 @@ import com.antoineromand.atlascrm.account.application.usecase.account.PatchValue
 import com.antoineromand.atlascrm.account.domain.Account;
 import com.antoineromand.atlascrm.api.mission.dto.CreateMissionRequestDto;
 import com.antoineromand.atlascrm.api.mission.dto.CreateMissionResponseDto;
+import com.antoineromand.atlascrm.api.mission.dto.MissionPageResponseDto;
 import com.antoineromand.atlascrm.api.mission.dto.MissionResponseDto;
+import com.antoineromand.atlascrm.api.mission.dto.MissionSummaryResponseDto;
 import com.antoineromand.atlascrm.mission.application.usecase.create.CreateMissionCommand;
 import com.antoineromand.atlascrm.mission.application.usecase.create.ICreateMissionUseCase;
 import com.antoineromand.atlascrm.mission.application.usecase.delete.IDeleteMissionUseCase;
 import com.antoineromand.atlascrm.mission.application.usecase.get.IGetMissionUseCase;
 import com.antoineromand.atlascrm.mission.application.usecase.list.IListMissionUseCase;
+import com.antoineromand.atlascrm.mission.application.usecase.list.MissionPageResult;
+import com.antoineromand.atlascrm.mission.application.usecase.summary.IGetMissionSummaryUseCase;
+import com.antoineromand.atlascrm.mission.application.usecase.summary.MissionSummaryResult;
 import com.antoineromand.atlascrm.mission.application.usecase.update.IUpdateMissionUseCase;
 import com.antoineromand.atlascrm.mission.application.usecase.update.UpdateMissionCommand;
 import com.antoineromand.atlascrm.mission.domain.Mission;
@@ -22,13 +27,14 @@ import java.util.Map;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -39,6 +45,7 @@ public class MissionController {
   private final IGetAccountUseCase getAccountUseCase;
   private final IGetMissionUseCase getMissionUseCase;
   private final IListMissionUseCase listMissionUseCase;
+  private final IGetMissionSummaryUseCase getMissionSummaryUseCase;
   private final IUpdateMissionUseCase updateMissionUseCase;
   private final IDeleteMissionUseCase deleteMissionUseCase;
 
@@ -47,12 +54,14 @@ public class MissionController {
       IGetAccountUseCase getAccountUseCase,
       IGetMissionUseCase getMissionUseCase,
       IListMissionUseCase listMissionUseCase,
+      IGetMissionSummaryUseCase getMissionSummaryUseCase,
       IUpdateMissionUseCase updateMissionUseCase,
       IDeleteMissionUseCase deleteMissionUseCase) {
     this.createMissionUseCase = createMissionUseCase;
     this.getAccountUseCase = getAccountUseCase;
     this.getMissionUseCase = getMissionUseCase;
     this.listMissionUseCase = listMissionUseCase;
+    this.getMissionSummaryUseCase = getMissionSummaryUseCase;
     this.updateMissionUseCase = updateMissionUseCase;
     this.deleteMissionUseCase = deleteMissionUseCase;
   }
@@ -77,10 +86,25 @@ public class MissionController {
   }
 
   @GetMapping
-  public ResponseEntity<List<MissionResponseDto>> listMyMissions(Principal principal) {
+  public ResponseEntity<MissionPageResponseDto> listMyMissions(
+      Principal principal,
+      @RequestParam(required = false) String search,
+      @RequestParam(defaultValue = "1") int page,
+      @RequestParam(defaultValue = "6") int size) {
     Account account = this.getAccountUseCase.execute(this.extractCredentialsId(principal));
-    return ResponseEntity.ok(
-        this.listMissionUseCase.execute(account.getId()).stream().map(this::toResponse).toList());
+    String normalizedSearch = this.normalizeSearch(search);
+    int normalizedPage = this.normalizePage(page);
+    int normalizedSize = this.normalizeSize(size);
+    MissionPageResult result =
+        this.listMissionUseCase.execute(account.getId(), normalizedSearch, normalizedPage, normalizedSize);
+    return ResponseEntity.ok(this.toPageResponse(result));
+  }
+
+  @GetMapping("/summary")
+  public ResponseEntity<MissionSummaryResponseDto> getMyMissionSummary(Principal principal) {
+    Account account = this.getAccountUseCase.execute(this.extractCredentialsId(principal));
+    MissionSummaryResult result = this.getMissionSummaryUseCase.execute(account.getId());
+    return ResponseEntity.ok(this.toSummaryResponse(result));
   }
 
   @GetMapping("/{missionId}")
@@ -120,6 +144,24 @@ public class MissionController {
     return UUID.fromString(principal.getName());
   }
 
+  private String normalizeSearch(String search) {
+    if (search == null) {
+      return null;
+    }
+
+    String normalizedSearch = search.trim();
+
+    if (normalizedSearch.isEmpty()) {
+      return null;
+    }
+
+    if (normalizedSearch.length() < 3) {
+      throw new IllegalArgumentException("search must contain at least 3 characters");
+    }
+
+    return normalizedSearch;
+  }
+
   private MissionResponseDto toResponse(Mission mission) {
     return new MissionResponseDto(
         mission.getId(),
@@ -132,6 +174,46 @@ public class MissionController {
         mission.getDeadline(),
         mission.getCreatedAt(),
         mission.getUpdatedAt());
+  }
+
+  private MissionPageResponseDto toPageResponse(MissionPageResult result) {
+    return new MissionPageResponseDto(
+        result.items().stream().map(this::toResponse).toList(),
+        result.page(),
+        result.size(),
+        result.totalElements(),
+        result.totalPages(),
+        result.hasNext(),
+        result.hasPrevious());
+  }
+
+  private MissionSummaryResponseDto toSummaryResponse(MissionSummaryResult result) {
+    return new MissionSummaryResponseDto(
+        result.totalMissions(),
+        result.activeMissions(),
+        result.completedMissions(),
+        result.dueSoonMissions(),
+        result.highPriorityMissions());
+  }
+
+  private int normalizePage(int page) {
+    if (page < 1) {
+      throw new IllegalArgumentException("page must be greater than or equal to 1");
+    }
+
+    return page;
+  }
+
+  private int normalizeSize(int size) {
+    if (size < 1) {
+      throw new IllegalArgumentException("size must be greater than or equal to 1");
+    }
+
+    if (size > 50) {
+      throw new IllegalArgumentException("size must be lower than or equal to 50");
+    }
+
+    return size;
   }
 
   private PatchValue<String> patchString(Map<String, Object> body, String fieldName, int maxLength) {

@@ -47,7 +47,7 @@
   </nav>
 
   <div class="dashboard-sidebar__footer">
-    <button class="dashboard-sidebar__new-mission" type="button">
+    <button class="dashboard-sidebar__new-mission" type="button" (click)="openMissionCreator()">
       <span class="material-symbols-outlined" aria-hidden="true">add</span>
       <span>New Mission</span>
     </button>
@@ -63,8 +63,8 @@
     <span class="material-symbols-outlined" aria-hidden="true">search</span>
     <input
       type="search"
-      placeholder="Search for clients or invoices..."
-      aria-label="Search for clients or invoices"
+      placeholder="Search missions, roles, or tags..."
+      aria-label="Search missions, roles, or tags"
     />
   </div>
 

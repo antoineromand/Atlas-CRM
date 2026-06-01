@@ -85,6 +85,30 @@ describe('authInterceptor', () => {
     expect(authStateService.getAccessToken()).toBe('new-access-token');
   });
 
+  it('should refresh the access token and retry the request after a 403', () => {
+    authStateService.setAccessToken(createJwt(-60));
+    let result: unknown;
+
+    http.get('/api/private').subscribe((response) => {
+      result = response;
+    });
+
+    const initialReq = httpMock.expectOne('/api/private');
+    expect(initialReq.request.headers.get('Authorization')).toBeNull();
+    initialReq.flush({ message: 'Forbidden' }, { status: 403, statusText: 'Forbidden' });
+
+    const refreshReq = httpMock.expectOne('http://localhost:3000/api/v1/authentication/refresh-token');
+    expect(refreshReq.request.withCredentials).toBeTrue();
+    refreshReq.flush({ accessToken: 'new-access-token', refreshToken: 'new-refresh-token' });
+
+    const retriedReq = httpMock.expectOne('/api/private');
+    expect(retriedReq.request.headers.get('Authorization')).toBe('Bearer new-access-token');
+    retriedReq.flush({ ok: true });
+
+    expect(result).toEqual({ ok: true });
+    expect(authStateService.getAccessToken()).toBe('new-access-token');
+  });
+
   it('should redirect to login when refresh fails', () => {
     authStateService.setAccessToken(createJwt(-60));
     let errorResponse: unknown;

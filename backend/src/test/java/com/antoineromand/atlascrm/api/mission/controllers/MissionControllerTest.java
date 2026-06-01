@@ -1,6 +1,7 @@
 package com.antoineromand.atlascrm.api.mission.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -9,12 +10,15 @@ import com.antoineromand.atlascrm.account.application.usecase.account.IGetAccoun
 import com.antoineromand.atlascrm.account.domain.Account;
 import com.antoineromand.atlascrm.api.mission.dto.CreateMissionResponseDto;
 import com.antoineromand.atlascrm.api.mission.dto.CreateMissionRequestDto;
+import com.antoineromand.atlascrm.api.mission.dto.MissionPageResponseDto;
 import com.antoineromand.atlascrm.api.mission.dto.MissionResponseDto;
 import com.antoineromand.atlascrm.mission.application.usecase.create.CreateMissionCommand;
 import com.antoineromand.atlascrm.mission.application.usecase.create.ICreateMissionUseCase;
 import com.antoineromand.atlascrm.mission.application.usecase.delete.IDeleteMissionUseCase;
 import com.antoineromand.atlascrm.mission.application.usecase.get.IGetMissionUseCase;
 import com.antoineromand.atlascrm.mission.application.usecase.list.IListMissionUseCase;
+import com.antoineromand.atlascrm.mission.application.usecase.summary.IGetMissionSummaryUseCase;
+import com.antoineromand.atlascrm.mission.application.usecase.summary.MissionSummaryResult;
 import com.antoineromand.atlascrm.mission.application.usecase.update.IUpdateMissionUseCase;
 import com.antoineromand.atlascrm.mission.application.usecase.update.UpdateMissionCommand;
 import com.antoineromand.atlascrm.mission.domain.Mission;
@@ -39,6 +43,7 @@ class MissionControllerTest {
   @Mock private IGetAccountUseCase getAccountUseCase;
   @Mock private IGetMissionUseCase getMissionUseCase;
   @Mock private IListMissionUseCase listMissionUseCase;
+  @Mock private IGetMissionSummaryUseCase getMissionSummaryUseCase;
   @Mock private IUpdateMissionUseCase updateMissionUseCase;
   @Mock private IDeleteMissionUseCase deleteMissionUseCase;
 
@@ -50,6 +55,7 @@ class MissionControllerTest {
             getAccountUseCase,
             getMissionUseCase,
             listMissionUseCase,
+            getMissionSummaryUseCase,
             updateMissionUseCase,
             deleteMissionUseCase);
     UUID credentialsId = UUID.randomUUID();
@@ -115,6 +121,7 @@ class MissionControllerTest {
             getAccountUseCase,
             getMissionUseCase,
             listMissionUseCase,
+            getMissionSummaryUseCase,
             updateMissionUseCase,
             deleteMissionUseCase);
     UUID credentialsId = UUID.randomUUID();
@@ -139,27 +146,171 @@ class MissionControllerTest {
                 null,
                 Instant.now(),
                 null));
-    when(listMissionUseCase.execute(accountId))
+    when(listMissionUseCase.execute(accountId, null, 1, 6))
         .thenReturn(
-            List.of(
-                new Mission(
-                    UUID.randomUUID(),
-                    accountId,
-                    "Website redesign",
-                    "Lead developer",
-                    "Redesign the marketing website",
-                    "in_progress",
-                    "high",
-                    LocalDate.of(2026, 6, 1),
-                    LocalDate.of(2026, 6, 30),
-                    Instant.parse("2026-06-01T10:00:00Z"),
-                    null)));
+            new com.antoineromand.atlascrm.mission.application.usecase.list.MissionPageResult(
+                List.of(
+                    new Mission(
+                        UUID.randomUUID(),
+                        accountId,
+                        "Website redesign",
+                        "Lead developer",
+                        "Redesign the marketing website",
+                        "in_progress",
+                        "high",
+                        LocalDate.of(2026, 6, 1),
+                        LocalDate.of(2026, 6, 30),
+                        Instant.parse("2026-06-01T10:00:00Z"),
+                        null)),
+                1,
+                6,
+                1,
+                1,
+                false,
+                false));
 
-    ResponseEntity<List<MissionResponseDto>> response = controller.listMyMissions(principal);
+    ResponseEntity<MissionPageResponseDto> response = controller.listMyMissions(principal, null, 1, 6);
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertEquals(1, response.getBody().size());
-    assertEquals("Website redesign", response.getBody().get(0).title());
+    assertEquals(1, response.getBody().items().size());
+    assertEquals("Website redesign", response.getBody().items().get(0).title());
+    assertEquals(1, response.getBody().page());
+    assertEquals(6, response.getBody().size());
+  }
+
+  @Test
+  void listMyMissionsShouldForwardSearchToUseCase() {
+    MissionController controller =
+        new MissionController(
+            createMissionUseCase,
+            getAccountUseCase,
+            getMissionUseCase,
+            listMissionUseCase,
+            getMissionSummaryUseCase,
+            updateMissionUseCase,
+            deleteMissionUseCase);
+    UUID credentialsId = UUID.randomUUID();
+    UUID accountId = UUID.randomUUID();
+    Principal principal = () -> credentialsId.toString();
+
+    when(getAccountUseCase.execute(credentialsId))
+        .thenReturn(
+            new Account(
+                accountId,
+                credentialsId,
+                "John",
+                "Doe",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                Instant.now(),
+                null));
+    when(listMissionUseCase.execute(accountId, "website", 1, 6))
+        .thenReturn(
+            new com.antoineromand.atlascrm.mission.application.usecase.list.MissionPageResult(
+                List.of(),
+                1,
+                6,
+                0,
+                0,
+                false,
+                false));
+
+    ResponseEntity<MissionPageResponseDto> response =
+        controller.listMyMissions(principal, "website", 1, 6);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals(0, response.getBody().items().size());
+  }
+
+  @Test
+  void listMyMissionsShouldRejectShortSearchQueries() {
+    MissionController controller =
+        new MissionController(
+            createMissionUseCase,
+            getAccountUseCase,
+            getMissionUseCase,
+            listMissionUseCase,
+            getMissionSummaryUseCase,
+            updateMissionUseCase,
+            deleteMissionUseCase);
+    UUID credentialsId = UUID.randomUUID();
+    UUID accountId = UUID.randomUUID();
+    Principal principal = () -> credentialsId.toString();
+
+    when(getAccountUseCase.execute(credentialsId))
+        .thenReturn(
+            new Account(
+                accountId,
+                credentialsId,
+                "John",
+                "Doe",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                Instant.now(),
+                null));
+
+    assertThrows(IllegalArgumentException.class, () -> controller.listMyMissions(principal, "de", 1, 6));
+  }
+
+  @Test
+  void getMyMissionSummaryShouldReturnGlobalStats() {
+    MissionController controller =
+        new MissionController(
+            createMissionUseCase,
+            getAccountUseCase,
+            getMissionUseCase,
+            listMissionUseCase,
+            getMissionSummaryUseCase,
+            updateMissionUseCase,
+            deleteMissionUseCase);
+    UUID credentialsId = UUID.randomUUID();
+    UUID accountId = UUID.randomUUID();
+    Principal principal = () -> credentialsId.toString();
+
+    when(getAccountUseCase.execute(credentialsId))
+        .thenReturn(
+            new Account(
+                accountId,
+                credentialsId,
+                "John",
+                "Doe",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                Instant.now(),
+                null));
+    when(getMissionSummaryUseCase.execute(accountId))
+        .thenReturn(new MissionSummaryResult(5, 3, 2, 1, 4));
+
+    ResponseEntity<com.antoineromand.atlascrm.api.mission.dto.MissionSummaryResponseDto> response =
+        controller.getMyMissionSummary(principal);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals(5L, response.getBody().totalMissions());
+    assertEquals(3L, response.getBody().activeMissions());
+    assertEquals(2L, response.getBody().completedMissions());
+    assertEquals(1L, response.getBody().dueSoonMissions());
+    assertEquals(4L, response.getBody().highPriorityMissions());
   }
 
   @Test
@@ -170,6 +321,7 @@ class MissionControllerTest {
             getAccountUseCase,
             getMissionUseCase,
             listMissionUseCase,
+            getMissionSummaryUseCase,
             updateMissionUseCase,
             deleteMissionUseCase);
     UUID credentialsId = UUID.randomUUID();
@@ -225,6 +377,7 @@ class MissionControllerTest {
             getAccountUseCase,
             getMissionUseCase,
             listMissionUseCase,
+            getMissionSummaryUseCase,
             updateMissionUseCase,
             deleteMissionUseCase);
     UUID credentialsId = UUID.randomUUID();
@@ -286,6 +439,7 @@ class MissionControllerTest {
             getAccountUseCase,
             getMissionUseCase,
             listMissionUseCase,
+            getMissionSummaryUseCase,
             updateMissionUseCase,
             deleteMissionUseCase);
     UUID credentialsId = UUID.randomUUID();
