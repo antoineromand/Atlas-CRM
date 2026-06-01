@@ -1,5 +1,6 @@
 package com.antoineromand.atlascrm.mission.infrastructure.model;
 
+import com.antoineromand.atlascrm.mission.domain.Mission;
 import com.antoineromand.atlascrm.account.infrastructure.model.AccountEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -90,6 +91,36 @@ public class MissionEntity {
     this.deadline = deadline;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
+  }
+
+  public static MissionEntity fromDomain(Mission mission, AccountEntity account) {
+    return new MissionEntity(
+        mission.getId(),
+        account,
+        mission.getTitle(),
+        mission.getRoleInProject(),
+        mission.getDescription(),
+        mission.getStatus(),
+        mission.getPriority(),
+        mission.getStartDate(),
+        mission.getDeadline(),
+        mission.getCreatedAt(),
+        mission.getUpdatedAt());
+  }
+
+  public Mission toDomain() {
+    return new Mission(
+        id,
+        account.getId(),
+        title,
+        roleInProject,
+        description,
+        status,
+        priority,
+        startDate,
+        deadline,
+        createdAt,
+        updatedAt);
   }
 
   public UUID getId() {
