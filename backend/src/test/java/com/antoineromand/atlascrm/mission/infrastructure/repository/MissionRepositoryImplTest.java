@@ -30,7 +30,7 @@ class MissionRepositoryImplTest extends AbstractPostgresJpaTest {
 
   @Test
   void saveShouldPersistAndFindMethodsShouldMapToDomain() {
-    AccountEntity account = persistAccount();
+    AccountEntity account = persistAccount(uniqueEmail());
     Instant createdAt = Instant.parse("2026-06-01T10:00:00Z");
 
     Mission mission =
@@ -66,7 +66,7 @@ class MissionRepositoryImplTest extends AbstractPostgresJpaTest {
 
   @Test
   void deleteByIdShouldRemovePersistedMission() {
-    AccountEntity account = persistAccount();
+    AccountEntity account = persistAccount(uniqueEmail());
     Mission mission =
         new Mission(
             null,
@@ -90,12 +90,12 @@ class MissionRepositoryImplTest extends AbstractPostgresJpaTest {
     assertFalse(missionRepository.findById(missionId).isPresent());
   }
 
-  private AccountEntity persistAccount() {
+  private AccountEntity persistAccount(String email) {
     CredentialsEntity credentials =
         credentialsJpaRepository.save(
             new CredentialsEntity(
                 null,
-                "freelancer@example.com",
+                email,
                 "hashed-password",
                 Instant.now(),
                 null,
@@ -120,5 +120,9 @@ class MissionRepositoryImplTest extends AbstractPostgresJpaTest {
             "France",
             Instant.now(),
             null));
+  }
+
+  private String uniqueEmail() {
+    return UUID.randomUUID() + "@example.com";
   }
 }
