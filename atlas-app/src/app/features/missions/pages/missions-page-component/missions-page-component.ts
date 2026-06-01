@@ -4,11 +4,11 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { finalize } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { StatCardComponent } from '../../../../shared/ui/stat-card/stat-card.component';
+import { MissionPageFacade } from '../../services/mission-page.facade';
 import { MissionService } from '../../../../core/services/mission/mission.service';
 import {
   CreateMissionPayload,
   MissionPriority,
-  MissionPageResponse,
   MissionResponse,
   MissionStatus,
 } from '../../../../core/interface/mission.interface';
@@ -48,52 +48,36 @@ interface MissionStatCard {
   styleUrl: './missions-page-component.scss',
 })
 export class MissionsPageComponent implements OnInit {
+  private readonly missionPageFacade = inject(MissionPageFacade);
   private readonly missionService = inject(MissionService);
   private readonly notificationService = inject(NotificationService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
-  protected readonly missions = signal<MissionResponse[]>([]);
-  protected readonly pagination = signal<MissionPageResponse | null>(null);
-  protected readonly isLoading = signal(true);
+  protected readonly missions = this.missionPageFacade.missions;
+  protected readonly pagination = this.missionPageFacade.pagination;
+  protected readonly isLoading = this.missionPageFacade.isLoading;
   protected readonly isSaving = signal(false);
   protected readonly isDeleting = signal(false);
-  protected readonly loadError = signal<string | null>(null);
-  protected readonly searchTerm = signal('');
-  protected readonly searchWarning = signal<string | null>(null);
-  protected readonly viewMode = signal<MissionViewMode>('cards');
+  protected readonly loadError = this.missionPageFacade.loadError;
+  protected readonly searchTerm = this.missionPageFacade.searchTerm;
+  protected readonly searchWarning = this.missionPageFacade.searchWarning;
+  protected readonly viewMode = this.missionPageFacade.viewMode;
   protected readonly drawerOpen = signal(false);
   protected readonly deleteTarget = signal<MissionResponse | null>(null);
   protected readonly editingMissionId = signal<string | null>(null);
-  protected readonly isRefreshing = signal(false);
-  protected readonly currentPage = signal(1);
-  protected readonly pageSize = computed(() => (this.viewMode() === 'cards' ? 6 : 10));
-  private searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  protected readonly isRefreshing = this.missionPageFacade.isRefreshing;
 
   protected readonly missionStats = computed<MissionStatCard[]>(() => {
-    const missions = this.missions();
-    const today = new Date();
-    const dueSoon = missions.filter((mission) => {
-      if (mission.status === 'completed' || !mission.deadline) {
-        return false;
-      }
-
-      const deadline = this.parseDate(mission.deadline);
-      if (!deadline) {
-        return false;
-      }
-
-      const diff = deadline.getTime() - today.getTime();
-      return diff >= 0 && diff <= 1000 * 60 * 60 * 24 * 7;
-    }).length;
+    const summary = this.missionPageFacade.summary();
 
     return [
       {
         icon: 'rocket_launch',
         badge: '+1 this week',
         label: 'Active missions',
-        value: String(missions.filter((mission) => mission.status !== 'completed').length),
+        value: String(summary?.activeMissions ?? 0),
         footer: 'Current workload in progress',
         tone: 'accent',
       },
@@ -101,7 +85,7 @@ export class MissionsPageComponent implements OnInit {
         icon: 'schedule',
         badge: 'Deadline watch',
         label: 'Due soon',
-        value: String(dueSoon),
+        value: String(summary?.dueSoonMissions ?? 0),
         footer: 'Within the next 7 days',
         tone: 'danger',
       },
@@ -109,7 +93,7 @@ export class MissionsPageComponent implements OnInit {
         icon: 'task_alt',
         badge: 'Done',
         label: 'Completed',
-        value: String(missions.filter((mission) => mission.status === 'completed').length),
+        value: String(summary?.completedMissions ?? 0),
         footer: 'Closed and archived in the board',
         tone: 'secondary',
       },
@@ -117,7 +101,7 @@ export class MissionsPageComponent implements OnInit {
         icon: 'priority_high',
         badge: 'Focus',
         label: 'High priority',
-        value: String(missions.filter((mission) => mission.priority === 'high').length),
+        value: String(summary?.highPriorityMissions ?? 0),
         footer: 'Needs attention first',
         tone: 'primary',
       },
@@ -167,7 +151,7 @@ export class MissionsPageComponent implements OnInit {
   ];
 
   ngOnInit(): void {
-    this.loadMissions(this.searchTerm(), this.currentPage());
+    this.missionPageFacade.initialize();
 
     this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       if (params.get('create') === '1') {
@@ -177,40 +161,20 @@ export class MissionsPageComponent implements OnInit {
   }
 
   protected reload(): void {
-    this.loadMissions(this.searchTerm(), this.currentPage());
+    this.missionPageFacade.reload();
+    this.missionPageFacade.reloadSummary();
   }
 
   protected setSearchTerm(value: string): void {
-    this.searchTerm.set(value);
-    this.searchWarning.set(null);
-    this.queueSearch(value);
+    this.missionPageFacade.setSearchTerm(value);
   }
 
   protected clearSearch(): void {
-    if (!this.searchTerm()) {
-      return;
-    }
-
-    this.searchTerm.set('');
-    this.searchWarning.set(null);
-
-    if (this.searchDebounceTimer) {
-      clearTimeout(this.searchDebounceTimer);
-      this.searchDebounceTimer = null;
-    }
-
-    this.currentPage.set(1);
-    this.loadMissions('', 1);
+    this.missionPageFacade.clearSearch();
   }
 
   protected setViewMode(mode: MissionViewMode): void {
-    if (this.viewMode() === mode) {
-      return;
-    }
-
-    this.viewMode.set(mode);
-    this.currentPage.set(1);
-    this.loadMissions(this.searchTerm(), 1);
+    this.missionPageFacade.setViewMode(mode);
   }
 
   protected openCreateDrawer(syncQueryParams = true): void {
@@ -269,10 +233,11 @@ export class MissionsPageComponent implements OnInit {
         .pipe(finalize(() => this.isSaving.set(false)))
         .subscribe({
           next: () => {
-          this.notificationService.success('Mission updated.');
-          this.closeDrawer();
-          this.loadMissions(this.searchTerm(), this.currentPage());
-        },
+            this.notificationService.success('Mission updated.');
+            this.closeDrawer();
+            this.missionPageFacade.refreshCurrentPage();
+            this.missionPageFacade.reloadSummary();
+          },
           error: (error: any) => {
             const message = error?.error?.message ?? 'Unable to save mission.';
             this.notificationService.error(message);
@@ -288,8 +253,8 @@ export class MissionsPageComponent implements OnInit {
         next: () => {
           this.notificationService.success('Mission created.');
           this.closeDrawer();
-          this.currentPage.set(1);
-          this.loadMissions(this.searchTerm(), 1);
+          this.missionPageFacade.resetToFirstPage();
+          this.missionPageFacade.reloadSummary();
         },
         error: (error: any) => {
           const message = error?.error?.message ?? 'Unable to save mission.';
@@ -322,7 +287,8 @@ export class MissionsPageComponent implements OnInit {
         next: () => {
           this.notificationService.success('Mission deleted.');
           this.deleteTarget.set(null);
-          this.loadMissions(this.searchTerm(), this.currentPage());
+          this.missionPageFacade.refreshCurrentPage();
+          this.missionPageFacade.reloadSummary();
         },
         error: (error: any) => {
           const message = error?.error?.message ?? 'Unable to delete mission.';
@@ -344,7 +310,8 @@ export class MissionsPageComponent implements OnInit {
       .subscribe({
         next: () => {
           this.notificationService.success('Mission status updated.');
-          this.loadMissions(this.searchTerm(), this.currentPage());
+          this.missionPageFacade.refreshCurrentPage();
+          this.missionPageFacade.reloadSummary();
         },
         error: (error: any) => {
           const message = error?.error?.message ?? 'Unable to update mission status.';
@@ -455,131 +422,19 @@ export class MissionsPageComponent implements OnInit {
   }
 
   protected goToPage(page: number): void {
-    if (this.pagination()?.page === page || this.isRefreshing()) {
-      return;
-    }
-
-    this.currentPage.set(page);
-    this.loadMissions(this.searchTerm(), page);
+    this.missionPageFacade.goToPage(page);
   }
 
   protected goToPreviousPage(): void {
-    const pagination = this.pagination();
-    if (!pagination?.hasPrevious) {
-      return;
-    }
-
-    this.goToPage(pagination.page - 1);
+    this.missionPageFacade.goToPreviousPage();
   }
 
   protected goToNextPage(): void {
-    const pagination = this.pagination();
-    if (!pagination?.hasNext) {
-      return;
-    }
-
-    this.goToPage(pagination.page + 1);
+    this.missionPageFacade.goToNextPage();
   }
 
   protected paginationItems(): MissionPaginationItem[] {
-    const pagination = this.pagination();
-    if (!pagination) {
-      return [];
-    }
-
-    const totalPages = pagination.totalPages;
-    const currentPage = pagination.page;
-    const items: MissionPaginationItem[] = [];
-    const pushPage = (page: number): void => {
-      items.push({ key: `page-${page}`, kind: 'page', page });
-    };
-
-    if (totalPages <= 7) {
-      for (let page = 1; page <= totalPages; page += 1) {
-        pushPage(page);
-      }
-      return items;
-    }
-
-    pushPage(1);
-
-    const left = Math.max(2, currentPage - 1);
-    const right = Math.min(totalPages - 1, currentPage + 1);
-
-    if (left > 2) {
-      items.push({ key: 'ellipsis-left', kind: 'ellipsis', page: -1 });
-    }
-
-    for (let page = left; page <= right; page += 1) {
-      pushPage(page);
-    }
-
-    if (right < totalPages - 1) {
-      items.push({ key: 'ellipsis-right', kind: 'ellipsis', page: -1 });
-    }
-
-    pushPage(totalPages);
-    return items;
-  }
-
-  private loadMissions(search: string | null | undefined = this.searchTerm(), page = this.currentPage()): void {
-    const normalizedSearch = search?.trim() ?? '';
-    if (normalizedSearch.length > 0 && normalizedSearch.length < 3) {
-      this.searchWarning.set('Type at least 3 characters to search.');
-      this.isRefreshing.set(false);
-      this.isLoading.set(false);
-      return;
-    }
-
-    this.searchWarning.set(null);
-    const hasExistingContent = this.missions().length > 0;
-    this.isLoading.set(!hasExistingContent);
-    this.isRefreshing.set(hasExistingContent);
-    this.loadError.set(null);
-    this.currentPage.set(page);
-
-    this.missionService
-      .searchMyMissions(search, page, this.pageSize())
-      .pipe(finalize(() => this.isLoading.set(false)))
-      .subscribe({
-        next: (pagination) => {
-          this.pagination.set(pagination);
-          this.missions.set(pagination.items);
-          this.currentPage.set(pagination.page);
-          this.isRefreshing.set(false);
-        },
-        error: (error: any) => {
-          const message = error?.error?.message ?? 'Unable to load missions.';
-          this.isRefreshing.set(false);
-
-          if (hasExistingContent) {
-            this.notificationService.error(message, 'Missions unavailable');
-            return;
-          }
-
-          this.pagination.set(null);
-          this.loadError.set(message);
-          this.notificationService.error(message, 'Missions unavailable');
-        },
-      });
-  }
-
-  private queueSearch(search: string): void {
-    if (this.searchDebounceTimer) {
-      clearTimeout(this.searchDebounceTimer);
-    }
-
-    const normalizedSearch = search.trim();
-    if (normalizedSearch.length > 0 && normalizedSearch.length < 3) {
-      this.searchWarning.set('Type at least 3 characters to search.');
-      this.isRefreshing.set(false);
-      return;
-    }
-
-    this.searchDebounceTimer = setTimeout(() => {
-      this.currentPage.set(1);
-      this.loadMissions(search, 1);
-    }, 250);
+    return this.missionPageFacade.paginationItems();
   }
 
   private patchMissionForm(mission: MissionResponse | null): void {

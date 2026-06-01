@@ -237,47 +237,49 @@
     </section>
   }
 
-  @if (pagination() && pagination()!.totalPages > 1) {
+  @if (pagination()) {
     <section class="missions-page__pagination surface-card" aria-label="Mission pagination">
       <div class="missions-page__pagination-info">
         Showing page {{ pagination()!.page }} of {{ pagination()!.totalPages }}
       </div>
 
-      <div class="missions-page__pagination-controls">
-        <button
-          class="missions-page__pagination-button"
-          type="button"
-          (click)="goToPreviousPage()"
-          [disabled]="!pagination()!.hasPrevious || isRefreshing()"
-        >
-          Previous
-        </button>
+      @if (pagination()!.totalPages > 1) {
+        <div class="missions-page__pagination-controls">
+          <button
+            class="missions-page__pagination-button"
+            type="button"
+            (click)="goToPreviousPage()"
+            [disabled]="!pagination()!.hasPrevious || isRefreshing()"
+          >
+            Previous
+          </button>
 
-        @for (item of paginationItems(); track item.key) {
-          @if (item.kind === 'ellipsis') {
-            <span class="missions-page__pagination-ellipsis">…</span>
-          } @else {
-            <button
-              class="missions-page__pagination-button missions-page__pagination-button--page"
-              type="button"
-              [class.is-active]="item.page === pagination()!.page"
-              (click)="goToPage(item.page)"
-              [disabled]="isRefreshing()"
-            >
-              {{ item.page }}
-            </button>
+          @for (item of paginationItems(); track item.key) {
+            @if (item.kind === 'ellipsis') {
+              <span class="missions-page__pagination-ellipsis">…</span>
+            } @else {
+              <button
+                class="missions-page__pagination-button missions-page__pagination-button--page"
+                type="button"
+                [class.is-active]="item.page === pagination()!.page"
+                (click)="goToPage(item.page)"
+                [disabled]="isRefreshing()"
+              >
+                {{ item.page }}
+              </button>
+            }
           }
-        }
 
-        <button
-          class="missions-page__pagination-button"
-          type="button"
-          (click)="goToNextPage()"
-          [disabled]="!pagination()!.hasNext || isRefreshing()"
-        >
-          Next
-        </button>
-      </div>
+          <button
+            class="missions-page__pagination-button"
+            type="button"
+            (click)="goToNextPage()"
+            [disabled]="!pagination()!.hasNext || isRefreshing()"
+          >
+            Next
+          </button>
+        </div>
+      }
     </section>
   }
 

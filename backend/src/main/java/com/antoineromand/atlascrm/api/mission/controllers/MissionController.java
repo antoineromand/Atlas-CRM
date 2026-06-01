@@ -7,12 +7,15 @@ import com.antoineromand.atlascrm.api.mission.dto.CreateMissionRequestDto;
 import com.antoineromand.atlascrm.api.mission.dto.CreateMissionResponseDto;
 import com.antoineromand.atlascrm.api.mission.dto.MissionPageResponseDto;
 import com.antoineromand.atlascrm.api.mission.dto.MissionResponseDto;
+import com.antoineromand.atlascrm.api.mission.dto.MissionSummaryResponseDto;
 import com.antoineromand.atlascrm.mission.application.usecase.create.CreateMissionCommand;
 import com.antoineromand.atlascrm.mission.application.usecase.create.ICreateMissionUseCase;
 import com.antoineromand.atlascrm.mission.application.usecase.delete.IDeleteMissionUseCase;
 import com.antoineromand.atlascrm.mission.application.usecase.get.IGetMissionUseCase;
 import com.antoineromand.atlascrm.mission.application.usecase.list.IListMissionUseCase;
 import com.antoineromand.atlascrm.mission.application.usecase.list.MissionPageResult;
+import com.antoineromand.atlascrm.mission.application.usecase.summary.IGetMissionSummaryUseCase;
+import com.antoineromand.atlascrm.mission.application.usecase.summary.MissionSummaryResult;
 import com.antoineromand.atlascrm.mission.application.usecase.update.IUpdateMissionUseCase;
 import com.antoineromand.atlascrm.mission.application.usecase.update.UpdateMissionCommand;
 import com.antoineromand.atlascrm.mission.domain.Mission;
@@ -42,6 +45,7 @@ public class MissionController {
   private final IGetAccountUseCase getAccountUseCase;
   private final IGetMissionUseCase getMissionUseCase;
   private final IListMissionUseCase listMissionUseCase;
+  private final IGetMissionSummaryUseCase getMissionSummaryUseCase;
   private final IUpdateMissionUseCase updateMissionUseCase;
   private final IDeleteMissionUseCase deleteMissionUseCase;
 
@@ -50,12 +54,14 @@ public class MissionController {
       IGetAccountUseCase getAccountUseCase,
       IGetMissionUseCase getMissionUseCase,
       IListMissionUseCase listMissionUseCase,
+      IGetMissionSummaryUseCase getMissionSummaryUseCase,
       IUpdateMissionUseCase updateMissionUseCase,
       IDeleteMissionUseCase deleteMissionUseCase) {
     this.createMissionUseCase = createMissionUseCase;
     this.getAccountUseCase = getAccountUseCase;
     this.getMissionUseCase = getMissionUseCase;
     this.listMissionUseCase = listMissionUseCase;
+    this.getMissionSummaryUseCase = getMissionSummaryUseCase;
     this.updateMissionUseCase = updateMissionUseCase;
     this.deleteMissionUseCase = deleteMissionUseCase;
   }
@@ -92,6 +98,13 @@ public class MissionController {
     MissionPageResult result =
         this.listMissionUseCase.execute(account.getId(), normalizedSearch, normalizedPage, normalizedSize);
     return ResponseEntity.ok(this.toPageResponse(result));
+  }
+
+  @GetMapping("/summary")
+  public ResponseEntity<MissionSummaryResponseDto> getMyMissionSummary(Principal principal) {
+    Account account = this.getAccountUseCase.execute(this.extractCredentialsId(principal));
+    MissionSummaryResult result = this.getMissionSummaryUseCase.execute(account.getId());
+    return ResponseEntity.ok(this.toSummaryResponse(result));
   }
 
   @GetMapping("/{missionId}")
@@ -172,6 +185,15 @@ public class MissionController {
         result.totalPages(),
         result.hasNext(),
         result.hasPrevious());
+  }
+
+  private MissionSummaryResponseDto toSummaryResponse(MissionSummaryResult result) {
+    return new MissionSummaryResponseDto(
+        result.totalMissions(),
+        result.activeMissions(),
+        result.completedMissions(),
+        result.dueSoonMissions(),
+        result.highPriorityMissions());
   }
 
   private int normalizePage(int page) {

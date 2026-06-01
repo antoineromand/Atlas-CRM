@@ -6,6 +6,7 @@ import {
   CreateMissionResponse,
   MissionPageResponse,
   MissionResponse,
+  MissionSummaryResponse,
   UpdateMissionPayload,
 } from '../../interface/mission.interface';
 import { environment } from '../../../../environments/environment';
@@ -51,6 +52,12 @@ export class MissionService {
 
   getMissionById(missionId: string): Observable<MissionResponse> {
     return this.httpClient.get<MissionResponse>(`${this.baseUrl}/${missionId}`, {
+      withCredentials: true,
+    });
+  }
+
+  getMissionSummary(): Observable<MissionSummaryResponse> {
+    return this.httpClient.get<MissionSummaryResponse>(`${this.baseUrl}/summary`, {
       withCredentials: true,
     });
   }

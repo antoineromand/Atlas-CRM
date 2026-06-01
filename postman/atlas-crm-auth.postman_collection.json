@@ -273,6 +273,31 @@
           "response": []
         },
         {
+          "name": "Mission Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/missions/summary",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "missions",
+                "summary"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "Get My Mission By Id",
           "request": {
             "method": "GET",

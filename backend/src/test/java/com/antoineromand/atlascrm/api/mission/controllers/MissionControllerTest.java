@@ -17,6 +17,8 @@ import com.antoineromand.atlascrm.mission.application.usecase.create.ICreateMiss
 import com.antoineromand.atlascrm.mission.application.usecase.delete.IDeleteMissionUseCase;
 import com.antoineromand.atlascrm.mission.application.usecase.get.IGetMissionUseCase;
 import com.antoineromand.atlascrm.mission.application.usecase.list.IListMissionUseCase;
+import com.antoineromand.atlascrm.mission.application.usecase.summary.IGetMissionSummaryUseCase;
+import com.antoineromand.atlascrm.mission.application.usecase.summary.MissionSummaryResult;
 import com.antoineromand.atlascrm.mission.application.usecase.update.IUpdateMissionUseCase;
 import com.antoineromand.atlascrm.mission.application.usecase.update.UpdateMissionCommand;
 import com.antoineromand.atlascrm.mission.domain.Mission;
@@ -41,6 +43,7 @@ class MissionControllerTest {
   @Mock private IGetAccountUseCase getAccountUseCase;
   @Mock private IGetMissionUseCase getMissionUseCase;
   @Mock private IListMissionUseCase listMissionUseCase;
+  @Mock private IGetMissionSummaryUseCase getMissionSummaryUseCase;
   @Mock private IUpdateMissionUseCase updateMissionUseCase;
   @Mock private IDeleteMissionUseCase deleteMissionUseCase;
 
@@ -52,6 +55,7 @@ class MissionControllerTest {
             getAccountUseCase,
             getMissionUseCase,
             listMissionUseCase,
+            getMissionSummaryUseCase,
             updateMissionUseCase,
             deleteMissionUseCase);
     UUID credentialsId = UUID.randomUUID();
@@ -117,6 +121,7 @@ class MissionControllerTest {
             getAccountUseCase,
             getMissionUseCase,
             listMissionUseCase,
+            getMissionSummaryUseCase,
             updateMissionUseCase,
             deleteMissionUseCase);
     UUID credentialsId = UUID.randomUUID();
@@ -181,6 +186,7 @@ class MissionControllerTest {
             getAccountUseCase,
             getMissionUseCase,
             listMissionUseCase,
+            getMissionSummaryUseCase,
             updateMissionUseCase,
             deleteMissionUseCase);
     UUID credentialsId = UUID.randomUUID();
@@ -231,6 +237,7 @@ class MissionControllerTest {
             getAccountUseCase,
             getMissionUseCase,
             listMissionUseCase,
+            getMissionSummaryUseCase,
             updateMissionUseCase,
             deleteMissionUseCase);
     UUID credentialsId = UUID.randomUUID();
@@ -260,6 +267,53 @@ class MissionControllerTest {
   }
 
   @Test
+  void getMyMissionSummaryShouldReturnGlobalStats() {
+    MissionController controller =
+        new MissionController(
+            createMissionUseCase,
+            getAccountUseCase,
+            getMissionUseCase,
+            listMissionUseCase,
+            getMissionSummaryUseCase,
+            updateMissionUseCase,
+            deleteMissionUseCase);
+    UUID credentialsId = UUID.randomUUID();
+    UUID accountId = UUID.randomUUID();
+    Principal principal = () -> credentialsId.toString();
+
+    when(getAccountUseCase.execute(credentialsId))
+        .thenReturn(
+            new Account(
+                accountId,
+                credentialsId,
+                "John",
+                "Doe",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                Instant.now(),
+                null));
+    when(getMissionSummaryUseCase.execute(accountId))
+        .thenReturn(new MissionSummaryResult(5, 3, 2, 1, 4));
+
+    ResponseEntity<com.antoineromand.atlascrm.api.mission.dto.MissionSummaryResponseDto> response =
+        controller.getMyMissionSummary(principal);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals(5L, response.getBody().totalMissions());
+    assertEquals(3L, response.getBody().activeMissions());
+    assertEquals(2L, response.getBody().completedMissions());
+    assertEquals(1L, response.getBody().dueSoonMissions());
+    assertEquals(4L, response.getBody().highPriorityMissions());
+  }
+
+  @Test
   void getMyMissionShouldReturnMissionDto() {
     MissionController controller =
         new MissionController(
@@ -267,6 +321,7 @@ class MissionControllerTest {
             getAccountUseCase,
             getMissionUseCase,
             listMissionUseCase,
+            getMissionSummaryUseCase,
             updateMissionUseCase,
             deleteMissionUseCase);
     UUID credentialsId = UUID.randomUUID();
@@ -322,6 +377,7 @@ class MissionControllerTest {
             getAccountUseCase,
             getMissionUseCase,
             listMissionUseCase,
+            getMissionSummaryUseCase,
             updateMissionUseCase,
             deleteMissionUseCase);
     UUID credentialsId = UUID.randomUUID();
@@ -383,6 +439,7 @@ class MissionControllerTest {
             getAccountUseCase,
             getMissionUseCase,
             listMissionUseCase,
+            getMissionSummaryUseCase,
             updateMissionUseCase,
             deleteMissionUseCase);
     UUID credentialsId = UUID.randomUUID();

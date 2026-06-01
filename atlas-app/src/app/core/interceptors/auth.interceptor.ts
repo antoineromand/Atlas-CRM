@@ -1,10 +1,12 @@
-import { HttpInterceptorFn } from '@angular/common/http';
+import { HttpContextToken, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { AuthStateService } from '../services/auth/auth-state.service';
 import { AuthSessionService } from '../services/auth/auth-session.service';
 import { NotificationService } from '../services/notification/notification.service';
+
+const AUTH_REFRESH_RETRY = new HttpContextToken<boolean>(() => false);
 
 export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const authSessionService = inject(AuthSessionService);
@@ -27,7 +29,9 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
 
   return next(authorizedRequest).pipe(
     catchError((error) => {
-      if (error?.status !== 401 || request.url.includes('/api/v1/authentication')) {
+      const shouldRefresh = error?.status === 401 || error?.status === 403;
+
+      if (!shouldRefresh || request.context.get(AUTH_REFRESH_RETRY)) {
         return throwError(() => error);
       }
 
@@ -38,6 +42,7 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
               setHeaders: {
                 Authorization: `Bearer ${newAccessToken}`,
               },
+              context: request.context.set(AUTH_REFRESH_RETRY, true),
             })
           )
         ),

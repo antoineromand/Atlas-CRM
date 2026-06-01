@@ -25,6 +25,14 @@ export interface MissionPageResponse {
   hasPrevious: boolean;
 }
 
+export interface MissionSummaryResponse {
+  totalMissions: number;
+  activeMissions: number;
+  completedMissions: number;
+  dueSoonMissions: number;
+  highPriorityMissions: number;
+}
+
 export interface CreateMissionPayload {
   title: string;
   roleInProject: string | null;
