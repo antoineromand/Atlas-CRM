@@ -9,11 +9,16 @@ import com.antoineromand.atlascrm.account.application.usecase.account.IGetAccoun
 import com.antoineromand.atlascrm.account.domain.Account;
 import com.antoineromand.atlascrm.api.mission.dto.CreateMissionResponseDto;
 import com.antoineromand.atlascrm.api.mission.dto.CreateMissionRequestDto;
+import com.antoineromand.atlascrm.api.mission.dto.MissionResponseDto;
 import com.antoineromand.atlascrm.mission.application.usecase.create.CreateMissionCommand;
 import com.antoineromand.atlascrm.mission.application.usecase.create.ICreateMissionUseCase;
+import com.antoineromand.atlascrm.mission.application.usecase.get.IGetMissionUseCase;
+import com.antoineromand.atlascrm.mission.application.usecase.list.IListMissionUseCase;
+import com.antoineromand.atlascrm.mission.domain.Mission;
 import java.security.Principal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,10 +33,14 @@ class MissionControllerTest {
 
   @Mock private ICreateMissionUseCase createMissionUseCase;
   @Mock private IGetAccountUseCase getAccountUseCase;
+  @Mock private IGetMissionUseCase getMissionUseCase;
+  @Mock private IListMissionUseCase listMissionUseCase;
 
   @Test
   void createMissionShouldResolveCurrentAccountAndReturnCreatedResponse() {
-    MissionController controller = new MissionController(createMissionUseCase, getAccountUseCase);
+    MissionController controller =
+        new MissionController(
+            createMissionUseCase, getAccountUseCase, getMissionUseCase, listMissionUseCase);
     UUID credentialsId = UUID.randomUUID();
     UUID accountId = UUID.randomUUID();
     UUID missionId = UUID.randomUUID();
@@ -85,5 +94,105 @@ class MissionControllerTest {
     assertEquals("high", command.priority());
     assertEquals(LocalDate.of(2026, 6, 1), command.startDate());
     assertEquals(LocalDate.of(2026, 6, 30), command.deadline());
+  }
+
+  @Test
+  void listMyMissionsShouldReturnMissionDtos() {
+    MissionController controller =
+        new MissionController(
+            createMissionUseCase, getAccountUseCase, getMissionUseCase, listMissionUseCase);
+    UUID credentialsId = UUID.randomUUID();
+    UUID accountId = UUID.randomUUID();
+    Principal principal = () -> credentialsId.toString();
+
+    when(getAccountUseCase.execute(credentialsId))
+        .thenReturn(
+            new Account(
+                accountId,
+                credentialsId,
+                "John",
+                "Doe",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                Instant.now(),
+                null));
+    when(listMissionUseCase.execute(accountId))
+        .thenReturn(
+            List.of(
+                new Mission(
+                    UUID.randomUUID(),
+                    accountId,
+                    "Website redesign",
+                    "Lead developer",
+                    "Redesign the marketing website",
+                    "in_progress",
+                    "high",
+                    LocalDate.of(2026, 6, 1),
+                    LocalDate.of(2026, 6, 30),
+                    Instant.parse("2026-06-01T10:00:00Z"),
+                    null)));
+
+    ResponseEntity<List<MissionResponseDto>> response = controller.listMyMissions(principal);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals(1, response.getBody().size());
+    assertEquals("Website redesign", response.getBody().get(0).title());
+  }
+
+  @Test
+  void getMyMissionShouldReturnMissionDto() {
+    MissionController controller =
+        new MissionController(
+            createMissionUseCase, getAccountUseCase, getMissionUseCase, listMissionUseCase);
+    UUID credentialsId = UUID.randomUUID();
+    UUID accountId = UUID.randomUUID();
+    UUID missionId = UUID.randomUUID();
+    Principal principal = () -> credentialsId.toString();
+
+    when(getAccountUseCase.execute(credentialsId))
+        .thenReturn(
+            new Account(
+                accountId,
+                credentialsId,
+                "John",
+                "Doe",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                Instant.now(),
+                null));
+    when(getMissionUseCase.execute(accountId, missionId))
+        .thenReturn(
+            new Mission(
+                missionId,
+                accountId,
+                "Website redesign",
+                "Lead developer",
+                "Redesign the marketing website",
+                "in_progress",
+                "high",
+                LocalDate.of(2026, 6, 1),
+                LocalDate.of(2026, 6, 30),
+                Instant.parse("2026-06-01T10:00:00Z"),
+                null));
+
+    ResponseEntity<MissionResponseDto> response = controller.getMyMission(principal, missionId);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals(missionId, response.getBody().id());
+    assertEquals("Website redesign", response.getBody().title());
   }
 }

@@ -38,6 +38,11 @@ public class MissionRepositoryImpl implements IMissionRepository {
   }
 
   @Override
+  public Optional<Mission> findByIdAndAccountId(UUID missionId, UUID accountId) {
+    return this.missionJpaRepository.findByIdAndAccount_Id(missionId, accountId).map(MissionEntity::toDomain);
+  }
+
+  @Override
   public List<Mission> findAllByAccountId(UUID accountId) {
     return this.missionJpaRepository.findAllByAccount_IdOrderByCreatedAtDesc(accountId).stream()
         .map(MissionEntity::toDomain)

@@ -172,6 +172,55 @@
       "response": []
     },
     {
+      "name": "List My Missions",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/missions",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "missions"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get My Mission By Id",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/missions/{{missionId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "missions",
+            "{{missionId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
       "name": "Refresh Token",
       "request": {
         "method": "POST",
@@ -233,6 +282,10 @@
     },
     {
       "key": "refreshToken",
+      "value": ""
+    },
+    {
+      "key": "missionId",
       "value": ""
     }
   ]

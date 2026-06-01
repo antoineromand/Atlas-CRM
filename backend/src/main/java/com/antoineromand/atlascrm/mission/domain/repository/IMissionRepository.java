@@ -10,6 +10,8 @@ public interface IMissionRepository {
 
   Optional<Mission> findById(UUID missionId);
 
+  Optional<Mission> findByIdAndAccountId(UUID missionId, UUID accountId);
+
   List<Mission> findAllByAccountId(UUID accountId);
 
   void deleteById(UUID missionId);

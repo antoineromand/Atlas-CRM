@@ -50,6 +50,7 @@ class MissionRepositoryImplTest extends AbstractPostgresJpaTest {
     UUID missionId = missionRepository.save(mission);
 
     Mission found = missionRepository.findById(missionId).orElseThrow();
+    Mission foundByAccount = missionRepository.findByIdAndAccountId(missionId, account.getId()).orElseThrow();
     List<Mission> missions = missionRepository.findAllByAccountId(account.getId());
 
     assertEquals(missionId, found.getId());
@@ -60,6 +61,7 @@ class MissionRepositoryImplTest extends AbstractPostgresJpaTest {
     assertEquals("high", found.getPriority());
     assertEquals(LocalDate.of(2026, 6, 1), found.getStartDate());
     assertEquals(LocalDate.of(2026, 6, 30), found.getDeadline());
+    assertEquals(missionId, foundByAccount.getId());
     assertEquals(1, missions.size());
     assertEquals(missionId, missions.get(0).getId());
   }
