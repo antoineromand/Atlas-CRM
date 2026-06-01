@@ -4,7 +4,6 @@ import { Router } from '@angular/router';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { authInterceptor } from './auth.interceptor';
 import { AuthStateService } from '../services/auth/auth-state.service';
-import { AuthService } from '../services/auth/auth.service';
 import { NotificationService } from '../services/notification/notification.service';
 
 function createJwt(expSecondsFromNow: number): string {

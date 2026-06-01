@@ -91,10 +91,10 @@
 
       @if (profileMenuOpen()) {
         <div class="dashboard-profile__menu" role="menu" aria-label="Profile actions">
-          <button class="dashboard-profile__item dashboard-profile__item--disabled" type="button" disabled>
+          <a class="dashboard-profile__item" [routerLink]="['/dashboard/settings']" (click)="closeProfileMenu()">
             <span class="material-symbols-outlined" aria-hidden="true">settings</span>
             <span>Settings</span>
-          </button>
+          </a>
 
           <button class="dashboard-profile__item dashboard-profile__item--danger" type="button" (click)="logout()">
             <span class="material-symbols-outlined" aria-hidden="true">logout</span>

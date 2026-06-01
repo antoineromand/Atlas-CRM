@@ -1,0 +1,47 @@
+<div class="settings-page">
+  <section class="settings-page__hero surface-card">
+    <div class="settings-page__hero-copy">
+      <p class="eyebrow">Settings</p>
+      <h1 class="display-title">Account settings</h1>
+      <p class="section-copy">
+        Manage profile, company, and billing information from one place.
+      </p>
+    </div>
+
+    <div class="settings-page__hero-actions">
+      <span class="pill">Private workspace</span>
+      <button
+        class="btn btn--primary"
+        type="button"
+        [class.btn--pulse]="savePulse()"
+        (click)="onSubmit()"
+        [disabled]="isLoading() || isSaving() || settingsForm.invalid || settingsForm.pristine"
+      >
+        {{ isSaving() ? 'Saving...' : 'Save changes' }}
+      </button>
+    </div>
+  </section>
+
+  @if (loadError()) {
+    <section class="settings-page__error surface-card">
+      <div>
+        <p class="eyebrow">Unavailable</p>
+        <h2>We couldn't load the account data</h2>
+        <p class="section-copy">{{ loadError() }}</p>
+      </div>
+
+      <button class="btn btn--secondary" type="button" (click)="reload()">Retry</button>
+    </section>
+  }
+
+  <div class="settings-page__grid">
+    <app-settings-summary-card [account]="account()" [loading]="isLoading()" />
+    <app-settings-account-form
+      [form]="settingsForm"
+      [loading]="isLoading()"
+      [saving]="isSaving()"
+      [actionPulse]="savePulse()"
+      (submitted)="onSubmit()"
+    />
+  </div>
+</div>

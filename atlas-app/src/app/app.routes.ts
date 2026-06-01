@@ -43,6 +43,12 @@ export const routes: Routes = [
           import('./features/dashboard/pages/main-dashboard-page-component/main-dashboard-page-component')
             .then((m) => m.MainDashboardPageComponent),
       },
+      {
+        path: 'settings',
+        loadComponent: () =>
+          import('./features/settings/page/settings-page-component/settings-page-component')
+            .then((m) => m.SettingsPageComponent),
+      },
     ],
   },
 ];
