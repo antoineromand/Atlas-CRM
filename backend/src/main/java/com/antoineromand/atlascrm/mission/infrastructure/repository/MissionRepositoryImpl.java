@@ -1,0 +1,51 @@
+package com.antoineromand.atlascrm.mission.infrastructure.repository;
+
+import com.antoineromand.atlascrm.account.infrastructure.model.AccountEntity;
+import com.antoineromand.atlascrm.account.infrastructure.repository.AccountJpaRepository;
+import com.antoineromand.atlascrm.mission.domain.Mission;
+import com.antoineromand.atlascrm.mission.domain.repository.IMissionRepository;
+import com.antoineromand.atlascrm.mission.infrastructure.model.MissionEntity;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public class MissionRepositoryImpl implements IMissionRepository {
+
+  private final MissionJpaRepository missionJpaRepository;
+  private final AccountJpaRepository accountJpaRepository;
+
+  public MissionRepositoryImpl(
+      MissionJpaRepository missionJpaRepository, AccountJpaRepository accountJpaRepository) {
+    this.missionJpaRepository = missionJpaRepository;
+    this.accountJpaRepository = accountJpaRepository;
+  }
+
+  @Override
+  public UUID save(Mission mission) {
+    AccountEntity account =
+        this.accountJpaRepository
+            .findById(mission.getAccountId())
+            .orElseThrow(() -> new IllegalArgumentException("Account not found"));
+    MissionEntity saved = this.missionJpaRepository.save(MissionEntity.fromDomain(mission, account));
+    return saved.getId();
+  }
+
+  @Override
+  public Optional<Mission> findById(UUID missionId) {
+    return this.missionJpaRepository.findById(missionId).map(MissionEntity::toDomain);
+  }
+
+  @Override
+  public List<Mission> findAllByAccountId(UUID accountId) {
+    return this.missionJpaRepository.findAllByAccount_IdOrderByCreatedAtDesc(accountId).stream()
+        .map(MissionEntity::toDomain)
+        .toList();
+  }
+
+  @Override
+  public void deleteById(UUID missionId) {
+    this.missionJpaRepository.deleteById(missionId);
+  }
+}
