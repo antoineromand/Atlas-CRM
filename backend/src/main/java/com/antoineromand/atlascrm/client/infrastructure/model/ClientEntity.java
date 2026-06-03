@@ -2,6 +2,7 @@ package com.antoineromand.atlascrm.client.infrastructure.model;
 
 import com.antoineromand.atlascrm.account.infrastructure.model.AccountEntity;
 import com.antoineromand.atlascrm.client.domain.Client;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -9,8 +10,11 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -27,6 +31,9 @@ public class ClientEntity {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "account_id", nullable = false)
   private AccountEntity account;
+
+  @OneToMany(mappedBy = "client", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+  private Set<ClientContactEntity> contacts = new HashSet<>();
 
   @Column(name = "company_name", nullable = false, length = 200)
   private String companyName;
@@ -92,6 +99,10 @@ public class ClientEntity {
 
   public AccountEntity getAccount() {
     return account;
+  }
+
+  public Set<ClientContactEntity> getContacts() {
+    return contacts;
   }
 
   public String getCompanyName() {
