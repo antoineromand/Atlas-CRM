@@ -5,7 +5,6 @@ import com.antoineromand.atlascrm.account.infrastructure.repository.AccountJpaRe
 import com.antoineromand.atlascrm.client.domain.Client;
 import com.antoineromand.atlascrm.client.domain.repository.IClientRepository;
 import com.antoineromand.atlascrm.client.infrastructure.model.ClientEntity;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
@@ -45,23 +44,8 @@ public class ClientRepositoryImpl implements IClientRepository {
   }
 
   @Override
-  public List<Client> findAllByAccountId(UUID accountId) {
-    return this.clientJpaRepository.findAllByAccount_IdOrderByCreatedAtDesc(accountId).stream()
-        .map(ClientEntity::toDomain)
-        .toList();
-  }
-
-  @Override
   public Page<Client> findAllByAccountId(UUID accountId, Pageable pageable) {
     return this.clientJpaRepository.findAllByAccount_Id(accountId, pageable).map(ClientEntity::toDomain);
-  }
-
-  @Override
-  public List<Client> findAllByAccountIdAndSearch(UUID accountId, String search, String status) {
-    return this.clientJpaRepository.findAllByAccountIdAndSearch(accountId, search, status, Pageable.unpaged())
-        .stream()
-        .map(ClientEntity::toDomain)
-        .toList();
   }
 
   @Override
