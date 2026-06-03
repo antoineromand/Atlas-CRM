@@ -42,12 +42,14 @@ class ListMissionUseCaseTest {
                 Instant.now(),
                 null));
 
-    when(missionRepository.findAllByAccountId(accountId)).thenReturn(missions);
+    when(missionRepository.findAllByAccountId(
+            accountId, PageRequest.of(0, 6, Sort.by(Sort.Direction.DESC, "createdAt"))))
+        .thenReturn(new PageImpl<>(missions, PageRequest.of(0, 6), 1));
 
-    List<Mission> result = useCase.execute(accountId);
+    MissionPageResult result = useCase.execute(new ListMissionQuery(accountId, null, 1, 6));
 
-    assertEquals(1, result.size());
-    assertEquals(accountId, result.get(0).getAccountId());
+    assertEquals(1, result.items().size());
+    assertEquals(accountId, result.items().get(0).getAccountId());
   }
 
   @Test
@@ -69,13 +71,17 @@ class ListMissionUseCaseTest {
                 Instant.now(),
                 null));
 
-    when(missionRepository.findAllByAccountIdAndSearch(accountId, "website")).thenReturn(missions);
+    when(missionRepository.findAllByAccountIdAndSearch(
+            accountId, "website", PageRequest.of(0, 6, Sort.by(Sort.Direction.DESC, "createdAt"))))
+        .thenReturn(new PageImpl<>(missions, PageRequest.of(0, 6), 1));
 
-    List<Mission> result = useCase.execute(accountId, " website ");
+    MissionPageResult result = useCase.execute(new ListMissionQuery(accountId, " website ", 1, 6));
 
-    assertEquals(1, result.size());
-    assertEquals("Website redesign", result.get(0).getTitle());
-    verify(missionRepository).findAllByAccountIdAndSearch(accountId, "website");
+    assertEquals(1, result.items().size());
+    assertEquals("Website redesign", result.items().get(0).getTitle());
+    verify(missionRepository)
+        .findAllByAccountIdAndSearch(
+            accountId, "website", PageRequest.of(0, 6, Sort.by(Sort.Direction.DESC, "createdAt")));
   }
 
   @Test
@@ -101,7 +107,7 @@ class ListMissionUseCaseTest {
             accountId, PageRequest.of(0, 6, Sort.by(Sort.Direction.DESC, "createdAt"))))
         .thenReturn(new PageImpl<>(missions, PageRequest.of(0, 6), 1));
 
-    MissionPageResult result = useCase.execute(accountId, null, 1, 6);
+    MissionPageResult result = useCase.execute(new ListMissionQuery(accountId, null, 1, 6));
 
     assertEquals(1, result.items().size());
     assertEquals(1, result.page());
@@ -135,7 +141,7 @@ class ListMissionUseCaseTest {
             accountId, "website", PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"))))
         .thenReturn(new PageImpl<>(missions, PageRequest.of(0, 10), 1));
 
-    MissionPageResult result = useCase.execute(accountId, " website ", 1, 10);
+    MissionPageResult result = useCase.execute(new ListMissionQuery(accountId, " website ", 1, 10));
 
     assertEquals(1, result.items().size());
     assertEquals("Website redesign", result.items().get(0).getTitle());

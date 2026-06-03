@@ -2,7 +2,6 @@ package com.antoineromand.atlascrm.mission.application.usecase.list;
 
 import com.antoineromand.atlascrm.mission.domain.Mission;
 import com.antoineromand.atlascrm.mission.domain.repository.IMissionRepository;
-import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,23 +18,18 @@ public class ListMissionUseCase implements IListMissionUseCase {
   }
 
   @Override
-  public List<Mission> execute(UUID accountId) {
-    return this.missionRepository.findAllByAccountId(accountId);
-  }
-
-  @Override
-  public List<Mission> execute(UUID accountId, String search) {
-    String normalizedSearch = search == null ? null : search.trim();
-
-    if (normalizedSearch == null || normalizedSearch.isBlank()) {
-      return this.missionRepository.findAllByAccountId(accountId);
+  public MissionPageResult execute(ListMissionQuery query) {
+    if (query == null) {
+      throw new IllegalArgumentException("query must not be null");
     }
 
-    return this.missionRepository.findAllByAccountIdAndSearch(accountId, normalizedSearch);
-  }
+    if (query.accountId() == null) {
+      throw new IllegalArgumentException("accountId must not be null");
+    }
 
-  @Override
-  public MissionPageResult execute(UUID accountId, String search, int page, int size) {
+    int page = query.page();
+    int size = query.size();
+
     if (page < 1) {
       throw new IllegalArgumentException("page must be greater than or equal to 1");
     }
@@ -44,20 +38,19 @@ public class ListMissionUseCase implements IListMissionUseCase {
       throw new IllegalArgumentException("size must be greater than or equal to 1");
     }
 
-    String normalizedSearch = search == null ? null : search.trim();
+    String normalizedSearch = normalize(query.search());
     PageRequest pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
     if (normalizedSearch == null || normalizedSearch.isBlank()) {
-      return this.toPageResult(
-          accountId, null, page, size, this.missionRepository.findAllByAccountId(accountId, pageable));
+      return this.toPageResult(query.accountId(), null, page, size, this.missionRepository.findAllByAccountId(query.accountId(), pageable));
     }
 
     return this.toPageResult(
-        accountId,
+        query.accountId(),
         normalizedSearch,
         page,
         size,
-        this.missionRepository.findAllByAccountIdAndSearch(accountId, normalizedSearch, pageable));
+        this.missionRepository.findAllByAccountIdAndSearch(query.accountId(), normalizedSearch, pageable));
   }
 
   private MissionPageResult toPageResult(
@@ -90,5 +83,14 @@ public class ListMissionUseCase implements IListMissionUseCase {
         pageResult.getTotalPages(),
         pageResult.hasNext(),
         pageResult.hasPrevious());
+  }
+
+  private String normalize(String value) {
+    if (value == null) {
+      return null;
+    }
+
+    String trimmed = value.trim();
+    return trimmed.isBlank() ? null : trimmed;
   }
 }

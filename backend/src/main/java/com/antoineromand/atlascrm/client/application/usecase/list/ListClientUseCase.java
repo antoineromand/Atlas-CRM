@@ -2,7 +2,6 @@ package com.antoineromand.atlascrm.client.application.usecase.list;
 
 import com.antoineromand.atlascrm.client.domain.Client;
 import com.antoineromand.atlascrm.client.domain.repository.IClientRepository;
-import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,24 +18,18 @@ public class ListClientUseCase implements IListClientUseCase {
   }
 
   @Override
-  public List<Client> execute(UUID accountId) {
-    return this.clientRepository.findAllByAccountId(accountId);
-  }
-
-  @Override
-  public List<Client> execute(UUID accountId, String search, String status) {
-    String normalizedSearch = normalize(search);
-    String normalizedStatus = normalize(status);
-
-    if (normalizedSearch == null && normalizedStatus == null) {
-      return this.clientRepository.findAllByAccountId(accountId);
+  public ClientPageResult execute(ListClientQuery query) {
+    if (query == null) {
+      throw new IllegalArgumentException("query must not be null");
     }
 
-    return this.clientRepository.findAllByAccountIdAndSearch(accountId, normalizedSearch, normalizedStatus);
-  }
+    if (query.accountId() == null) {
+      throw new IllegalArgumentException("accountId must not be null");
+    }
 
-  @Override
-  public ClientPageResult execute(UUID accountId, String search, String status, int page, int size) {
+    int page = query.page();
+    int size = query.size();
+
     if (page < 1) {
       throw new IllegalArgumentException("page must be greater than or equal to 1");
     }
@@ -45,22 +38,23 @@ public class ListClientUseCase implements IListClientUseCase {
       throw new IllegalArgumentException("size must be greater than or equal to 1");
     }
 
-    String normalizedSearch = normalize(search);
-    String normalizedStatus = normalize(status);
+    String normalizedSearch = normalize(query.search());
+    String normalizedStatus = normalize(query.status());
     PageRequest pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
     if (normalizedSearch == null && normalizedStatus == null) {
       return this.toPageResult(
-          accountId, null, null, page, size, this.clientRepository.findAllByAccountId(accountId, pageable));
+          query.accountId(), null, null, page, size, this.clientRepository.findAllByAccountId(query.accountId(), pageable));
     }
 
     return this.toPageResult(
-        accountId,
+        query.accountId(),
         normalizedSearch,
         normalizedStatus,
         page,
         size,
-        this.clientRepository.findAllByAccountIdAndSearch(accountId, normalizedSearch, normalizedStatus, pageable));
+        this.clientRepository.findAllByAccountIdAndSearch(
+            query.accountId(), normalizedSearch, normalizedStatus, pageable));
   }
 
   private ClientPageResult toPageResult(

@@ -26,8 +26,8 @@ class ListClientUseCaseTest {
   void executeShouldReturnAllClientsForAccount() {
     ListClientUseCase useCase = new ListClientUseCase(clientRepository);
     UUID accountId = UUID.randomUUID();
-    List<Client> clients =
-        List.of(
+    var clients =
+        java.util.List.of(
             new Client(
                 UUID.randomUUID(),
                 accountId,
@@ -37,20 +37,22 @@ class ListClientUseCaseTest {
                 Instant.now(),
                 null));
 
-    when(clientRepository.findAllByAccountId(accountId)).thenReturn(clients);
+    when(clientRepository.findAllByAccountId(
+            accountId, PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"))))
+        .thenReturn(new PageImpl<>(clients, PageRequest.of(0, 10), 1));
 
-    List<Client> result = useCase.execute(accountId);
+    ClientPageResult result = useCase.execute(new ListClientQuery(accountId, null, null, 1, 10));
 
-    assertEquals(1, result.size());
-    assertEquals("Atlas Studio", result.get(0).getCompanyName());
+    assertEquals(1, result.items().size());
+    assertEquals("Atlas Studio", result.items().get(0).getCompanyName());
   }
 
   @Test
   void executeShouldFilterClientsBySearchAndStatus() {
     ListClientUseCase useCase = new ListClientUseCase(clientRepository);
     UUID accountId = UUID.randomUUID();
-    List<Client> clients =
-        List.of(
+    var clients =
+        java.util.List.of(
             new Client(
                 UUID.randomUUID(),
                 accountId,
@@ -60,13 +62,17 @@ class ListClientUseCaseTest {
                 Instant.now(),
                 null));
 
-    when(clientRepository.findAllByAccountIdAndSearch(accountId, "atlas", "active")).thenReturn(clients);
+    when(clientRepository.findAllByAccountIdAndSearch(
+            accountId, "atlas", "active", PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"))))
+        .thenReturn(new PageImpl<>(clients, PageRequest.of(0, 10), 1));
 
-    List<Client> result = useCase.execute(accountId, " atlas ", " active ");
+    ClientPageResult result = useCase.execute(new ListClientQuery(accountId, " atlas ", " active ", 1, 10));
 
-    assertEquals(1, result.size());
-    assertEquals("Atlas Studio", result.get(0).getCompanyName());
-    verify(clientRepository).findAllByAccountIdAndSearch(accountId, "atlas", "active");
+    assertEquals(1, result.items().size());
+    assertEquals("Atlas Studio", result.items().get(0).getCompanyName());
+    verify(clientRepository)
+        .findAllByAccountIdAndSearch(
+            accountId, "atlas", "active", PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt")));
   }
 
   @Test
@@ -88,7 +94,7 @@ class ListClientUseCaseTest {
             accountId, PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"))))
         .thenReturn(new PageImpl<>(clients, PageRequest.of(0, 10), 1));
 
-    ClientPageResult result = useCase.execute(accountId, null, null, 1, 10);
+    ClientPageResult result = useCase.execute(new ListClientQuery(accountId, null, null, 1, 10));
 
     assertEquals(1, result.items().size());
     assertEquals(1, result.page());
@@ -118,7 +124,7 @@ class ListClientUseCaseTest {
             accountId, "atlas", "active", PageRequest.of(0, 6, Sort.by(Sort.Direction.DESC, "createdAt"))))
         .thenReturn(new PageImpl<>(clients, PageRequest.of(0, 6), 1));
 
-    ClientPageResult result = useCase.execute(accountId, " atlas ", " active ", 1, 6);
+    ClientPageResult result = useCase.execute(new ListClientQuery(accountId, " atlas ", " active ", 1, 6));
 
     assertEquals(1, result.items().size());
     assertEquals("Atlas Studio", result.items().get(0).getCompanyName());
