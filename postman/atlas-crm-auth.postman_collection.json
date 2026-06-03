@@ -200,6 +200,53 @@
       ]
     },
     {
+      "name": "Client",
+      "item": [
+        {
+          "name": "List My Clients",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/clients?search={{clientSearch}}&status={{clientStatus}}&page={{clientPage}}&size={{clientPageSize}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "clients"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "{{clientSearch}}"
+                },
+                {
+                  "key": "status",
+                  "value": "{{clientStatus}}"
+                },
+                {
+                  "key": "page",
+                  "value": "{{clientPage}}"
+                },
+                {
+                  "key": "size",
+                  "value": "{{clientPageSize}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "Mission",
       "item": [
         {
@@ -403,6 +450,22 @@
     {
       "key": "missionSearch",
       "value": ""
+    },
+    {
+      "key": "clientSearch",
+      "value": ""
+    },
+    {
+      "key": "clientStatus",
+      "value": ""
+    },
+    {
+      "key": "clientPage",
+      "value": "1"
+    },
+    {
+      "key": "clientPageSize",
+      "value": "6"
     },
     {
       "key": "missionPage",
