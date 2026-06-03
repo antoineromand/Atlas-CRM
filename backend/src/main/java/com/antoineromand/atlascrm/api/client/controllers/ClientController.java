@@ -1,32 +1,69 @@
 package com.antoineromand.atlascrm.api.client.controllers;
 
 import com.antoineromand.atlascrm.account.application.usecase.account.IGetAccountUseCase;
+import com.antoineromand.atlascrm.account.application.usecase.account.PatchValue;
 import com.antoineromand.atlascrm.account.domain.Account;
+import com.antoineromand.atlascrm.api.client.dto.CreateClientRequestDto;
+import com.antoineromand.atlascrm.api.client.dto.CreateClientResponseDto;
 import com.antoineromand.atlascrm.api.client.dto.ClientPageResponseDto;
 import com.antoineromand.atlascrm.api.client.dto.ClientResponseDto;
+import com.antoineromand.atlascrm.client.application.usecase.create.CreateClientCommand;
+import com.antoineromand.atlascrm.client.application.usecase.create.ICreateClientUseCase;
+import com.antoineromand.atlascrm.client.application.usecase.delete.IDeleteClientUseCase;
 import com.antoineromand.atlascrm.client.application.usecase.list.IListClientUseCase;
 import com.antoineromand.atlascrm.client.application.usecase.list.ListClientQuery;
 import com.antoineromand.atlascrm.client.application.usecase.list.ClientPageResult;
 import com.antoineromand.atlascrm.client.domain.Client;
+import com.antoineromand.atlascrm.client.application.usecase.update.IUpdateClientUseCase;
+import com.antoineromand.atlascrm.client.application.usecase.update.UpdateClientCommand;
 import java.security.Principal;
+import java.util.Map;
 import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 
 @RestController
 @RequestMapping("/api/v1/clients")
 public class ClientController {
 
+  private final ICreateClientUseCase createClientUseCase;
   private final IGetAccountUseCase getAccountUseCase;
+  private final IUpdateClientUseCase updateClientUseCase;
+  private final IDeleteClientUseCase deleteClientUseCase;
   private final IListClientUseCase listClientUseCase;
 
   public ClientController(
-      IGetAccountUseCase getAccountUseCase, IListClientUseCase listClientUseCase) {
+      ICreateClientUseCase createClientUseCase,
+      IGetAccountUseCase getAccountUseCase,
+      IUpdateClientUseCase updateClientUseCase,
+      IDeleteClientUseCase deleteClientUseCase,
+      IListClientUseCase listClientUseCase) {
+    this.createClientUseCase = createClientUseCase;
     this.getAccountUseCase = getAccountUseCase;
+    this.updateClientUseCase = updateClientUseCase;
+    this.deleteClientUseCase = deleteClientUseCase;
     this.listClientUseCase = listClientUseCase;
+  }
+
+  @PostMapping
+  public ResponseEntity<CreateClientResponseDto> createClient(
+      Principal principal, @Valid @RequestBody CreateClientRequestDto dto) {
+    Account account = this.getAccountUseCase.execute(this.extractCredentialsId(principal));
+    UUID clientId =
+        this.createClientUseCase.execute(
+            new CreateClientCommand(account.getId(), dto.companyName(), dto.status(), dto.notes()));
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .body(new CreateClientResponseDto(clientId, "Client created successfully."));
   }
 
   @GetMapping
@@ -47,6 +84,28 @@ public class ClientController {
             new ListClientQuery(
                 account.getId(), normalizedSearch, normalizedStatus, normalizedPage, normalizedSize));
     return ResponseEntity.ok(this.toPageResponse(result));
+  }
+
+  @PatchMapping("/{clientId}")
+  public ResponseEntity<ClientResponseDto> updateClient(
+      Principal principal, @PathVariable UUID clientId, @RequestBody Map<String, Object> body) {
+    Account account = this.getAccountUseCase.execute(this.extractCredentialsId(principal));
+    Client updated =
+        this.updateClientUseCase.execute(
+            account.getId(),
+            clientId,
+            new UpdateClientCommand(
+                this.patchString(body, "companyName", 200),
+                this.patchString(body, "status", 32),
+                this.patchString(body, "notes", Integer.MAX_VALUE)));
+    return ResponseEntity.ok(this.toResponse(updated));
+  }
+
+  @DeleteMapping("/{clientId}")
+  public ResponseEntity<Void> deleteClient(Principal principal, @PathVariable UUID clientId) {
+    Account account = this.getAccountUseCase.execute(this.extractCredentialsId(principal));
+    this.deleteClientUseCase.execute(account.getId(), clientId);
+    return ResponseEntity.noContent().build();
   }
 
   private UUID extractCredentialsId(Principal principal) {
@@ -78,6 +137,27 @@ public class ClientController {
 
     String normalized = value.trim();
     return normalized.isEmpty() ? null : normalized;
+  }
+
+  private PatchValue<String> patchString(Map<String, Object> body, String fieldName, int maxLength) {
+    if (!body.containsKey(fieldName)) {
+      return PatchValue.absent();
+    }
+
+    Object rawValue = body.get(fieldName);
+    if (rawValue == null) {
+      return PatchValue.of(null);
+    }
+
+    if (!(rawValue instanceof String value)) {
+      throw new IllegalArgumentException(fieldName + " must be a string or null");
+    }
+
+    if (value.length() > maxLength) {
+      throw new IllegalArgumentException(fieldName + " exceeds max length of " + maxLength);
+    }
+
+    return PatchValue.of(value);
   }
 
   private int normalizePage(int page) {
@@ -115,6 +195,8 @@ public class ClientController {
     return new ClientResponseDto(
         client.getId(),
         client.getCompanyName(),
+        client.getPrimaryContactFirstName(),
+        client.getPrimaryContactLastName(),
         client.getStatus(),
         client.getNotes(),
         client.getCreatedAt(),

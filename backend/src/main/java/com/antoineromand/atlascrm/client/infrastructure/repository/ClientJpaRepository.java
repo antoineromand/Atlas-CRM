@@ -6,14 +6,18 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface ClientJpaRepository extends JpaRepository<ClientEntity, UUID> {
+  @EntityGraph(attributePaths = "contacts")
   Optional<ClientEntity> findByIdAndAccount_Id(UUID clientId, UUID accountId);
 
+  @EntityGraph(attributePaths = "contacts")
   Page<ClientEntity> findAllByAccount_Id(UUID accountId, Pageable pageable);
 
+  @EntityGraph(attributePaths = "contacts")
   @Query(
       value =
           """

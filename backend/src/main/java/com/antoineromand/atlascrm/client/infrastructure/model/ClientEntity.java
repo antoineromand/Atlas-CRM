@@ -83,10 +83,14 @@ public class ClientEntity {
   }
 
   public Client toDomain() {
+    ClientContactEntity primaryContact =
+        this.contacts.stream().filter(ClientContactEntity::isPrimary).findFirst().orElse(null);
     return new Client(
         id,
         account.getId(),
         companyName,
+        primaryContact != null ? primaryContact.getFirstName() : null,
+        primaryContact != null ? primaryContact.getLastName() : null,
         status,
         notes,
         createdAt,
