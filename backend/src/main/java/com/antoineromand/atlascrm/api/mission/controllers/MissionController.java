@@ -13,6 +13,7 @@ import com.antoineromand.atlascrm.mission.application.usecase.create.ICreateMiss
 import com.antoineromand.atlascrm.mission.application.usecase.delete.IDeleteMissionUseCase;
 import com.antoineromand.atlascrm.mission.application.usecase.get.IGetMissionUseCase;
 import com.antoineromand.atlascrm.mission.application.usecase.list.IListMissionUseCase;
+import com.antoineromand.atlascrm.mission.application.usecase.list.ListMissionQuery;
 import com.antoineromand.atlascrm.mission.application.usecase.list.MissionPageResult;
 import com.antoineromand.atlascrm.mission.application.usecase.summary.IGetMissionSummaryUseCase;
 import com.antoineromand.atlascrm.mission.application.usecase.summary.MissionSummaryResult;
@@ -96,7 +97,8 @@ public class MissionController {
     int normalizedPage = this.normalizePage(page);
     int normalizedSize = this.normalizeSize(size);
     MissionPageResult result =
-        this.listMissionUseCase.execute(account.getId(), normalizedSearch, normalizedPage, normalizedSize);
+        this.listMissionUseCase.execute(
+            new ListMissionQuery(account.getId(), normalizedSearch, normalizedPage, normalizedSize));
     return ResponseEntity.ok(this.toPageResponse(result));
   }
 

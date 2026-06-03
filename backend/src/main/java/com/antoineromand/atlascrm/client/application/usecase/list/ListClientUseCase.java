@@ -1,7 +1,7 @@
-package com.antoineromand.atlascrm.mission.application.usecase.list;
+package com.antoineromand.atlascrm.client.application.usecase.list;
 
-import com.antoineromand.atlascrm.mission.domain.Mission;
-import com.antoineromand.atlascrm.mission.domain.repository.IMissionRepository;
+import com.antoineromand.atlascrm.client.domain.Client;
+import com.antoineromand.atlascrm.client.domain.repository.IClientRepository;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -9,16 +9,16 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 @Service
-public class ListMissionUseCase implements IListMissionUseCase {
+public class ListClientUseCase implements IListClientUseCase {
 
-  private final IMissionRepository missionRepository;
+  private final IClientRepository clientRepository;
 
-  public ListMissionUseCase(IMissionRepository missionRepository) {
-    this.missionRepository = missionRepository;
+  public ListClientUseCase(IClientRepository clientRepository) {
+    this.clientRepository = clientRepository;
   }
 
   @Override
-  public MissionPageResult execute(ListMissionQuery query) {
+  public ClientPageResult execute(ListClientQuery query) {
     if (query == null) {
       throw new IllegalArgumentException("query must not be null");
     }
@@ -39,32 +39,41 @@ public class ListMissionUseCase implements IListMissionUseCase {
     }
 
     String normalizedSearch = normalize(query.search());
+    String normalizedStatus = normalize(query.status());
     PageRequest pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
-    if (normalizedSearch == null || normalizedSearch.isBlank()) {
-      return this.toPageResult(query.accountId(), null, page, size, this.missionRepository.findAllByAccountId(query.accountId(), pageable));
+    if (normalizedSearch == null && normalizedStatus == null) {
+      return this.toPageResult(
+          query.accountId(), null, null, page, size, this.clientRepository.findAllByAccountId(query.accountId(), pageable));
     }
 
     return this.toPageResult(
         query.accountId(),
         normalizedSearch,
+        normalizedStatus,
         page,
         size,
-        this.missionRepository.findAllByAccountIdAndSearch(query.accountId(), normalizedSearch, pageable));
+        this.clientRepository.findAllByAccountIdAndSearch(
+            query.accountId(), normalizedSearch, normalizedStatus, pageable));
   }
 
-  private MissionPageResult toPageResult(
-      UUID accountId, String search, int requestedPage, int size, Page<Mission> pageResult) {
+  private ClientPageResult toPageResult(
+      UUID accountId,
+      String search,
+      String status,
+      int requestedPage,
+      int size,
+      Page<Client> pageResult) {
     if (pageResult.getTotalElements() > 0
         && pageResult.getTotalPages() > 0
         && requestedPage > pageResult.getTotalPages()) {
       PageRequest lastPageable =
           PageRequest.of(pageResult.getTotalPages() - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-      Page<Mission> lastPageResult =
-          search == null
-              ? this.missionRepository.findAllByAccountId(accountId, lastPageable)
-              : this.missionRepository.findAllByAccountIdAndSearch(accountId, search, lastPageable);
-      return new MissionPageResult(
+      Page<Client> lastPageResult =
+          search == null && status == null
+              ? this.clientRepository.findAllByAccountId(accountId, lastPageable)
+              : this.clientRepository.findAllByAccountIdAndSearch(accountId, search, status, lastPageable);
+      return new ClientPageResult(
           lastPageResult.getContent(),
           lastPageResult.getTotalPages(),
           size,
@@ -75,7 +84,7 @@ public class ListMissionUseCase implements IListMissionUseCase {
     }
 
     int normalizedPage = pageResult.getTotalPages() == 0 ? 1 : Math.min(requestedPage, pageResult.getTotalPages());
-    return new MissionPageResult(
+    return new ClientPageResult(
         pageResult.getContent(),
         normalizedPage,
         size,

@@ -17,6 +17,7 @@ import com.antoineromand.atlascrm.mission.application.usecase.create.ICreateMiss
 import com.antoineromand.atlascrm.mission.application.usecase.delete.IDeleteMissionUseCase;
 import com.antoineromand.atlascrm.mission.application.usecase.get.IGetMissionUseCase;
 import com.antoineromand.atlascrm.mission.application.usecase.list.IListMissionUseCase;
+import com.antoineromand.atlascrm.mission.application.usecase.list.ListMissionQuery;
 import com.antoineromand.atlascrm.mission.application.usecase.summary.IGetMissionSummaryUseCase;
 import com.antoineromand.atlascrm.mission.application.usecase.summary.MissionSummaryResult;
 import com.antoineromand.atlascrm.mission.application.usecase.update.IUpdateMissionUseCase;
@@ -146,7 +147,7 @@ class MissionControllerTest {
                 null,
                 Instant.now(),
                 null));
-    when(listMissionUseCase.execute(accountId, null, 1, 6))
+    when(listMissionUseCase.execute(new ListMissionQuery(accountId, null, 1, 6)))
         .thenReturn(
             new com.antoineromand.atlascrm.mission.application.usecase.list.MissionPageResult(
                 List.of(
@@ -211,7 +212,7 @@ class MissionControllerTest {
                 null,
                 Instant.now(),
                 null));
-    when(listMissionUseCase.execute(accountId, "website", 1, 6))
+    when(listMissionUseCase.execute(new ListMissionQuery(accountId, "website", 1, 6)))
         .thenReturn(
             new com.antoineromand.atlascrm.mission.application.usecase.list.MissionPageResult(
                 List.of(),
