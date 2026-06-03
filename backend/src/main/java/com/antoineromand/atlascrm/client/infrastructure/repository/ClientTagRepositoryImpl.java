@@ -45,6 +45,13 @@ public class ClientTagRepositoryImpl implements IClientTagRepository {
   }
 
   @Override
+  public List<ClientTag> findAllByClientId(UUID clientId) {
+    return this.clientTagJpaRepository.findAllByClientId(clientId).stream()
+        .map(ClientTagEntity::toDomain)
+        .toList();
+  }
+
+  @Override
   public void deleteById(UUID tagId) {
     this.clientTagJpaRepository.deleteById(tagId);
   }

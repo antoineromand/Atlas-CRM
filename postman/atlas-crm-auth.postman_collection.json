@@ -50,7 +50,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"Password123!\"\n}"
+              "raw": "{\n  \"email\": \"demo@atlas-crm.local\",\n  \"password\": \"demo-password\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/authentication/sign-in",
@@ -239,6 +239,31 @@
                   "key": "size",
                   "value": "{{clientPageSize}}"
                 }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Client By Id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/clients/{{clientId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "clients",
+                "{{clientId}}"
               ]
             }
           },

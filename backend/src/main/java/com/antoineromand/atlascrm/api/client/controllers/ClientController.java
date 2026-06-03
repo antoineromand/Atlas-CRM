@@ -5,15 +5,24 @@ import com.antoineromand.atlascrm.account.application.usecase.account.PatchValue
 import com.antoineromand.atlascrm.account.domain.Account;
 import com.antoineromand.atlascrm.api.client.dto.CreateClientRequestDto;
 import com.antoineromand.atlascrm.api.client.dto.CreateClientResponseDto;
+import com.antoineromand.atlascrm.api.client.dto.ClientActivityResponseDto;
+import com.antoineromand.atlascrm.api.client.dto.ClientContactResponseDto;
+import com.antoineromand.atlascrm.api.client.dto.ClientDetailResponseDto;
 import com.antoineromand.atlascrm.api.client.dto.ClientPageResponseDto;
 import com.antoineromand.atlascrm.api.client.dto.ClientResponseDto;
+import com.antoineromand.atlascrm.api.client.dto.ClientTagResponseDto;
 import com.antoineromand.atlascrm.client.application.usecase.create.CreateClientCommand;
 import com.antoineromand.atlascrm.client.application.usecase.create.ICreateClientUseCase;
 import com.antoineromand.atlascrm.client.application.usecase.delete.IDeleteClientUseCase;
+import com.antoineromand.atlascrm.client.application.usecase.get.ClientDetailResult;
+import com.antoineromand.atlascrm.client.application.usecase.get.IGetClientUseCase;
 import com.antoineromand.atlascrm.client.application.usecase.list.IListClientUseCase;
 import com.antoineromand.atlascrm.client.application.usecase.list.ListClientQuery;
 import com.antoineromand.atlascrm.client.application.usecase.list.ClientPageResult;
 import com.antoineromand.atlascrm.client.domain.Client;
+import com.antoineromand.atlascrm.client.domain.ClientActivity;
+import com.antoineromand.atlascrm.client.domain.ClientContact;
+import com.antoineromand.atlascrm.client.domain.ClientTag;
 import com.antoineromand.atlascrm.client.application.usecase.update.IUpdateClientUseCase;
 import com.antoineromand.atlascrm.client.application.usecase.update.UpdateClientCommand;
 import java.security.Principal;
@@ -38,6 +47,7 @@ public class ClientController {
 
   private final ICreateClientUseCase createClientUseCase;
   private final IGetAccountUseCase getAccountUseCase;
+  private final IGetClientUseCase getClientUseCase;
   private final IUpdateClientUseCase updateClientUseCase;
   private final IDeleteClientUseCase deleteClientUseCase;
   private final IListClientUseCase listClientUseCase;
@@ -45,11 +55,13 @@ public class ClientController {
   public ClientController(
       ICreateClientUseCase createClientUseCase,
       IGetAccountUseCase getAccountUseCase,
+      IGetClientUseCase getClientUseCase,
       IUpdateClientUseCase updateClientUseCase,
       IDeleteClientUseCase deleteClientUseCase,
       IListClientUseCase listClientUseCase) {
     this.createClientUseCase = createClientUseCase;
     this.getAccountUseCase = getAccountUseCase;
+    this.getClientUseCase = getClientUseCase;
     this.updateClientUseCase = updateClientUseCase;
     this.deleteClientUseCase = deleteClientUseCase;
     this.listClientUseCase = listClientUseCase;
@@ -84,6 +96,14 @@ public class ClientController {
             new ListClientQuery(
                 account.getId(), normalizedSearch, normalizedStatus, normalizedPage, normalizedSize));
     return ResponseEntity.ok(this.toPageResponse(result));
+  }
+
+  @GetMapping("/{clientId}")
+  public ResponseEntity<ClientDetailResponseDto> getMyClientById(
+      Principal principal, @PathVariable UUID clientId) {
+    Account account = this.getAccountUseCase.execute(this.extractCredentialsId(principal));
+    ClientDetailResult result = this.getClientUseCase.execute(account.getId(), clientId);
+    return ResponseEntity.ok(this.toDetailResponse(result));
   }
 
   @PatchMapping("/{clientId}")
@@ -201,5 +221,46 @@ public class ClientController {
         client.getNotes(),
         client.getCreatedAt(),
         client.getUpdatedAt());
+  }
+
+  private ClientDetailResponseDto toDetailResponse(ClientDetailResult result) {
+    return new ClientDetailResponseDto(
+        this.toResponse(result.client()),
+        result.contacts().stream().map(this::toResponse).toList(),
+        result.activities().stream().map(this::toResponse).toList(),
+        result.tags().stream().map(this::toResponse).toList());
+  }
+
+  private ClientContactResponseDto toResponse(ClientContact contact) {
+    return new ClientContactResponseDto(
+        contact.getId(),
+        contact.getFirstName(),
+        contact.getLastName(),
+        contact.getEmail(),
+        contact.getPhone(),
+        contact.getJobTitle(),
+        contact.isPrimary(),
+        contact.getCreatedAt(),
+        contact.getUpdatedAt());
+  }
+
+  private ClientActivityResponseDto toResponse(ClientActivity activity) {
+    return new ClientActivityResponseDto(
+        activity.getId(),
+        activity.getActivityType(),
+        activity.getTitle(),
+        activity.getDescription(),
+        activity.getOccurredAt(),
+        activity.getCreatedAt(),
+        activity.getUpdatedAt());
+  }
+
+  private ClientTagResponseDto toResponse(ClientTag tag) {
+    return new ClientTagResponseDto(
+        tag.getId(),
+        tag.getName(),
+        tag.getColor(),
+        tag.getCreatedAt(),
+        tag.getUpdatedAt());
   }
 }

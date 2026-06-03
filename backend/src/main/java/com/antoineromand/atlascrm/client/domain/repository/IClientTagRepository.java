@@ -12,5 +12,7 @@ public interface IClientTagRepository {
 
   List<ClientTag> findAllByAccountId(UUID accountId);
 
+  List<ClientTag> findAllByClientId(UUID clientId);
+
   void deleteById(UUID tagId);
 }
