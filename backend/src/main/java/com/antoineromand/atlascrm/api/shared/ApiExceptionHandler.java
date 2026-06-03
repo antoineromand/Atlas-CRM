@@ -1,6 +1,8 @@
 package com.antoineromand.atlascrm.api.shared;
 
 import com.antoineromand.atlascrm.authentication.application.exceptions.AuthenticationException;
+import com.antoineromand.atlascrm.client.application.exceptions.ClientCreationException;
+import com.antoineromand.atlascrm.client.application.exceptions.ClientNotFoundException;
 import com.antoineromand.atlascrm.mission.application.exceptions.MissionCreationException;
 import com.antoineromand.atlascrm.mission.application.exceptions.MissionNotFoundException;
 import com.antoineromand.atlascrm.mission.application.exceptions.MissionUpdateException;
@@ -82,6 +84,20 @@ public class ApiExceptionHandler {
 
     return ResponseEntity.status(status)
         .body(new ApiErrorResponse(ex.getCode(), ex.getMessage(), status.value(), null));
+  }
+
+  @ExceptionHandler(ClientCreationException.class)
+  public ResponseEntity<ApiErrorResponse> handleClientCreationException(ClientCreationException ex) {
+    HttpStatus status = "ACCOUNT_NOT_FOUND".equals(ex.getCode()) ? HttpStatus.NOT_FOUND : HttpStatus.BAD_REQUEST;
+
+    return ResponseEntity.status(status)
+        .body(new ApiErrorResponse(ex.getCode(), ex.getMessage(), status.value(), null));
+  }
+
+  @ExceptionHandler(ClientNotFoundException.class)
+  public ResponseEntity<ApiErrorResponse> handleClientNotFoundException(ClientNotFoundException ex) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+        .body(new ApiErrorResponse(ex.getCode(), ex.getMessage(), 404, null));
   }
 
   @ExceptionHandler(Exception.class)
