@@ -23,7 +23,7 @@ export class DashboardLayoutComponent {
   protected readonly profileMenuOpen = signal(false);
   protected readonly sidebarItems: DashboardNavItem[] = [
     { label: 'Dashboard', icon: 'dashboard', route: '/dashboard' },
-    { label: 'Clients', icon: 'group', disabled: true },
+    { label: 'Clients', icon: 'group', route: '/dashboard/clients' },
     { label: 'Invoices/Quotes', icon: 'receipt_long', disabled: true },
     { label: 'Missions', icon: 'assignment', route: '/dashboard/missions' },
   ];

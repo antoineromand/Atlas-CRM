@@ -1,0 +1,338 @@
+<div class="clients-page">
+  <section class="clients-page__hero surface-card">
+    <div class="clients-page__hero-copy">
+      <p class="eyebrow">Clients</p>
+      <h1 class="display-title">Client management</h1>
+      <p class="section-copy">
+        Track companies, primary contacts, and the latest activity history from one workspace.
+      </p>
+    </div>
+
+    <div class="clients-page__hero-actions">
+      <button class="btn btn--secondary" type="button" [disabled]="isRefreshing()" (click)="reload()">
+        <span class="material-symbols-outlined" aria-hidden="true">refresh</span>
+        Refresh
+      </button>
+      <button class="btn btn--primary" type="button" (click)="openCreateDrawer()">
+        <span class="material-symbols-outlined" aria-hidden="true">add</span>
+        Create client
+      </button>
+    </div>
+  </section>
+
+  <section class="clients-page__stats">
+    @for (stat of stats(); track stat.label) {
+      <app-stat-card
+        [icon]="stat.icon"
+        [badge]="stat.badge"
+        [label]="stat.label"
+        [value]="stat.value"
+        [footer]="stat.footer"
+        [tone]="stat.tone"
+        [loading]="isLoading() && !loadError()"
+      />
+    }
+  </section>
+
+  <section class="clients-page__toolbar surface-card">
+    <div class="clients-page__search-group">
+      <div class="clients-page__search-label-row">
+        <span class="clients-page__search-label">Client search</span>
+        <div class="clients-page__search-meta">
+          <span class="pill clients-page__visible-pill">
+            {{ pagination()?.totalElements ?? clients().length }} total
+          </span>
+        </div>
+      </div>
+
+      <label
+        class="clients-page__search"
+        [class.clients-page__search--invalid]="!!searchWarning()"
+        [class.clients-page__search--filled]="!!searchTerm()"
+      >
+        <span class="clients-page__search-icon-wrap" aria-hidden="true">
+          <span class="clients-page__search-icon material-symbols-outlined">search</span>
+        </span>
+        <input
+          type="search"
+          [value]="searchTerm()"
+          (input)="setSearchTerm(($any($event.target)).value)"
+          placeholder="Search by company or contact name..."
+          aria-label="Search clients"
+        />
+        @if (searchTerm()) {
+          <button class="clients-page__search-clear" type="button" aria-label="Clear search" (click)="clearSearch()">
+            <span class="material-symbols-outlined" aria-hidden="true">close</span>
+          </button>
+        }
+      </label>
+
+      @if (searchWarning()) {
+        <p class="clients-page__search-hint" aria-live="polite">{{ searchWarning() }}</p>
+      }
+    </div>
+
+    <div class="clients-page__filters">
+      @for (filter of statusFilters; track filter.value) {
+        <button
+          class="clients-page__filter-pill"
+          type="button"
+          [class.is-active]="selectedStatus() === filter.value"
+          (click)="setStatus(filter.value)"
+        >
+          {{ filter.label }}
+        </button>
+      }
+    </div>
+
+    <button class="clients-page__reset btn btn--secondary" type="button" (click)="resetFilters()">
+      <span class="material-symbols-outlined" aria-hidden="true">restart_alt</span>
+      Reset filters
+    </button>
+  </section>
+
+  @if (loadError()) {
+    <section class="clients-page__error surface-card">
+      <div>
+        <p class="eyebrow">Unavailable</p>
+        <h2>We couldn't load your clients</h2>
+        <p class="section-copy">{{ loadError() }}</p>
+      </div>
+
+      <button class="btn btn--secondary" type="button" (click)="reload()">Retry</button>
+    </section>
+  } @else if (isLoading()) {
+    <section class="clients-page__table clients-page__table--loading">
+      <div class="clients-page__table-header">
+        <span>Company</span>
+        <span>Primary contact</span>
+        <span>Status</span>
+        <span>Updated</span>
+        <span>Actions</span>
+      </div>
+
+      @for (_ of [1, 2, 3, 4, 5]; track $index) {
+        <div class="clients-page__row clients-page__row--loading">
+          <span class="clients-page__skeleton clients-page__skeleton--company"></span>
+          <span class="clients-page__skeleton clients-page__skeleton--contact"></span>
+          <span class="clients-page__skeleton clients-page__skeleton--status"></span>
+          <span class="clients-page__skeleton clients-page__skeleton--date"></span>
+          <span class="clients-page__skeleton clients-page__skeleton--action"></span>
+        </div>
+      }
+    </section>
+  } @else if (clients().length === 0) {
+    <section class="clients-page__empty surface-card">
+      <div>
+        <p class="eyebrow">No clients yet</p>
+        <h2>{{ searchTerm() || selectedStatus() !== 'all' ? 'Nothing matches your filters' : 'Your client portfolio is empty' }}</h2>
+        <p class="section-copy">
+          {{ searchTerm() || selectedStatus() !== 'all'
+            ? 'Try broadening your search or resetting the filters.'
+            : 'Client data will appear here once your workspace starts receiving customers.' }}
+        </p>
+      </div>
+
+      <button class="btn btn--primary" type="button" (click)="openCreateDrawer()">
+        <span class="material-symbols-outlined" aria-hidden="true">add</span>
+        Create client
+      </button>
+    </section>
+  } @else {
+    <section class="clients-page__table" [class.clients-page__table--refreshing]="isRefreshing()">
+      @if (isRefreshing()) {
+        <div class="clients-page__refresh-overlay" aria-hidden="true">
+          <span class="clients-page__refresh-pill">Updating results</span>
+        </div>
+      }
+
+      <div class="clients-page__table-header">
+        <span>Company</span>
+        <span>Primary contact</span>
+        <span>Status</span>
+        <span>Updated</span>
+        <span>Actions</span>
+      </div>
+
+      @for (client of clients(); track trackClient($index, client)) {
+        <article class="clients-page__row" (click)="openClient(client)">
+          <div class="clients-page__company">
+            <span class="clients-page__avatar">{{ initials(client) }}</span>
+            <div class="clients-page__company-copy">
+              <strong>{{ client.companyName }}</strong>
+              <p>{{ client.notes || 'No notes yet.' }}</p>
+            </div>
+          </div>
+
+          <div class="clients-page__contact">
+            <strong>{{ contactName(client) }}</strong>
+            <p>{{ client.primaryContactFirstName || 'No primary contact' }}</p>
+          </div>
+
+          <div>
+            <span
+              class="clients-page__status-pill"
+              [class.status-pill--active]="client.status === 'active'"
+              [class.status-pill--prospect]="client.status === 'prospect'"
+              [class.status-pill--inactive]="client.status === 'inactive'"
+              [class.status-pill--archived]="client.status === 'archived'"
+            >
+              {{ statusLabel(client.status) }}
+            </span>
+          </div>
+
+          <div class="clients-page__meta">
+            <strong>{{ formatDate(client.updatedAt || client.createdAt) }}</strong>
+            <p>{{ client.updatedAt ? 'Updated' : 'Created' }}</p>
+          </div>
+
+          <div class="clients-page__actions">
+            <a class="btn btn--secondary" [routerLink]="['/dashboard/clients', client.id]" (click)="$event.stopPropagation()">
+              View
+            </a>
+            <button class="btn btn--secondary" type="button" (click)="$event.stopPropagation(); openEditDrawer(client.id)">
+              Edit
+            </button>
+            <button class="btn btn--secondary clients-page__danger-action" type="button" (click)="$event.stopPropagation(); requestDelete(client)">
+              Delete
+            </button>
+          </div>
+        </article>
+      }
+    </section>
+  }
+
+  @if (pagination()) {
+    <section class="clients-page__pagination surface-card" aria-label="Client pagination">
+      <div class="clients-page__pagination-info">
+        Showing page {{ pagination()!.page }} of {{ pagination()!.totalPages || 1 }}
+      </div>
+
+      @if (pagination()!.totalPages > 1) {
+        <div class="clients-page__pagination-controls">
+          <button
+            class="clients-page__pagination-button"
+            type="button"
+            (click)="goToPreviousPage()"
+            [disabled]="!pagination()!.hasPrevious || isRefreshing()"
+          >
+            Previous
+          </button>
+
+          @for (item of pageItems(); track item.key) {
+            @if (item.kind === 'ellipsis') {
+              <span class="clients-page__pagination-ellipsis">…</span>
+            } @else {
+              <button
+                class="clients-page__pagination-button clients-page__pagination-button--page"
+                type="button"
+                [class.is-active]="pagination()!.page === item.page"
+                [disabled]="isRefreshing()"
+                (click)="goToPage(item.page)"
+              >
+                {{ item.page }}
+              </button>
+            }
+          }
+
+          <button
+            class="clients-page__pagination-button"
+            type="button"
+            (click)="goToNextPage()"
+            [disabled]="!pagination()!.hasNext || isRefreshing()"
+          >
+            Next
+          </button>
+        </div>
+      }
+    </section>
+  }
+
+  @if (drawerOpen()) {
+    <div class="clients-page__overlay" (click)="closeDrawer()"></div>
+    <aside class="clients-page__drawer surface-card" role="dialog" aria-modal="true" aria-label="Client form">
+      <div class="clients-page__drawer-header">
+        <div>
+          <p class="eyebrow">{{ isEditing ? 'Edit client' : 'Create client' }}</p>
+          <h2>{{ isEditing ? 'Update client profile' : 'Add a new client' }}</h2>
+          <p class="section-copy">
+            {{ isEditing
+              ? 'Adjust the company name, status, and notes for this client.'
+              : 'Create the company record that will be used across the CRM.' }}
+          </p>
+        </div>
+        <button class="clients-page__icon-button" type="button" aria-label="Close form" (click)="closeDrawer()">
+          <span class="material-symbols-outlined" aria-hidden="true">close</span>
+        </button>
+      </div>
+
+      @if (drawerLoading()) {
+        <div class="clients-page__drawer-loading">
+          <span class="clients-page__refresh-pill">Loading client data</span>
+        </div>
+      } @else {
+        <form class="clients-page__form" [formGroup]="clientForm" (ngSubmit)="submitClient()">
+          <label class="clients-page__field clients-page__field--wide">
+            <span>Company name</span>
+            <input type="text" formControlName="companyName" placeholder="Nova Studio" />
+            @if (hasClientFieldError('companyName')) {
+              <strong>{{ clientFieldError('companyName') }}</strong>
+            }
+          </label>
+
+          <label class="clients-page__field">
+            <span>Status</span>
+            <select formControlName="status">
+              @for (status of clientStatusOptions; track status.value) {
+                <option [value]="status.value">{{ status.label }}</option>
+              }
+            </select>
+          </label>
+
+          <label class="clients-page__field clients-page__field--wide">
+            <span>Notes</span>
+            <textarea formControlName="notes" rows="6" placeholder="Internal CRM notes..."></textarea>
+            @if (hasClientFieldError('notes')) {
+              <strong>{{ clientFieldError('notes') }}</strong>
+            }
+          </label>
+
+          <footer class="clients-page__drawer-footer">
+            <button class="btn btn--secondary" type="button" (click)="closeDrawer()">Cancel</button>
+            <button class="btn btn--primary" type="submit" [disabled]="isSaving()">
+              @if (isSaving()) {
+                <span class="material-symbols-outlined" aria-hidden="true">progress_activity</span>
+              } @else {
+                <span class="material-symbols-outlined" aria-hidden="true">{{ isEditing ? 'save' : 'add' }}</span>
+              }
+              {{ isEditing ? 'Save changes' : 'Create client' }}
+            </button>
+          </footer>
+        </form>
+      }
+    </aside>
+  }
+
+  @if (deleteTarget()) {
+    <div class="clients-page__overlay" (click)="cancelDelete()"></div>
+    <aside class="clients-page__confirm surface-card" role="dialog" aria-modal="true" aria-label="Confirm deletion">
+      <p class="eyebrow">Delete client</p>
+      <h2>Delete {{ deleteTarget()!.companyName }}?</h2>
+      <p class="section-copy">
+        This will permanently remove the client record. Related contacts, activities, and tags will be lost if the backend cascade is enabled.
+      </p>
+
+      <footer class="clients-page__confirm-footer">
+        <button class="btn btn--secondary" type="button" (click)="cancelDelete()">Cancel</button>
+        <button class="btn btn--primary" type="button" [disabled]="isDeleting()" (click)="confirmDelete()">
+          @if (isDeleting()) {
+            <span class="material-symbols-outlined" aria-hidden="true">progress_activity</span>
+          } @else {
+            <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+          }
+          Delete client
+        </button>
+      </footer>
+    </aside>
+  }
+</div>
