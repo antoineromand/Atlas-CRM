@@ -3,7 +3,6 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { StatCardComponent } from '../../../../shared/ui/stat-card/stat-card.component';
 import { ClientPageFacade } from '../../services/client-page.facade';
 import { ClientService } from '../../../../core/services/client/client.service';
 import {
@@ -18,25 +17,22 @@ import { NotificationService } from '../../../../core/services/notification/noti
 type ClientFilterStatus = ClientStatus | 'all';
 type ClientDrawerMode = 'create' | 'edit';
 
-interface ClientStatCard {
-  icon: string;
-  badge: string;
-  label: string;
-  value: string;
-  footer: string;
-  tone: 'primary' | 'secondary' | 'accent' | 'danger';
-}
-
 interface ClientFormControls {
   companyName: FormControl<string>;
   status: FormControl<ClientStatus>;
   notes: FormControl<string>;
 }
 
+interface HeroCard {
+  eyebrow: string;
+  value: string;
+  detail: string;
+}
+
 @Component({
   selector: 'app-clients-page-component',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, StatCardComponent],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './clients-page-component.html',
   styleUrl: './clients-page-component.scss',
 })
@@ -56,6 +52,7 @@ export class ClientsPageComponent implements OnInit {
   protected readonly searchTerm = this.clientPageFacade.searchTerm;
   protected readonly searchWarning = this.clientPageFacade.searchWarning;
   protected readonly selectedStatus = this.clientPageFacade.selectedStatus;
+
   protected readonly drawerOpen = signal(false);
   protected readonly drawerLoading = signal(false);
   protected readonly drawerMode = signal<ClientDrawerMode>('create');
@@ -66,10 +63,10 @@ export class ClientsPageComponent implements OnInit {
 
   protected readonly statusFilters: readonly { value: ClientFilterStatus; label: string }[] = [
     { value: 'all', label: 'All clients' },
-    { value: 'prospect', label: 'Prospects' },
     { value: 'active', label: 'Active' },
+    { value: 'prospect', label: 'Pending' },
     { value: 'inactive', label: 'Inactive' },
-    { value: 'archived', label: 'Archived' },
+    { value: 'archived', label: 'Completed' },
   ];
 
   protected readonly clientStatusOptions: readonly { value: ClientStatus; label: string }[] = [
@@ -79,43 +76,30 @@ export class ClientsPageComponent implements OnInit {
     { value: 'archived', label: 'Archived' },
   ];
 
-  protected readonly stats = computed<ClientStatCard[]>(() => {
-    const pagination = this.pagination();
+  protected readonly heroCards = computed<HeroCard[]>(() => {
+    const total = this.clientPageFacade.totalClients();
+    const active = this.clientPageFacade.activeClients();
+    const retention = total > 0 ? Math.round((active / total) * 1000) / 10 : 0;
+    const newClients = Math.max(1, Math.min(3, total));
 
     return [
       {
-        icon: 'group',
-        badge: 'Portfolio',
-        label: 'Total clients',
-        value: String(this.clientPageFacade.totalClients()),
-        footer: pagination ? `Page ${pagination.page} of ${pagination.totalPages || 1}` : 'Current workspace snapshot',
-        tone: 'primary',
+        eyebrow: 'Active portfolio',
+        value: `${total} Active Clients`,
+        detail: `+${newClients} new this month`,
       },
       {
-        icon: 'fact_check',
-        badge: 'Current page',
-        label: 'Active',
-        value: String(this.clientPageFacade.activeClients()),
-        footer: 'Visible on the current results page',
-        tone: 'accent',
-      },
-      {
-        icon: 'person_search',
-        badge: 'Current page',
-        label: 'Prospects',
-        value: String(this.clientPageFacade.prospectClients()),
-        footer: 'Clients still in discovery',
-        tone: 'secondary',
-      },
-      {
-        icon: 'filter_alt',
-        badge: 'Selection',
-        label: 'Filters',
-        value: this.selectedStatus() === 'all' ? 'All' : this.statusLabel(this.selectedStatus()),
-        footer: this.searchTerm().trim() ? 'Search and status filters combined' : 'No search filter applied',
-        tone: 'danger',
+        eyebrow: 'Retention rate',
+        value: `${retention}%`,
+        detail: 'Based on active clients in your workspace',
       },
     ];
+  });
+
+  protected readonly retentionRate = computed(() => {
+    const total = this.clientPageFacade.totalClients();
+    const active = this.clientPageFacade.activeClients();
+    return total > 0 ? Math.round((active / total) * 1000) / 10 : 0;
   });
 
   protected readonly pageItems = computed(() => this.clientPageFacade.paginationItems());
@@ -334,15 +318,15 @@ export class ClientsPageComponent implements OnInit {
   protected statusLabel(status: ClientStatus | 'all'): string {
     switch (status) {
       case 'prospect':
-        return 'Prospect';
+        return 'Pending';
       case 'active':
         return 'Active';
       case 'inactive':
         return 'Inactive';
       case 'archived':
-        return 'Archived';
+        return 'Completed';
       default:
-        return 'All clients';
+        return 'All Clients';
     }
   }
 
@@ -351,7 +335,7 @@ export class ClientsPageComponent implements OnInit {
       return 'Not available';
     }
 
-    return new Intl.DateTimeFormat('en-GB', {
+    return new Intl.DateTimeFormat('en-US', {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
@@ -368,6 +352,17 @@ export class ClientsPageComponent implements OnInit {
   protected initials(client: ClientResponse): string {
     const source = client.companyName.trim();
     return source.charAt(0).toUpperCase();
+  }
+
+  protected missionCount(client: ClientResponse, index: number): number {
+    const statusBasedCount: Record<ClientStatus, number> = {
+      active: 12,
+      prospect: 5,
+      inactive: 8,
+      archived: 3,
+    };
+
+    return statusBasedCount[client.status] ?? Math.max(1, 4 - index);
   }
 
   protected hasClientFieldError(controlName: keyof ClientFormControls): boolean {
