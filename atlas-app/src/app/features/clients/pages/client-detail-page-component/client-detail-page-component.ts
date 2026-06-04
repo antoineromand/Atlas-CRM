@@ -1,103 +1,123 @@
-import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
-import { NgStyle } from '@angular/common';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ClientService } from '../../../../core/services/client/client.service';
 import {
   ClientActivityResponse,
   ClientContactResponse,
   ClientDetailResponse,
-  ClientResponse,
   ClientTagResponse,
 } from '../../../../core/interface/client.interface';
-import { StatCardComponent } from '../../../../shared/ui/stat-card/stat-card.component';
 import { NotificationService } from '../../../../core/services/notification/notification.service';
 
-interface DetailStatCard {
-  icon: string;
-  badge: string;
+interface SummaryCard {
   label: string;
   value: string;
-  footer: string;
-  tone: 'primary' | 'secondary' | 'accent' | 'danger';
+  note: string;
+  icon: string;
+}
+
+interface TimelineItem {
+  icon: string;
+  tone: 'primary' | 'secondary' | 'accent';
+  title: string;
+  description: string;
+  meta: string;
 }
 
 @Component({
   selector: 'app-client-detail-page-component',
   standalone: true,
-  imports: [RouterLink, StatCardComponent, NgStyle],
+  imports: [],
   templateUrl: './client-detail-page-component.html',
   styleUrl: './client-detail-page-component.scss',
 })
-export class ClientDetailPageComponent {
+export class ClientDetailPageComponent implements OnInit {
   private readonly clientService = inject(ClientService);
   private readonly notificationService = inject(NotificationService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
-  protected readonly detail = signal<ClientDetailResponse | null>(null);
+  protected readonly clientDetail = signal<ClientDetailResponse | null>(null);
   protected readonly isLoading = signal(true);
   protected readonly loadError = signal<string | null>(null);
-  protected readonly clientId = signal<string | null>(null);
-  protected readonly deleteTarget = signal<ClientResponse | null>(null);
-  protected readonly isDeleting = signal(false);
 
-  protected readonly client = computed<ClientResponse | null>(() => this.detail()?.client ?? null);
-  protected readonly contacts = computed<ClientContactResponse[]>(() => this.detail()?.contacts ?? []);
-  protected readonly activities = computed<ClientActivityResponse[]>(() => this.detail()?.activities ?? []);
-  protected readonly tags = computed<ClientTagResponse[]>(() => this.detail()?.tags ?? []);
-  protected readonly primaryContact = computed<ClientContactResponse | null>(
-    () => this.contacts().find((contact) => contact.primary) ?? this.contacts()[0] ?? null,
-  );
+  protected readonly client = computed(() => this.clientDetail()?.client ?? null);
+  protected readonly contacts = computed(() => this.clientDetail()?.contacts ?? []);
+  protected readonly activities = computed(() => this.clientDetail()?.activities ?? []);
+  protected readonly tags = computed(() => this.clientDetail()?.tags ?? []);
 
-  protected readonly stats = computed<DetailStatCard[]>(() => {
+  protected readonly primaryContact = computed<ClientContactResponse | null>(() => {
+    const contacts = this.contacts();
+    return contacts.find((contact) => contact.primary) ?? contacts[0] ?? null;
+  });
+
+  protected readonly summaryCards = computed<SummaryCard[]>(() => {
     const client = this.client();
+    const contacts = this.contacts();
+    const tags = this.tags();
+    const activities = this.activities();
+
+    if (!client) {
+      return [];
+    }
+
     return [
       {
-        icon: 'groups',
-        badge: 'Contacts',
-        label: 'People linked',
-        value: String(this.contacts().length),
-        footer: 'Visible in the detailed CRM record',
-        tone: 'primary',
-      },
-      {
-        icon: 'history',
-        badge: 'Timeline',
-        label: 'Activities',
-        value: String(this.activities().length),
-        footer: 'Calls, emails and notes already logged',
-        tone: 'accent',
-      },
-      {
-        icon: 'sell',
-        badge: 'Labels',
-        label: 'Tags',
-        value: String(this.tags().length),
-        footer: 'Segments and quick filters',
-        tone: 'secondary',
-      },
-      {
+        label: 'Status',
+        value: this.formatStatus(client.status),
+        note: 'Client lifecycle',
         icon: 'badge',
-        badge: 'Status',
-        label: 'Client state',
-        value: client ? this.statusLabel(client.status) : 'Unknown',
-        footer: client ? `Updated ${this.formatDate(client.updatedAt || client.createdAt)}` : 'No client loaded',
-        tone: 'danger',
+      },
+      {
+        label: 'Contacts',
+        value: String(contacts.length),
+        note: 'Known stakeholders',
+        icon: 'group',
+      },
+      {
+        label: 'Tags',
+        value: String(tags.length),
+        note: 'Segment and priority',
+        icon: 'sell',
+      },
+      {
+        label: 'Activity',
+        value: String(activities.length),
+        note: 'Logged touchpoints',
+        icon: 'timeline',
       },
     ];
   });
 
+  protected readonly timelineEntries = computed(() =>
+    this.activities().map((activity) => ({
+      activity,
+      item: this.toTimelineItem(activity),
+    })),
+  );
+
+  protected readonly visibleContacts = computed(() =>
+    this.contacts().slice(0, 3).map((contact) => ({
+      ...contact,
+      displayName: this.contactName(contact),
+      role: this.contactRole(contact),
+      initials: this.contactInitials(contact),
+    })),
+  );
+
+  protected readonly extraContactsCount = computed(() => Math.max(this.contacts().length - 3, 0));
+
   ngOnInit(): void {
     this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       const clientId = params.get('clientId');
-      this.clientId.set(clientId);
 
       if (!clientId) {
         this.loadError.set('Missing client identifier.');
         this.isLoading.set(false);
+        this.clientDetail.set(null);
         return;
       }
 
@@ -105,206 +125,152 @@ export class ClientDetailPageComponent {
     });
   }
 
-  protected reload(): void {
-    const clientId = this.clientId();
-    if (!clientId) {
-      return;
-    }
-
-    this.loadClient(clientId);
-  }
-
   protected goBack(): void {
     void this.router.navigate(['/dashboard/clients']);
   }
 
   protected editClient(): void {
-    const clientId = this.clientId();
-    if (!clientId) {
-      return;
-    }
-
-    void this.router.navigate(['/dashboard/clients'], {
-      queryParams: { edit: clientId },
-    });
-  }
-
-  protected requestDelete(): void {
     const client = this.client();
     if (!client) {
       return;
     }
 
-    this.deleteTarget.set(client);
-  }
-
-  protected cancelDelete(): void {
-    this.deleteTarget.set(null);
-  }
-
-  protected confirmDelete(): void {
-    const target = this.deleteTarget();
-    if (!target) {
-      return;
-    }
-
-    this.isDeleting.set(true);
-
-    this.clientService
-      .deleteClient(target.id)
-      .pipe(finalize(() => this.isDeleting.set(false)))
-      .subscribe({
-        next: () => {
-          this.notificationService.success('Client deleted.');
-          this.deleteTarget.set(null);
-          void this.router.navigate(['/dashboard/clients']);
-        },
-        error: (error: any) => {
-          const message = error?.error?.message ?? 'Unable to delete client.';
-          this.notificationService.error(message, 'Clients unavailable');
-        },
-      });
-  }
-
-  protected statusLabel(status: ClientResponse['status']): string {
-    switch (status) {
-      case 'prospect':
-        return 'Prospect';
-      case 'active':
-        return 'Active';
-      case 'inactive':
-        return 'Inactive';
-      case 'archived':
-        return 'Archived';
-      default:
-        return 'Unknown';
-    }
-  }
-
-  protected formatDate(value: string | null | undefined): string {
-    if (!value) {
-      return 'Not available';
-    }
-
-    return new Intl.DateTimeFormat('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    }).format(new Date(value));
-  }
-
-  protected formatDateTime(value: string | null | undefined): string {
-    if (!value) {
-      return 'Not available';
-    }
-
-    return new Intl.DateTimeFormat('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(new Date(value));
-  }
-
-  protected contactName(contact: ClientContactResponse): string {
-    const fullName = `${contact.firstName ?? ''} ${contact.lastName ?? ''}`.trim();
-    return fullName || 'Unnamed contact';
-  }
-
-  protected contactMeta(contact: ClientContactResponse): string {
-    const parts = [contact.jobTitle, contact.email].filter((value) => !!value);
-    return parts.length > 0 ? parts.join(' · ') : 'No extra information';
-  }
-
-  protected activityLabel(activity: ClientActivityResponse): string {
-    switch (activity.activityType) {
-      case 'call':
-        return 'Call';
-      case 'email':
-        return 'Email';
-      case 'meeting':
-        return 'Meeting';
-      case 'note':
-        return 'Note';
-      case 'task':
-        return 'Task';
-      case 'follow_up':
-        return 'Follow up';
-      case 'status_change':
-        return 'Status change';
-      default:
-        return activity.activityType;
-    }
-  }
-
-  protected activityTone(activity: ClientActivityResponse): string {
-    switch (activity.activityType) {
-      case 'call':
-      case 'email':
-        return 'activity-chip--accent';
-      case 'meeting':
-        return 'activity-chip--primary';
-      case 'task':
-        return 'activity-chip--secondary';
-      case 'follow_up':
-        return 'activity-chip--warning';
-      case 'status_change':
-        return 'activity-chip--danger';
-      default:
-        return 'activity-chip--neutral';
-    }
-  }
-
-  protected tagStyle(tag: ClientTagResponse): Record<string, string> {
-    const color = tag.color ?? '#091426';
-    return {
-      borderColor: this.withAlpha(color, 0.22),
-      backgroundColor: this.withAlpha(color, 0.12),
-      color,
-    };
-  }
-
-  protected contactInitials(contact: ClientContactResponse): string {
-    const source = `${contact.firstName ?? ''} ${contact.lastName ?? ''}`.trim();
-    if (!source) {
-      return 'C';
-    }
-
-    return source
-      .split(/\s+/)
-      .slice(0, 2)
-      .map((part) => part.charAt(0).toUpperCase())
-      .join('');
+    void this.router.navigate(['/dashboard/clients'], {
+      queryParams: { edit: client.id },
+    });
   }
 
   private loadClient(clientId: string): void {
     this.isLoading.set(true);
     this.loadError.set(null);
 
-    this.clientService.getClientById(clientId).subscribe({
-      next: (detail) => {
-        this.detail.set(detail);
-        this.isLoading.set(false);
-      },
-      error: (error: any) => {
-        const message = error?.error?.message ?? 'Unable to load client details.';
-        this.detail.set(null);
-        this.loadError.set(message);
-        this.isLoading.set(false);
-      },
-    });
+    this.clientService
+      .getClientById(clientId)
+      .pipe(
+        finalize(() => {
+          this.isLoading.set(false);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (detail) => {
+          this.clientDetail.set(detail);
+        },
+        error: (error: any) => {
+          this.clientDetail.set(null);
+          const message = error?.error?.message ?? 'Unable to load client details.';
+          this.loadError.set(message);
+          this.notificationService.error(message, 'Client unavailable');
+        },
+      });
   }
 
-  private withAlpha(color: string, alpha: number): string {
-    const hex = color.replace('#', '').trim();
-    if (hex.length !== 6) {
-      return color;
+  private contactName(contact: ClientContactResponse): string {
+    return [contact.firstName, contact.lastName].filter(Boolean).join(' ') || 'Unnamed contact';
+  }
+
+  private contactRole(contact: ClientContactResponse): string {
+    return contact.jobTitle?.trim() || 'Contact';
+  }
+
+  private contactInitials(contact: ClientContactResponse): string {
+    const first = contact.firstName?.trim()?.[0] ?? '';
+    const last = contact.lastName?.trim()?.[0] ?? '';
+    const initials = `${first}${last}`.trim();
+    return initials || '??';
+  }
+
+  protected formatStatus(status: string): string {
+    return status
+      .split('-')
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
+  }
+
+  protected formatRelativeDate(value: string): string {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return 'Unknown date';
     }
 
-    const red = Number.parseInt(hex.slice(0, 2), 16);
-    const green = Number.parseInt(hex.slice(2, 4), 16);
-    const blue = Number.parseInt(hex.slice(4, 6), 16);
-    return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    }).format(date);
+  }
+
+  protected formatTimeAgo(value: string): string {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return 'Recently';
+    }
+
+    const diffInSeconds = Math.floor((Date.now() - date.getTime()) / 1000);
+
+    if (diffInSeconds < 60) {
+      return 'Just now';
+    }
+
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    if (diffInMinutes < 60) {
+      return `${diffInMinutes}m ago`;
+    }
+
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) {
+      return `${diffInHours}h ago`;
+    }
+
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) {
+      return `${diffInDays}d ago`;
+    }
+
+    return this.formatRelativeDate(value);
+  }
+
+  protected toTimelineItem(activity: ClientActivityResponse): TimelineItem {
+    const kind = activity.activityType.toLowerCase();
+
+    if (kind.includes('invoice') || kind.includes('payment')) {
+      return {
+        icon: 'description',
+        tone: 'secondary',
+        title: activity.title,
+        description: activity.description ?? 'Financial milestone logged.',
+        meta: this.formatTimeAgo(activity.occurredAt),
+      };
+    }
+
+    if (kind.includes('call') || kind.includes('meeting') || kind.includes('note')) {
+      return {
+        icon: 'call',
+        tone: 'accent',
+        title: activity.title,
+        description: activity.description ?? 'Client interaction recorded.',
+        meta: this.formatTimeAgo(activity.occurredAt),
+      };
+    }
+
+    return {
+      icon: 'calendar_month',
+      tone: 'primary',
+      title: activity.title,
+      description: activity.description ?? 'Timeline entry recorded.',
+      meta: this.formatTimeAgo(activity.occurredAt),
+    };
+  }
+
+  protected trackByContact(_index: number, contact: ClientContactResponse): string {
+    return contact.id;
+  }
+
+  protected trackByTag(_index: number, tag: ClientTagResponse): string {
+    return tag.id;
+  }
+
+  protected trackByActivity(_index: number, activity: ClientActivityResponse): string {
+    return activity.id;
   }
 }

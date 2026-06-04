@@ -1,297 +1,262 @@
-<div class="client-detail-page">
-  <section class="client-detail-page__hero surface-card">
-    <div class="client-detail-page__hero-copy">
-      <button class="client-detail-page__back-link" type="button" (click)="goBack()">
-        <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
-        Back to clients
-      </button>
-
-      @if (client()) {
-        <p class="eyebrow">Client detail</p>
-        <h1 class="display-title">{{ client()!.companyName }}</h1>
-        <p class="section-copy">
-          {{ client()!.notes || 'This client record currently has no note attached.' }}
-        </p>
-        <div class="client-detail-page__hero-meta">
-          <span
-            class="client-detail-page__status"
-            [class.status-pill--active]="client()!.status === 'active'"
-            [class.status-pill--prospect]="client()!.status === 'prospect'"
-            [class.status-pill--inactive]="client()!.status === 'inactive'"
-            [class.status-pill--archived]="client()!.status === 'archived'"
-          >
-            {{ statusLabel(client()!.status) }}
-          </span>
-          <span class="pill">
-            {{ primaryContact() ? contactName(primaryContact()!) : 'No primary contact' }}
-          </span>
-        </div>
-      } @else {
-        <p class="eyebrow">Client detail</p>
-        <h1 class="display-title">Loading client</h1>
-        <p class="section-copy">Fetching the selected client profile and related CRM data.</p>
-      }
-    </div>
-
-    <div class="client-detail-page__hero-actions">
-      <button class="btn btn--secondary" type="button" [disabled]="isLoading()" (click)="reload()">
-        <span class="material-symbols-outlined" aria-hidden="true">refresh</span>
-        Refresh
-      </button>
-      <button class="btn btn--secondary" type="button" [disabled]="isLoading() || !client()" (click)="editClient()">
-        <span class="material-symbols-outlined" aria-hidden="true">edit</span>
-        Edit
-      </button>
-      <button class="btn btn--primary" type="button" [disabled]="isLoading() || !client()" (click)="requestDelete()">
-        <span class="material-symbols-outlined" aria-hidden="true">delete</span>
-        Delete
-      </button>
-    </div>
-  </section>
-
-  <section class="client-detail-page__stats">
-    @for (stat of stats(); track stat.label) {
-      <app-stat-card
-        [icon]="stat.icon"
-        [badge]="stat.badge"
-        [label]="stat.label"
-        [value]="stat.value"
-        [footer]="stat.footer"
-        [tone]="stat.tone"
-        [loading]="isLoading() && !loadError()"
-      />
-    }
-  </section>
-
-  @if (loadError()) {
-    <section class="client-detail-page__error surface-card">
-      <div>
-        <p class="eyebrow">Unavailable</p>
-        <h2>We couldn't load this client</h2>
-        <p class="section-copy">{{ loadError() }}</p>
+<div class="client-detail-shell">
+  @if (isLoading()) {
+    <section class="client-state client-state--loading">
+      <div class="client-state__icon">
+        <span class="material-symbols-outlined" aria-hidden="true">progress_activity</span>
       </div>
-
-      <button class="btn btn--secondary" type="button" (click)="reload()">Retry</button>
+      <h2>Loading client profile</h2>
+      <p>Retrieving contacts, activity, and notes.</p>
     </section>
-  } @else if (isLoading()) {
-    <section class="client-detail-page__loading-grid">
-      <article class="client-detail-page__loading-card surface-card"></article>
-      <article class="client-detail-page__loading-card surface-card"></article>
-      <article class="client-detail-page__loading-card surface-card"></article>
-      <article class="client-detail-page__loading-card surface-card"></article>
+  } @else if (loadError()) {
+    <section class="client-state client-state--error">
+      <div class="client-state__icon">
+        <span class="material-symbols-outlined" aria-hidden="true">error</span>
+      </div>
+      <h2>Unable to load client</h2>
+      <p>{{ loadError() }}</p>
+      <div class="client-actions client-actions--center">
+        <button type="button" class="client-button client-button--ghost" (click)="goBack()">Back to clients</button>
+        <button type="button" class="client-button client-button--primary" (click)="editClient()">Edit profile</button>
+      </div>
     </section>
-  } @else if (client()) {
-    <section class="client-detail-page__grid">
-      <article class="client-detail-page__card surface-card client-detail-page__card--overview">
-        <p class="eyebrow">Overview</p>
-        <h2>{{ client()!.companyName }}</h2>
-        <div class="client-detail-page__overview-meta">
-          <span>Primary contact</span>
-          <strong>{{ primaryContact() ? contactName(primaryContact()!) : 'No primary contact yet' }}</strong>
-        </div>
-        <div class="client-detail-page__overview-meta">
-          <span>Primary contact email</span>
-          <strong>{{ primaryContact()?.email || 'Not available' }}</strong>
-        </div>
-        <div class="client-detail-page__overview-meta">
-          <span>Created</span>
-          <strong>{{ formatDate(client()!.createdAt) }}</strong>
-        </div>
-        <div class="client-detail-page__overview-meta">
-          <span>Last update</span>
-          <strong>{{ formatDate(client()!.updatedAt || client()!.createdAt) }}</strong>
-        </div>
-      </article>
+  } @else {
+    @let currentClient = client();
+    @let currentPrimaryContact = primaryContact();
+    @let currentSummaryCards = summaryCards();
+    @let currentVisibleContacts = visibleContacts();
+    @let currentTimelineEntries = timelineEntries();
+    @let currentTags = tags();
 
-      <article class="client-detail-page__card surface-card client-detail-page__card--contact-spotlight">
-        <div class="client-detail-page__card-heading">
-          <div>
-            <p class="eyebrow">Primary contact</p>
-            <h2>Key relationship owner</h2>
-          </div>
-          <span class="pill client-detail-page__contact-count-pill">
-            {{ primaryContact() ? 'Primary contact linked' : 'No primary contact' }}
-          </span>
+    <section class="client-hero">
+      <div class="client-hero__identity">
+        <div class="client-hero__badge">
+          <span class="material-symbols-outlined" aria-hidden="true">corporate_fare</span>
         </div>
 
-        @if (primaryContact()) {
-          <div class="client-detail-page__primary-contact">
-            <div class="client-detail-page__primary-contact-main">
-              <div class="client-detail-page__contact-avatar">
-                {{ contactInitials(primaryContact()!) }}
-              </div>
-              <div class="client-detail-page__primary-contact-copy">
-                <h2>{{ contactName(primaryContact()!) }}</h2>
-                <p class="section-copy">
-                  {{ contactMeta(primaryContact()!) }}
-                </p>
-                <div class="client-detail-page__contact-badges">
-                  <span class="client-detail-page__contact-chip">
-                    <span class="material-symbols-outlined" aria-hidden="true">mail</span>
-                    {{ primaryContact()!.email || 'Not available' }}
-                  </span>
-                  <span class="client-detail-page__contact-chip">
-                    <span class="material-symbols-outlined" aria-hidden="true">call</span>
-                    {{ primaryContact()!.phone || 'Not available' }}
-                  </span>
-                  <span class="client-detail-page__contact-chip">
-                    <span class="material-symbols-outlined" aria-hidden="true">badge</span>
-                    {{ primaryContact()!.jobTitle || 'No job title' }}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div class="client-detail-page__contact-summary">
-              <div class="client-detail-page__contact-grid">
-                <div>
-                  <span>Email</span>
-                  <strong>{{ primaryContact()!.email || 'Not available' }}</strong>
-                </div>
-                <div>
-                  <span>Phone</span>
-                  <strong>{{ primaryContact()!.phone || 'Not available' }}</strong>
-                </div>
-                <div>
-                  <span>Job title</span>
-                  <strong>{{ primaryContact()!.jobTitle || 'Not available' }}</strong>
-                </div>
-                <div>
-                  <span>Primary</span>
-                  <strong>{{ primaryContact()!.primary ? 'Yes' : 'No' }}</strong>
-                </div>
-              </div>
-            </div>
-          </div>
-        } @else {
-          <div class="client-detail-page__contact-empty">
-            <div class="client-detail-page__contact-avatar client-detail-page__contact-avatar--empty">
-              N
-            </div>
-            <div class="client-detail-page__primary-contact-copy">
-              <h2>No primary contact yet</h2>
-              <p class="section-copy">
-                This client has not been linked to a main contact yet. Contacts can be added once the contacts CRUD flow is in place.
-              </p>
-            </div>
-          </div>
-        }
-      </article>
-
-      <article class="client-detail-page__card surface-card client-detail-page__card--tags">
-        <p class="eyebrow">Tags</p>
-        @if (tags().length > 0) {
-          <div class="client-detail-page__tag-list">
-            @for (tag of tags(); track tag.id) {
-              <span class="client-detail-page__tag" [ngStyle]="tagStyle(tag)">
-                <span class="client-detail-page__tag-dot" [style.background]="tag.color || '#091426'"></span>
-                {{ tag.name }}
+        <div class="client-hero__content">
+          <p class="client-eyebrow">Client detail</p>
+          <h1>{{ currentClient?.companyName }}</h1>
+          <div class="client-meta">
+            <span class="client-pill client-pill--status">
+              {{ currentClient ? formatStatus(currentClient.status) : '' }}
+            </span>
+            @if (currentPrimaryContact) {
+              <span class="client-meta__item">
+                {{ currentPrimaryContact.firstName || '' }} {{ currentPrimaryContact.lastName || '' }}
+                @if (currentPrimaryContact.jobTitle) {
+                  <span>• {{ currentPrimaryContact.jobTitle }}</span>
+                }
               </span>
             }
-          </div>
-        } @else {
-          <p class="section-copy">No tags are attached to this client yet.</p>
-        }
-      </article>
-
-      <article class="client-detail-page__card surface-card client-detail-page__card--contacts">
-        <div class="client-detail-page__card-heading">
-          <div>
-            <p class="eyebrow">Contacts</p>
-            <h2>All linked people</h2>
-          </div>
-          <span class="pill">{{ contacts().length }} contacts</span>
-        </div>
-
-        @if (contacts().length > 0) {
-          <div class="client-detail-page__contacts-list">
-            @for (contact of contacts(); track contact.id) {
-              <article class="client-detail-page__contact-row">
-                <div class="client-detail-page__contact-row-top">
-                  <div>
-                    <strong>{{ contactName(contact) }}</strong>
-                    <p>{{ contactMeta(contact) }}</p>
-                  </div>
-                  @if (contact.primary) {
-                    <span class="client-detail-page__primary-pill">Primary</span>
-                  }
-                </div>
-
-                <div class="client-detail-page__contact-row-details">
-                  <span>{{ contact.email || 'No email' }}</span>
-                  <span>{{ contact.phone || 'No phone' }}</span>
-                  <span>{{ contact.jobTitle || 'No job title' }}</span>
-                </div>
-              </article>
+            @if (currentClient?.updatedAt) {
+              <span class="client-meta__item">Updated {{ formatTimeAgo(currentClient.updatedAt) }}</span>
             }
           </div>
-        } @else {
-          <p class="section-copy">This client does not have any contacts yet.</p>
-        }
-      </article>
-
-      <article class="client-detail-page__card surface-card client-detail-page__card--activities">
-        <div class="client-detail-page__card-heading">
-          <div>
-            <p class="eyebrow">Activity</p>
-            <h2>Interactions timeline</h2>
-          </div>
-          <span class="pill">{{ activities().length }} events</span>
         </div>
+      </div>
 
-        @if (activities().length > 0) {
-          <div class="client-detail-page__timeline">
-            @for (activity of activities(); track activity.id) {
-              <article class="client-detail-page__timeline-item">
-                <div class="client-detail-page__timeline-marker"></div>
-                <div class="client-detail-page__timeline-content">
-                  <div class="client-detail-page__timeline-top">
-                    <span
-                      class="client-detail-page__activity-chip"
-                      [class.activity-chip--accent]="activityTone(activity) === 'activity-chip--accent'"
-                      [class.activity-chip--primary]="activityTone(activity) === 'activity-chip--primary'"
-                      [class.activity-chip--secondary]="activityTone(activity) === 'activity-chip--secondary'"
-                      [class.activity-chip--warning]="activityTone(activity) === 'activity-chip--warning'"
-                      [class.activity-chip--danger]="activityTone(activity) === 'activity-chip--danger'"
-                      [class.activity-chip--neutral]="activityTone(activity) === 'activity-chip--neutral'"
-                    >
-                      {{ activityLabel(activity) }}
-                    </span>
-                    <span class="client-detail-page__timeline-date">{{ formatDateTime(activity.occurredAt) }}</span>
-                  </div>
-                  <h3>{{ activity.title }}</h3>
-                  <p>{{ activity.description || 'No additional details were stored for this event.' }}</p>
-                </div>
-              </article>
-            }
-          </div>
-        } @else {
-          <p class="section-copy">No interactions have been logged for this client yet.</p>
-        }
-      </article>
-    </section>
-  }
-
-  @if (deleteTarget()) {
-    <div class="client-detail-page__overlay" (click)="cancelDelete()"></div>
-    <aside class="client-detail-page__confirm surface-card" role="dialog" aria-modal="true" aria-label="Confirm deletion">
-      <p class="eyebrow">Delete client</p>
-      <h2>Delete {{ deleteTarget()!.companyName }}?</h2>
-      <p class="section-copy">
-        This will permanently remove the client record. Related contacts, activities, and tags will be lost if the backend cascade is enabled.
-      </p>
-
-      <footer class="client-detail-page__confirm-footer">
-        <button class="btn btn--secondary" type="button" (click)="cancelDelete()">Cancel</button>
-        <button class="btn btn--primary" type="button" [disabled]="isDeleting()" (click)="confirmDelete()">
-          @if (isDeleting()) {
-            <span class="material-symbols-outlined" aria-hidden="true">progress_activity</span>
-          } @else {
-            <span class="material-symbols-outlined" aria-hidden="true">delete</span>
-          }
-          Delete client
+      <div class="client-actions">
+        <button type="button" class="client-button client-button--ghost" (click)="goBack()">Back to clients</button>
+        <button type="button" class="client-button client-button--outline" (click)="editClient()">Edit profile</button>
+        <button type="button" class="client-button client-button--primary">
+          <span class="material-symbols-outlined" aria-hidden="true">add</span>
+          New activity
         </button>
-      </footer>
-    </aside>
+      </div>
+    </section>
+
+    <section class="client-summary-grid">
+      @for (card of currentSummaryCards; track card.label) {
+        <article class="client-summary-card">
+          <div class="client-summary-card__icon">
+            <span class="material-symbols-outlined" aria-hidden="true">{{ card.icon }}</span>
+          </div>
+          <div class="client-summary-card__body">
+            <p class="client-summary-card__label">{{ card.label }}</p>
+            <h3>{{ card.value }}</h3>
+            <p class="client-summary-card__note">{{ card.note }}</p>
+          </div>
+        </article>
+      }
+    </section>
+
+    <section class="client-grid">
+      <div class="client-column client-column--wide">
+        <article class="client-card">
+          <div class="client-card__header">
+            <div>
+              <p class="client-card__eyebrow">Team contacts</p>
+              <h2>Who to reach</h2>
+            </div>
+            <button type="button" class="client-link-button">
+              <span class="material-symbols-outlined" aria-hidden="true">person_add</span>
+              Add contact
+            </button>
+          </div>
+
+          <div class="contact-grid">
+            @for (contact of currentVisibleContacts; track trackByContact($index, contact)) {
+              <article class="contact-card" [class.contact-card--primary]="contact.primary">
+                @if (contact.primary) {
+                  <span class="contact-card__flag">Primary</span>
+                }
+                <div class="contact-card__top">
+                  <div class="contact-card__avatar">{{ contact.initials }}</div>
+                  <div>
+                    <h3>{{ contact.displayName }}</h3>
+                    <p>{{ contact.role }}</p>
+                  </div>
+                </div>
+                <div class="contact-card__details">
+                  <div class="contact-card__row">
+                    <span class="material-symbols-outlined" aria-hidden="true">mail</span>
+                    <span>{{ contact.email || 'No email provided' }}</span>
+                  </div>
+                  <div class="contact-card__row">
+                    <span class="material-symbols-outlined" aria-hidden="true">call</span>
+                    <span>{{ contact.phone || 'No phone provided' }}</span>
+                  </div>
+                </div>
+              </article>
+            }
+
+            @if (extraContactsCount() > 0) {
+              <article class="contact-card contact-card--placeholder">
+                <span class="material-symbols-outlined" aria-hidden="true">add_circle</span>
+                <span>Add {{ extraContactsCount() }} more contact{{ extraContactsCount() > 1 ? 's' : '' }}</span>
+              </article>
+            } @else if (!currentVisibleContacts.length) {
+              <article class="contact-card contact-card--placeholder">
+                <span class="material-symbols-outlined" aria-hidden="true">person_off</span>
+                <span>No contacts yet</span>
+              </article>
+            }
+          </div>
+        </article>
+
+        <article class="client-card">
+          <div class="client-card__header">
+            <div>
+              <p class="client-card__eyebrow">Recent timeline</p>
+              <h2>Activity feed</h2>
+            </div>
+          </div>
+
+          <div class="timeline">
+            @for (entry of currentTimelineEntries; track trackByActivity($index, entry.activity)) {
+              <article class="timeline-item">
+                <div
+                  class="timeline-item__marker"
+                  [class.timeline-item__marker--primary]="entry.item.tone === 'primary'"
+                  [class.timeline-item__marker--secondary]="entry.item.tone === 'secondary'"
+                  [class.timeline-item__marker--accent]="entry.item.tone === 'accent'"
+                >
+                  <span class="material-symbols-outlined" aria-hidden="true">{{ entry.item.icon }}</span>
+                </div>
+                <div class="timeline-item__content">
+                  <div class="timeline-item__heading">
+                    <h3>{{ entry.item.title }}</h3>
+                    <span>{{ entry.item.meta }}</span>
+                  </div>
+                  <p>{{ entry.item.description }}</p>
+                </div>
+              </article>
+            }
+
+            @if (!currentTimelineEntries.length) {
+              <article class="timeline-item timeline-item--empty">
+                <div class="timeline-item__marker timeline-item__marker--primary">
+                  <span class="material-symbols-outlined" aria-hidden="true">calendar_month</span>
+                </div>
+                <div class="timeline-item__content">
+                  <div class="timeline-item__heading">
+                    <h3>No activity yet</h3>
+                    <span>Ready for the first event</span>
+                  </div>
+                  <p>Once activities are logged, they will appear here in chronological order.</p>
+                </div>
+              </article>
+            }
+          </div>
+        </article>
+      </div>
+
+      <div class="client-column">
+        <article class="client-card client-card--highlight">
+          <div class="client-card__header client-card__header--tight">
+            <div>
+              <p class="client-card__eyebrow client-card__eyebrow--muted">Client snapshot</p>
+              <h2>Quick overview</h2>
+            </div>
+          </div>
+
+          <div class="snapshot-grid">
+            <div class="snapshot-tile">
+              <span>Status</span>
+              <strong>{{ currentClient ? formatStatus(currentClient.status) : 'Unknown' }}</strong>
+            </div>
+            <div class="snapshot-tile">
+              <span>Contacts</span>
+              <strong>{{ contacts().length }}</strong>
+            </div>
+            <div class="snapshot-tile">
+              <span>Tags</span>
+              <strong>{{ currentTags.length }}</strong>
+            </div>
+            <div class="snapshot-tile">
+              <span>Created</span>
+              <strong>{{ currentClient?.createdAt ? formatRelativeDate(currentClient.createdAt) : 'Unknown' }}</strong>
+            </div>
+          </div>
+
+          <div class="snapshot-panel">
+            <p class="snapshot-panel__label">Primary contact</p>
+            @if (currentPrimaryContact) {
+              <strong>{{ currentPrimaryContact.firstName || '' }} {{ currentPrimaryContact.lastName || '' }}</strong>
+              <span>{{ currentPrimaryContact.jobTitle || 'No job title provided' }}</span>
+              <span>{{ currentPrimaryContact.email || 'No email provided' }}</span>
+            } @else {
+              <strong>No primary contact</strong>
+              <span>Add a contact to define a main point of contact.</span>
+            }
+          </div>
+        </article>
+
+        <article class="client-card">
+          <div class="client-card__header client-card__header--tight">
+            <div>
+              <p class="client-card__eyebrow">Tags</p>
+              <h2>Client segments</h2>
+            </div>
+          </div>
+
+          <div class="tag-list">
+            @for (tag of currentTags; track trackByTag($index, tag)) {
+              <span class="tag-chip">{{ tag.name }}</span>
+            }
+
+            @if (!currentTags.length) {
+              <span class="tag-chip tag-chip--muted">No tags yet</span>
+            }
+          </div>
+        </article>
+
+        <article class="client-card client-card--notes">
+          <div class="client-card__header client-card__header--tight">
+            <div>
+              <p class="client-card__eyebrow">Internal notes</p>
+              <h2>Working context</h2>
+            </div>
+            <span class="material-symbols-outlined client-card__note-icon" aria-hidden="true">edit_note</span>
+          </div>
+
+          @if (currentClient?.notes) {
+            <p class="notes-copy">{{ currentClient.notes }}</p>
+          } @else {
+            <p class="notes-copy notes-copy--empty">No internal notes have been added yet.</p>
+          }
+        </article>
+      </div>
+    </section>
   }
 </div>
