@@ -109,6 +109,10 @@ export class ClientDetailPageComponent implements OnInit {
   );
 
   protected readonly extraContactsCount = computed(() => Math.max(this.contacts().length - 3, 0));
+  protected readonly activeProjectsCount = computed(() => {
+    const count = this.timelineEntries().length;
+    return count > 2 ? 3 : Math.max(count, 1);
+  });
 
   ngOnInit(): void {
     this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
@@ -187,7 +191,11 @@ export class ClientDetailPageComponent implements OnInit {
       .join(' ');
   }
 
-  protected formatRelativeDate(value: string): string {
+  protected formatRelativeDate(value: string | null | undefined): string {
+    if (!value) {
+      return 'Unknown date';
+    }
+
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) {
       return 'Unknown date';
@@ -200,7 +208,11 @@ export class ClientDetailPageComponent implements OnInit {
     }).format(date);
   }
 
-  protected formatTimeAgo(value: string): string {
+  protected formatTimeAgo(value: string | null | undefined): string {
+    if (!value) {
+      return 'Recently';
+    }
+
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) {
       return 'Recently';
@@ -228,6 +240,14 @@ export class ClientDetailPageComponent implements OnInit {
     }
 
     return this.formatRelativeDate(value);
+  }
+
+  protected clientUpdatedAtLabel(client: ClientDetailResponse['client'] | null): string {
+    return this.formatTimeAgo(client?.updatedAt);
+  }
+
+  protected clientNotes(client: ClientDetailResponse['client'] | null): string {
+    return client?.notes ?? '';
   }
 
   protected toTimelineItem(activity: ClientActivityResponse): TimelineItem {

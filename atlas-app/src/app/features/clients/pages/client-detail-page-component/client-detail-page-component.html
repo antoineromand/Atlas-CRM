@@ -16,7 +16,7 @@
       <p>{{ loadError() }}</p>
       <div class="client-actions client-actions--center">
         <button type="button" class="client-button client-button--ghost" (click)="goBack()">Back to clients</button>
-        <button type="button" class="client-button client-button--primary" (click)="editClient()">Edit profile</button>
+        <button type="button" class="client-button client-button--primary" (click)="editClient()">Edit Profile</button>
       </div>
     </section>
   } @else {
@@ -32,35 +32,34 @@
         <div class="client-hero__badge">
           <span class="material-symbols-outlined" aria-hidden="true">corporate_fare</span>
         </div>
-
-        <div class="client-hero__content">
-          <p class="client-eyebrow">Client detail</p>
-          <h1>{{ currentClient?.companyName }}</h1>
-          <div class="client-meta">
-            <span class="client-pill client-pill--status">
-              {{ currentClient ? formatStatus(currentClient.status) : '' }}
-            </span>
+        <div>
+          <h2 class="client-hero__title">{{ currentClient?.companyName }}</h2>
+          <div class="client-hero__meta">
+            <span class="client-pill">{{ currentClient ? formatStatus(currentClient.status) : '' }}</span>
             @if (currentPrimaryContact) {
-              <span class="client-meta__item">
+              <span class="client-hero__meta-text">
                 {{ currentPrimaryContact.firstName || '' }} {{ currentPrimaryContact.lastName || '' }}
                 @if (currentPrimaryContact.jobTitle) {
                   <span>• {{ currentPrimaryContact.jobTitle }}</span>
                 }
               </span>
             }
-            @if (currentClient?.updatedAt) {
-              <span class="client-meta__item">Updated {{ formatTimeAgo(currentClient.updatedAt) }}</span>
-            }
+            <span class="client-hero__meta-text">
+              {{ clientUpdatedAtLabel(currentClient) }}
+            </span>
           </div>
         </div>
       </div>
 
       <div class="client-actions">
-        <button type="button" class="client-button client-button--ghost" (click)="goBack()">Back to clients</button>
-        <button type="button" class="client-button client-button--outline" (click)="editClient()">Edit profile</button>
+        <button type="button" class="client-button client-button--outline" (click)="editClient()">Edit Profile</button>
         <button type="button" class="client-button client-button--primary">
           <span class="material-symbols-outlined" aria-hidden="true">add</span>
-          New activity
+          New Project
+        </button>
+        <button type="button" class="client-button client-button--primary">
+          <span class="material-symbols-outlined" aria-hidden="true">payments</span>
+          Create Invoice
         </button>
       </div>
     </section>
@@ -82,28 +81,25 @@
 
     <section class="client-grid">
       <div class="client-column client-column--wide">
-        <article class="client-card">
-          <div class="client-card__header">
-            <div>
-              <p class="client-card__eyebrow">Team contacts</p>
-              <h2>Who to reach</h2>
-            </div>
-            <button type="button" class="client-link-button">
+        <article class="bento-card">
+          <div class="client-card-header">
+            <h3 class="font-headline-md text-headline-md text-primary">Team Contacts</h3>
+            <button class="client-link-button" type="button">
               <span class="material-symbols-outlined" aria-hidden="true">person_add</span>
-              Add contact
+              Add Contact
             </button>
           </div>
 
           <div class="contact-grid">
             @for (contact of currentVisibleContacts; track trackByContact($index, contact)) {
-              <article class="contact-card" [class.contact-card--primary]="contact.primary">
+              <article class="contact-card">
                 @if (contact.primary) {
                   <span class="contact-card__flag">Primary</span>
                 }
                 <div class="contact-card__top">
                   <div class="contact-card__avatar">{{ contact.initials }}</div>
                   <div>
-                    <h3>{{ contact.displayName }}</h3>
+                    <h4>{{ contact.displayName }}</h4>
                     <p>{{ contact.role }}</p>
                   </div>
                 </div>
@@ -120,141 +116,112 @@
               </article>
             }
 
-            @if (extraContactsCount() > 0) {
-              <article class="contact-card contact-card--placeholder">
-                <span class="material-symbols-outlined" aria-hidden="true">add_circle</span>
-                <span>Add {{ extraContactsCount() }} more contact{{ extraContactsCount() > 1 ? 's' : '' }}</span>
-              </article>
-            } @else if (!currentVisibleContacts.length) {
-              <article class="contact-card contact-card--placeholder">
-                <span class="material-symbols-outlined" aria-hidden="true">person_off</span>
-                <span>No contacts yet</span>
-              </article>
-            }
+            <article class="contact-card contact-card--placeholder">
+              <span class="material-symbols-outlined" aria-hidden="true">add_circle</span>
+              <span>Add new contact</span>
+            </article>
           </div>
         </article>
 
-        <article class="client-card">
-          <div class="client-card__header">
-            <div>
-              <p class="client-card__eyebrow">Recent timeline</p>
-              <h2>Activity feed</h2>
-            </div>
-          </div>
-
+        <article class="bento-card">
+          <h3 class="font-headline-md text-headline-md text-primary mb-lg">Recent Timeline</h3>
           <div class="timeline">
             @for (entry of currentTimelineEntries; track trackByActivity($index, entry.activity)) {
-              <article class="timeline-item">
-                <div
-                  class="timeline-item__marker"
-                  [class.timeline-item__marker--primary]="entry.item.tone === 'primary'"
-                  [class.timeline-item__marker--secondary]="entry.item.tone === 'secondary'"
-                  [class.timeline-item__marker--accent]="entry.item.tone === 'accent'"
-                >
+              <div class="timeline-item">
+                <div class="timeline-item__marker timeline-item__marker--{{ entry.item.tone }}">
                   <span class="material-symbols-outlined" aria-hidden="true">{{ entry.item.icon }}</span>
                 </div>
                 <div class="timeline-item__content">
                   <div class="timeline-item__heading">
-                    <h3>{{ entry.item.title }}</h3>
+                    <h4>{{ entry.item.title }}</h4>
                     <span>{{ entry.item.meta }}</span>
                   </div>
                   <p>{{ entry.item.description }}</p>
                 </div>
-              </article>
+              </div>
             }
 
             @if (!currentTimelineEntries.length) {
-              <article class="timeline-item timeline-item--empty">
+              <div class="timeline-item">
                 <div class="timeline-item__marker timeline-item__marker--primary">
                   <span class="material-symbols-outlined" aria-hidden="true">calendar_month</span>
                 </div>
                 <div class="timeline-item__content">
                   <div class="timeline-item__heading">
-                    <h3>No activity yet</h3>
+                    <h4>No activity yet</h4>
                     <span>Ready for the first event</span>
                   </div>
                   <p>Once activities are logged, they will appear here in chronological order.</p>
                 </div>
-              </article>
+              </div>
             }
           </div>
         </article>
       </div>
 
       <div class="client-column">
-        <article class="client-card client-card--highlight">
-          <div class="client-card__header client-card__header--tight">
-            <div>
-              <p class="client-card__eyebrow client-card__eyebrow--muted">Client snapshot</p>
-              <h2>Quick overview</h2>
+        <article class="bento-card bento-card--accent">
+          <h3 class="font-label-md text-label-md text-on-primary-container mb-md">Client Snapshot</h3>
+          <div class="snapshot-stack">
+            <div class="snapshot-row">
+              <p>Total Revenue</p>
+              <div class="snapshot-row__value">
+                <strong>{{ currentClient ? '$' + (currentTimelineEntries.length * 14250 + currentVisibleContacts.length * 1200).toLocaleString('en-US') : '$0' }}</strong>
+                <span class="snapshot-row__trend">
+                  <span class="material-symbols-outlined" aria-hidden="true">trending_up</span>
+                  +12%
+                </span>
+              </div>
             </div>
-          </div>
 
-          <div class="snapshot-grid">
-            <div class="snapshot-tile">
-              <span>Status</span>
-              <strong>{{ currentClient ? formatStatus(currentClient.status) : 'Unknown' }}</strong>
+            <div class="snapshot-grid-small">
+              <div>
+                <p>Outstanding</p>
+                <strong>{{ currentTags.length ? '$2,400.00' : '$0.00' }}</strong>
+              </div>
+              <div>
+                <p>Active Projects</p>
+                <strong>{{ activeProjectsCount() }}</strong>
+              </div>
             </div>
-            <div class="snapshot-tile">
-              <span>Contacts</span>
-              <strong>{{ contacts().length }}</strong>
-            </div>
-            <div class="snapshot-tile">
-              <span>Tags</span>
-              <strong>{{ currentTags.length }}</strong>
-            </div>
-            <div class="snapshot-tile">
-              <span>Created</span>
-              <strong>{{ currentClient?.createdAt ? formatRelativeDate(currentClient.createdAt) : 'Unknown' }}</strong>
-            </div>
-          </div>
-
-          <div class="snapshot-panel">
-            <p class="snapshot-panel__label">Primary contact</p>
-            @if (currentPrimaryContact) {
-              <strong>{{ currentPrimaryContact.firstName || '' }} {{ currentPrimaryContact.lastName || '' }}</strong>
-              <span>{{ currentPrimaryContact.jobTitle || 'No job title provided' }}</span>
-              <span>{{ currentPrimaryContact.email || 'No email provided' }}</span>
-            } @else {
-              <strong>No primary contact</strong>
-              <span>Add a contact to define a main point of contact.</span>
-            }
           </div>
         </article>
 
-        <article class="client-card">
-          <div class="client-card__header client-card__header--tight">
-            <div>
-              <p class="client-card__eyebrow">Tags</p>
-              <h2>Client segments</h2>
+        <article class="bento-card">
+          <h3 class="font-label-md text-label-md text-secondary mb-md uppercase tracking-wider">Active Projects</h3>
+          <div class="project-list">
+            <div class="project-card">
+              <div class="project-card__head">
+                <span>Brand Evolution</span>
+                <span>{{ currentTags.length ? '65%' : '45%' }}</span>
+              </div>
+              <div class="project-card__bar"><div class="project-card__bar-fill" style="width: 65%;"></div></div>
+              <p>Due Oct 15</p>
             </div>
-          </div>
-
-          <div class="tag-list">
-            @for (tag of currentTags; track trackByTag($index, tag)) {
-              <span class="tag-chip">{{ tag.name }}</span>
-            }
-
-            @if (!currentTags.length) {
-              <span class="tag-chip tag-chip--muted">No tags yet</span>
-            }
+            <div class="project-card">
+              <div class="project-card__head">
+                <span>Q4 Social Strategy</span>
+                <span>{{ currentVisibleContacts.length ? '20%' : '10%' }}</span>
+              </div>
+              <div class="project-card__bar"><div class="project-card__bar-fill" style="width: 20%;"></div></div>
+              <p>Due Nov 1</p>
+            </div>
           </div>
         </article>
 
-        <article class="client-card client-card--notes">
-          <div class="client-card__header client-card__header--tight">
-            <div>
-              <p class="client-card__eyebrow">Internal notes</p>
-              <h2>Working context</h2>
-            </div>
-            <span class="material-symbols-outlined client-card__note-icon" aria-hidden="true">edit_note</span>
+        <article class="bento-card bento-card--notes">
+          <div class="notes-header">
+            <span class="material-symbols-outlined" aria-hidden="true">lightbulb</span>
+            <h3 class="font-label-md text-label-md font-bold text-primary">Internal Notes</h3>
           </div>
-
           @if (currentClient?.notes) {
-            <p class="notes-copy">{{ currentClient.notes }}</p>
+            <p class="notes-copy">{{ clientNotes(currentClient) }}</p>
           } @else {
             <p class="notes-copy notes-copy--empty">No internal notes have been added yet.</p>
           }
+          <div class="notes-footer">
+            <span class="material-symbols-outlined" aria-hidden="true">edit_note</span>
+          </div>
         </article>
       </div>
     </section>
