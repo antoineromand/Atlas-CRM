@@ -45,7 +45,7 @@ export class ClientsPageComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly clients = this.clientPageFacade.clients;
-  protected readonly pagination = this.clientPageFacade.pagination;
+  protected readonly pagination = this.clientPageFacade.paginatedClients;
   protected readonly isLoading = this.clientPageFacade.isLoading;
   protected readonly isRefreshing = this.clientPageFacade.isRefreshing;
   protected readonly loadError = this.clientPageFacade.loadError;
@@ -101,8 +101,6 @@ export class ClientsPageComponent implements OnInit {
     const active = this.clientPageFacade.activeClients();
     return total > 0 ? Math.round((active / total) * 1000) / 10 : 0;
   });
-
-  protected readonly pageItems = computed(() => this.clientPageFacade.paginationItems());
 
   protected readonly clientForm = new FormGroup<ClientFormControls>({
     companyName: new FormControl('', {
@@ -328,18 +326,6 @@ export class ClientsPageComponent implements OnInit {
       default:
         return 'All Clients';
     }
-  }
-
-  protected formatDate(value: string | null | undefined): string {
-    if (!value) {
-      return 'Not available';
-    }
-
-    return new Intl.DateTimeFormat('en-US', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    }).format(new Date(value));
   }
 
   protected contactName(client: ClientResponse): string {

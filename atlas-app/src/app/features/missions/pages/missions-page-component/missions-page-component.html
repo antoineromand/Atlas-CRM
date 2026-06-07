@@ -1,14 +1,11 @@
 <div class="missions-page">
-  <section class="missions-page__hero surface-card">
-    <div class="missions-page__hero-copy">
-      <p class="eyebrow">Missions</p>
-      <h1 class="display-title">Active missions</h1>
-      <p class="section-copy">
-        Manage your ongoing projects, track deadlines, and keep every mission visible from one place.
-      </p>
+  <section class="missions-page__header">
+    <div class="missions-page__header-copy">
+      <h1 class="missions-page__title">Active Missions</h1>
+      <p class="missions-page__subtitle">Manage your ongoing projects, track deadlines, and maintain client focus.</p>
     </div>
 
-    <div class="missions-page__hero-actions">
+    <div class="missions-page__header-actions">
       <div class="missions-page__view-switch" role="tablist" aria-label="Mission view mode">
         <button
           class="missions-page__view-button"
@@ -30,14 +27,14 @@
         </button>
       </div>
 
-      <button class="btn btn--primary" type="button" (click)="openCreateDrawer()">
+      <button class="btn btn--primary missions-page__create-button" type="button" (click)="openCreateDrawer()">
         <span class="material-symbols-outlined" aria-hidden="true">add</span>
-        Create mission
+        Create Mission
       </button>
     </div>
   </section>
 
-  <section class="missions-page__stats">
+  <section class="missions-page__stats" aria-label="Mission overview">
     @for (stat of missionStats(); track stat.label) {
       <app-stat-card
         [icon]="stat.icon"
@@ -51,16 +48,15 @@
     }
   </section>
 
-  <section class="missions-page__toolbar surface-card">
+  <section class="missions-page__toolbar">
     <div class="missions-page__search-group">
       <div class="missions-page__search-label-row">
         <span class="missions-page__search-label">Mission search</span>
-        <div class="missions-page__search-meta">
-          <span class="pill missions-page__visible-pill">
-            {{ pagination()?.totalElements ?? missions().length }} total
-          </span>
-        </div>
+        <span class="missions-page__visible-pill pill">
+          {{ pagination()?.totalElements ?? missions().length }} total
+        </span>
       </div>
+
       <label
         class="missions-page__search"
         [class.missions-page__search--invalid]="!!searchWarning()"
@@ -84,15 +80,13 @@
       </label>
 
       @if (searchWarning()) {
-        <p class="missions-page__search-hint" aria-live="polite">
-          {{ searchWarning() }}
-        </p>
+        <p class="missions-page__search-hint" aria-live="polite">{{ searchWarning() }}</p>
       }
     </div>
 
-    <div class="missions-page__chips">
+    <div class="missions-page__toolbar-actions">
       @if (isRefreshing()) {
-        <span class="pill missions-page__pill--updating">
+        <span class="missions-page__refresh-pill">
           <span class="missions-page__pill-dot" aria-hidden="true"></span>
           Updating
         </span>
@@ -101,11 +95,11 @@
   </section>
 
   @if (loadError()) {
-    <section class="missions-page__error surface-card">
+    <section class="missions-page__message">
       <div>
-        <p class="eyebrow">Unavailable</p>
-        <h2>We couldn't load your missions</h2>
-        <p class="section-copy">{{ loadError() }}</p>
+        <p class="missions-page__eyebrow">Unavailable</p>
+        <h2 class="missions-page__message-title">We couldn't load your missions</h2>
+        <p class="missions-page__message-copy">{{ loadError() }}</p>
       </div>
 
       <button class="btn btn--secondary" type="button" (click)="reload()">Retry</button>
@@ -113,7 +107,7 @@
   } @else if (isLoading()) {
     <section class="missions-page__grid missions-page__grid--loading">
       @for (_ of [1, 2, 3, 4]; track $index) {
-        <article class="missions-page__card missions-page__card--loading surface-card">
+        <article class="missions-page__card missions-page__card--loading">
           <div class="missions-page__skeleton missions-page__skeleton--chip"></div>
           <div class="missions-page__skeleton missions-page__skeleton--title"></div>
           <div class="missions-page__skeleton missions-page__skeleton--line"></div>
@@ -122,18 +116,18 @@
       }
     </section>
   } @else if (missions().length === 0) {
-    <section class="missions-page__empty surface-card">
+    <section class="missions-page__message">
       <div>
-        <p class="eyebrow">No missions yet</p>
-        <h2>{{ searchTerm() ? 'Nothing matches your search' : 'Start with your first mission' }}</h2>
-        <p class="section-copy">
+        <p class="missions-page__eyebrow">No missions yet</p>
+        <h2 class="missions-page__message-title">{{ searchTerm() ? 'Nothing matches your search' : 'Start with your first mission' }}</h2>
+        <p class="missions-page__message-copy">
           {{ searchTerm() ? 'Try a different keyword or clear the search field.' : 'Create a mission to track scope, deadlines, and priority from the start.' }}
         </p>
       </div>
 
       <button class="btn btn--primary" type="button" (click)="openCreateDrawer()">
         <span class="material-symbols-outlined" aria-hidden="true">add</span>
-        Create mission
+        Create Mission
       </button>
     </section>
   } @else if (viewMode() === 'cards') {
@@ -143,23 +137,30 @@
           <span class="missions-page__refresh-pill">Updating results</span>
         </div>
       }
+
       @for (mission of missions(); track trackMission($index, mission)) {
-        <article class="missions-page__card surface-card">
+        <article class="missions-page__card mission-card-shadow">
           <div class="missions-page__card-top">
-            <div>
-              <span class="missions-page__status missions-page__status--{{ mission.status }}">
-                {{ statusLabel(mission.status) }}
-              </span>
-              <h2>{{ mission.title }}</h2>
-              <p class="missions-page__card-role">
-                {{ mission.roleInProject || 'Role not set yet' }}
-              </p>
+            <div class="missions-page__card-badge missions-page__card-badge--{{ mission.priority }}">
+              {{ priorityLabel(mission.priority) }}
             </div>
+            <button class="missions-page__menu-button material-symbols-outlined" type="button" aria-label="More actions">more_vert</button>
           </div>
 
-          <p class="missions-page__card-copy">
-            {{ mission.description || 'No description has been added yet for this mission.' }}
+          <h2 class="missions-page__card-title">{{ mission.title }}</h2>
+          <p class="missions-page__card-role">
+            For: {{ mission.roleInProject || 'Role not set yet' }}
           </p>
+
+          <div class="missions-page__card-progress">
+            <div class="missions-page__card-progress-header">
+              <span>Progress</span>
+              <strong>{{ missionProgress(mission) }}%</strong>
+            </div>
+            <div class="missions-page__progress-bar">
+              <span [style.width.%]="missionProgress(mission)"></span>
+            </div>
+          </div>
 
           <div class="missions-page__card-details">
             <div class="missions-page__card-detail">
@@ -175,62 +176,67 @@
             </div>
           </div>
 
-          <footer class="missions-page__card-actions">
-            <button class="btn btn--secondary" type="button" (click)="toggleMissionStatus(mission)">
-              <span class="material-symbols-outlined" aria-hidden="true">swap_horiz</span>
-              Status
-            </button>
-            <button class="btn btn--secondary" type="button" (click)="openEditDrawer(mission)">
-              <span class="material-symbols-outlined" aria-hidden="true">edit</span>
-              Edit
-            </button>
-            <button class="btn btn--secondary missions-page__danger-action" type="button" (click)="requestDelete(mission)">
-              <span class="material-symbols-outlined" aria-hidden="true">delete</span>
-              Delete
+          <footer class="missions-page__card-footer">
+            <div class="missions-page__assignees" aria-hidden="true">
+              <span class="missions-page__avatar missions-page__avatar--primary"></span>
+              <span class="missions-page__avatar missions-page__avatar--secondary"></span>
+              <span class="missions-page__avatar missions-page__avatar--tertiary"></span>
+            </div>
+            <button class="missions-page__details-link" type="button" (click)="openEditDrawer(mission)">
+              View Details
+              <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
             </button>
           </footer>
         </article>
       }
+
+      <article class="missions-page__add-card" (click)="openCreateDrawer()">
+        <div class="missions-page__add-icon">
+          <span class="material-symbols-outlined" aria-hidden="true">add_task</span>
+        </div>
+        <h3>New Mission</h3>
+        <p>Kick off a new project with a structured workspace.</p>
+      </article>
     </section>
   } @else {
-    <section class="missions-page__list surface-card" [class.missions-page__list--refreshing]="isRefreshing()">
+    <section class="missions-page__list" [class.missions-page__list--refreshing]="isRefreshing()">
       @if (isRefreshing()) {
         <div class="missions-page__refresh-overlay missions-page__refresh-overlay--list" aria-hidden="true">
           <span class="missions-page__refresh-pill">Updating results</span>
         </div>
       }
-      <div class="missions-page__list-header">
-        <span>Mission</span>
-        <span>Role</span>
+
+      <div class="missions-page__list-head">
+        <span>Mission Name</span>
         <span>Status</span>
+        <span>Last Activity</span>
         <span>Priority</span>
-        <span>Deadline</span>
         <span>Actions</span>
       </div>
 
       @for (mission of missions(); track trackMission($index, mission)) {
         <article class="missions-page__list-row">
-          <div>
-            <strong>{{ mission.title }}</strong>
-            <p>{{ mission.description || 'No description yet.' }}</p>
+          <div class="missions-page__list-title">
+            <span class="missions-page__list-dot missions-page__list-dot--{{ mission.status }}"></span>
+            <div>
+              <strong>{{ mission.title }}</strong>
+              <p>{{ mission.roleInProject || 'Role not set yet' }}</p>
+            </div>
           </div>
-          <div>{{ mission.roleInProject || 'Not set' }}</div>
           <div>
             <span class="missions-page__status missions-page__status--{{ mission.status }}">
               {{ statusLabel(mission.status) }}
             </span>
           </div>
+          <div>{{ formatRelativeStatus(mission) }}</div>
           <div>
             <span class="missions-page__priority missions-page__priority--{{ mission.priority }}">
               {{ priorityLabel(mission.priority) }}
             </span>
           </div>
-          <div>{{ formatDate(mission.deadline) }}</div>
           <div class="missions-page__list-actions">
-            <button class="btn btn--secondary" type="button" (click)="openEditDrawer(mission)">Edit</button>
-            <button class="btn btn--secondary missions-page__danger-action" type="button" (click)="requestDelete(mission)">
-              Delete
-            </button>
+            <button class="missions-page__text-button" type="button" (click)="openEditDrawer(mission)">Edit</button>
+            <button class="missions-page__text-button missions-page__text-button--danger" type="button" (click)="requestDelete(mission)">Delete</button>
           </div>
         </article>
       }
@@ -238,10 +244,10 @@
   }
 
   @if (pagination()) {
-    <section class="missions-page__pagination surface-card" aria-label="Mission pagination">
-      <div class="missions-page__pagination-info">
+    <section class="missions-page__pagination" aria-label="Mission pagination">
+      <span class="missions-page__pagination-info">
         Showing page {{ pagination()!.page }} of {{ pagination()!.totalPages }}
-      </div>
+      </span>
 
       @if (pagination()!.totalPages > 1) {
         <div class="missions-page__pagination-controls">
@@ -251,7 +257,7 @@
             (click)="goToPreviousPage()"
             [disabled]="!pagination()!.hasPrevious || isRefreshing()"
           >
-            Previous
+            <span class="material-symbols-outlined" aria-hidden="true">chevron_left</span>
           </button>
 
           @for (item of paginationItems(); track item.key) {
@@ -276,7 +282,7 @@
             (click)="goToNextPage()"
             [disabled]="!pagination()!.hasNext || isRefreshing()"
           >
-            Next
+            <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
           </button>
         </div>
       }
@@ -288,11 +294,9 @@
     <aside class="missions-page__drawer surface-card" role="dialog" aria-modal="true" aria-label="Mission form">
       <div class="missions-page__drawer-header">
         <div>
-          <p class="eyebrow">{{ isCreating ? 'Create mission' : 'Edit mission' }}</p>
-          <h2>{{ isCreating ? 'New mission' : 'Update mission' }}</h2>
-          <p class="section-copy">
-            Capture the scope, role, and timeline in a single form.
-          </p>
+          <p class="missions-page__eyebrow">{{ isCreating ? 'Create mission' : 'Edit mission' }}</p>
+          <h2 class="missions-page__drawer-title">{{ isCreating ? 'New mission' : 'Update mission' }}</h2>
+          <p class="missions-page__drawer-copy">Capture the scope, role, and timeline in a single form.</p>
         </div>
 
         <button class="missions-page__icon-button" type="button" aria-label="Close form" (click)="closeDrawer()">
@@ -375,11 +379,9 @@
   @if (deleteTarget()) {
     <div class="missions-page__overlay" (click)="cancelDelete()"></div>
     <aside class="missions-page__confirm surface-card" role="dialog" aria-modal="true" aria-label="Confirm deletion">
-      <p class="eyebrow">Delete mission</p>
-      <h2>Remove "{{ deleteTarget()?.title }}"?</h2>
-      <p class="section-copy">
-        This action cannot be undone. The mission will disappear from your workspace immediately.
-      </p>
+      <p class="missions-page__eyebrow">Delete mission</p>
+      <h2 class="missions-page__confirm-title">Remove "{{ deleteTarget()?.title }}"?</h2>
+      <p class="missions-page__confirm-copy">This action cannot be undone. The mission will disappear from your workspace immediately.</p>
 
       <footer class="missions-page__confirm-footer">
         <button class="btn btn--secondary" type="button" (click)="cancelDelete()">Cancel</button>

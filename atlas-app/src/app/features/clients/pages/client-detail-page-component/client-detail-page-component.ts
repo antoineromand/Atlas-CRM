@@ -7,7 +7,6 @@ import {
   ClientActivityResponse,
   ClientContactResponse,
   ClientDetailResponse,
-  ClientTagResponse,
 } from '../../../../core/interface/client.interface';
 import { NotificationService } from '../../../../core/services/notification/notification.service';
 
@@ -108,7 +107,6 @@ export class ClientDetailPageComponent implements OnInit {
     })),
   );
 
-  protected readonly extraContactsCount = computed(() => Math.max(this.contacts().length - 3, 0));
   protected readonly activeProjectsCount = computed(() => {
     const count = this.timelineEntries().length;
     return count > 2 ? 3 : Math.max(count, 1);
@@ -284,10 +282,6 @@ export class ClientDetailPageComponent implements OnInit {
 
   protected trackByContact(_index: number, contact: ClientContactResponse): string {
     return contact.id;
-  }
-
-  protected trackByTag(_index: number, tag: ClientTagResponse): string {
-    return tag.id;
   }
 
   protected trackByActivity(_index: number, activity: ClientActivityResponse): string {

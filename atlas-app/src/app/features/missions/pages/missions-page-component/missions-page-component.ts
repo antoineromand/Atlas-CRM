@@ -297,29 +297,6 @@ export class MissionsPageComponent implements OnInit {
       });
   }
 
-  protected toggleMissionStatus(mission: MissionResponse): void {
-    const nextStatus: MissionStatus =
-      mission.status === 'not_started'
-        ? 'in_progress'
-        : mission.status === 'in_progress'
-          ? 'completed'
-          : 'not_started';
-
-    this.missionService
-      .updateMission(mission.id, { status: nextStatus })
-      .subscribe({
-        next: () => {
-          this.notificationService.success('Mission status updated.');
-          this.missionPageFacade.refreshCurrentPage();
-          this.missionPageFacade.reloadSummary();
-        },
-        error: (error: any) => {
-          const message = error?.error?.message ?? 'Unable to update mission status.';
-          this.notificationService.error(message);
-        },
-      });
-  }
-
   protected statusLabel(status: MissionStatus): string {
     switch (status) {
       case 'completed':
@@ -384,6 +361,17 @@ export class MissionsPageComponent implements OnInit {
     }
 
     return `${diffDays} day${diffDays > 1 ? 's' : ''} remaining`;
+  }
+
+  protected missionProgress(mission: MissionResponse): number {
+    switch (mission.status) {
+      case 'completed':
+        return 92;
+      case 'in_progress':
+        return 60;
+      default:
+        return mission.priority === 'high' ? 35 : 20;
+    }
   }
 
   protected trackMission(_: number, mission: MissionResponse): string {

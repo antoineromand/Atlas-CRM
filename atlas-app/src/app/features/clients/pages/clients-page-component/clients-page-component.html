@@ -41,28 +41,59 @@
   </section>
 
   <section class="clients-page__filter-bar" aria-label="Client filters">
-    <div class="clients-page__filter-pills">
-      @for (filter of statusFilters; track filter.value) {
-        <button
-          class="clients-page__filter-pill"
-          type="button"
-          [class.is-active]="selectedStatus() === filter.value"
-          (click)="setStatus(filter.value)"
-        >
-          {{ filter.label }}
-        </button>
+    <div class="clients-page__search-group">
+      <div class="clients-page__search-label-row">
+        <span class="clients-page__search-label">Client search</span>
+        <span class="clients-page__search-count">{{ paginationState?.totalElements ?? clients().length }} total</span>
+      </div>
+
+      <label
+        class="clients-page__search"
+        [class.clients-page__search--invalid]="!!searchWarning()"
+        [class.clients-page__search--filled]="!!searchTerm()"
+      >
+        <span class="clients-page__search-icon-wrap" aria-hidden="true">
+          <span class="clients-page__search-icon material-symbols-outlined">search</span>
+        </span>
+        <input
+          type="search"
+          [value]="searchTerm()"
+          (input)="setSearchTerm(($any($event.target)).value)"
+          placeholder="Search clients by company or contact..."
+          aria-label="Search clients"
+        />
+        @if (searchTerm()) {
+          <button class="clients-page__search-clear" type="button" aria-label="Clear search" (click)="clearSearch()">
+            <span class="material-symbols-outlined" aria-hidden="true">close</span>
+          </button>
+        }
+      </label>
+
+      @if (searchWarning()) {
+        <p class="clients-page__search-hint" aria-live="polite">{{ searchWarning() }}</p>
       }
     </div>
 
-    <div class="clients-page__filter-actions">
-      <button class="clients-page__secondary-button" type="button" (click)="resetFilters()">
-        <span class="material-symbols-outlined" aria-hidden="true">filter_list</span>
-        More Filters
-      </button>
-      <button class="clients-page__secondary-button" type="button">
-        <span class="material-symbols-outlined" aria-hidden="true">download</span>
-        Export CSV
-      </button>
+    <div class="clients-page__filter-row">
+      <div class="clients-page__filter-pills">
+        @for (filter of statusFilters; track filter.value) {
+          <button
+            class="clients-page__filter-pill"
+            type="button"
+            [class.is-active]="selectedStatus() === filter.value"
+            (click)="setStatus(filter.value)"
+          >
+            {{ filter.label }}
+          </button>
+        }
+      </div>
+
+      <div class="clients-page__filter-actions">
+        <button class="clients-page__secondary-button" type="button" disabled="true">
+          <span class="material-symbols-outlined" aria-hidden="true">download</span>
+          Export CSV
+        </button>
+      </div>
     </div>
   </section>
 
@@ -173,7 +204,7 @@
   @if (paginationState) {
     <section class="clients-page__pagination" aria-label="Client pagination">
       <span class="clients-page__pagination-info">
-        Showing {{ clients().length }} of {{ paginationState.totalElements ?? clients().length }} clients
+        Showing {{ clients().length }} of {{ paginationState.totalElements }} clients
       </span>
 
       @if (paginationState.totalPages > 1) {
