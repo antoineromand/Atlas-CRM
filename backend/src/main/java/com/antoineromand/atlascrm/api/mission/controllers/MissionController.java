@@ -171,6 +171,7 @@ public class MissionController {
         mission.getRoleInProject(),
         mission.getDescription(),
         mission.getStatus(),
+        mission.getProgress(),
         mission.getPriority(),
         mission.getStartDate(),
         mission.getDeadline(),

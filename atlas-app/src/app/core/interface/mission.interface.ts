@@ -1,4 +1,12 @@
-export type MissionStatus = 'not_started' | 'in_progress' | 'completed';
+export type MissionStatus =
+  | 'created'
+  | 'analysed'
+  | 'planned'
+  | 'started'
+  | 'in_progress'
+  | 'finalized'
+  | 'shipped'
+  | 'completed';
 
 export type MissionPriority = 'low' | 'medium' | 'high';
 
@@ -8,6 +16,7 @@ export interface MissionResponse {
   roleInProject: string | null;
   description: string | null;
   status: MissionStatus;
+  progress: number;
   priority: MissionPriority;
   startDate: string;
   deadline: string | null;

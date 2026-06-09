@@ -11,6 +11,7 @@ import com.antoineromand.atlascrm.account.domain.Account;
 import com.antoineromand.atlascrm.account.domain.repository.IAccountRepository;
 import com.antoineromand.atlascrm.mission.application.exceptions.MissionCreationException;
 import com.antoineromand.atlascrm.mission.domain.Mission;
+import com.antoineromand.atlascrm.mission.domain.MissionStatus;
 import com.antoineromand.atlascrm.mission.domain.repository.IMissionRepository;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -76,7 +77,8 @@ class CreateMissionUseCaseTest {
     assertEquals("Website redesign", saved.getTitle());
     assertEquals("Lead developer", saved.getRoleInProject());
     assertEquals("Redesign the marketing website", saved.getDescription());
-    assertEquals("not_started", saved.getStatus());
+    assertEquals(MissionStatus.CREATED, saved.getMissionStatus());
+    assertEquals("created", saved.getStatus());
     assertEquals("medium", saved.getPriority());
     assertEquals(LocalDate.of(2026, 6, 1), saved.getStartDate());
     assertEquals(LocalDate.of(2026, 6, 30), saved.getDeadline());

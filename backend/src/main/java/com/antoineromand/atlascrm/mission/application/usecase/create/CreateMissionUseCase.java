@@ -4,6 +4,7 @@ import com.antoineromand.atlascrm.account.domain.Account;
 import com.antoineromand.atlascrm.account.domain.repository.IAccountRepository;
 import com.antoineromand.atlascrm.mission.application.exceptions.MissionCreationException;
 import com.antoineromand.atlascrm.mission.domain.Mission;
+import com.antoineromand.atlascrm.mission.domain.MissionStatus;
 import com.antoineromand.atlascrm.mission.domain.repository.IMissionRepository;
 import java.time.Instant;
 import org.springframework.stereotype.Service;
@@ -50,7 +51,7 @@ public class CreateMissionUseCase implements ICreateMissionUseCase {
   }
 
   private String resolveStatus(String status) {
-    return status != null ? status : "not_started";
+    return status != null ? status : MissionStatus.CREATED.value();
   }
 
   private String resolvePriority(String priority) {

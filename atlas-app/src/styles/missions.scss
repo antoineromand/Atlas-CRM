@@ -492,16 +492,25 @@
   margin-bottom: 0.8rem;
 }
 
-.missions-page__status--not_started {
+.missions-page__status--created,
+.missions-page__status--analysed,
+.missions-page__status--planned {
   background: rgba(226, 232, 240, 0.9);
   color: var(--color-secondary);
   padding-top: 0.62rem;
   padding-bottom: 0.62rem;
 }
 
+.missions-page__status--started,
 .missions-page__status--in_progress {
   background: rgba(224, 242, 254, 0.92);
   color: #0369a1;
+}
+
+.missions-page__status--finalized,
+.missions-page__status--shipped {
+  background: rgba(254, 243, 199, 0.92);
+  color: #b45309;
 }
 
 .missions-page__status--completed {

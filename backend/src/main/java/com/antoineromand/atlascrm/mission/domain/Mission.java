@@ -10,7 +10,7 @@ public class Mission {
   private final String title;
   private final String roleInProject;
   private final String description;
-  private final String status;
+  private final MissionStatus status;
   private final String priority;
   private final LocalDate startDate;
   private final LocalDate deadline;
@@ -23,7 +23,7 @@ public class Mission {
       String title,
       String roleInProject,
       String description,
-      String status,
+      MissionStatus status,
       String priority,
       LocalDate startDate,
       LocalDate deadline,
@@ -40,6 +40,32 @@ public class Mission {
     this.deadline = deadline;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
+  }
+
+  public Mission(
+      UUID id,
+      UUID accountId,
+      String title,
+      String roleInProject,
+      String description,
+      String status,
+      String priority,
+      LocalDate startDate,
+      LocalDate deadline,
+      Instant createdAt,
+      Instant updatedAt) {
+    this(
+        id,
+        accountId,
+        title,
+        roleInProject,
+        description,
+        MissionStatus.fromValue(status),
+        priority,
+        startDate,
+        deadline,
+        createdAt,
+        updatedAt);
   }
 
   public UUID getId() {
@@ -63,6 +89,10 @@ public class Mission {
   }
 
   public String getStatus() {
+    return status.value();
+  }
+
+  public MissionStatus getMissionStatus() {
     return status;
   }
 
@@ -84,5 +114,9 @@ public class Mission {
 
   public Instant getUpdatedAt() {
     return updatedAt;
+  }
+
+  public int getProgress() {
+    return status.progress();
   }
 }

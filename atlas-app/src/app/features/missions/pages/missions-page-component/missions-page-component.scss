@@ -562,12 +562,20 @@
   flex: 0 0 auto;
 }
 
-.missions-page__list-dot--not_started {
+.missions-page__list-dot--created,
+.missions-page__list-dot--analysed,
+.missions-page__list-dot--planned {
   background: #94a3b8;
 }
 
+.missions-page__list-dot--started,
 .missions-page__list-dot--in_progress {
   background: #0369a1;
+}
+
+.missions-page__list-dot--finalized,
+.missions-page__list-dot--shipped {
+  background: #d97706;
 }
 
 .missions-page__list-dot--completed {
@@ -586,16 +594,25 @@
   font-weight: 700;
 }
 
-.missions-page__status--not_started,
+.missions-page__status--created,
+.missions-page__status--analysed,
+.missions-page__status--planned,
 .missions-page__priority--low {
   background: #e2e8f0;
   color: #475569;
 }
 
+.missions-page__status--started,
 .missions-page__status--in_progress,
 .missions-page__priority--medium {
   background: #e0f2fe;
   color: #0369a1;
+}
+
+.missions-page__status--finalized,
+.missions-page__status--shipped {
+  background: #fef3c7;
+  color: #b45309;
 }
 
 .missions-page__status--completed,

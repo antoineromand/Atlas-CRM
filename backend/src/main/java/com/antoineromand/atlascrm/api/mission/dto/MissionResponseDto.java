@@ -10,6 +10,7 @@ public record MissionResponseDto(
     String roleInProject,
     String description,
     String status,
+    int progress,
     String priority,
     LocalDate startDate,
     LocalDate deadline,

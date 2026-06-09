@@ -1,7 +1,7 @@
 package com.antoineromand.atlascrm.mission.infrastructure.model;
 
-import com.antoineromand.atlascrm.mission.domain.Mission;
 import com.antoineromand.atlascrm.account.infrastructure.model.AccountEntity;
+import com.antoineromand.atlascrm.mission.domain.Mission;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -66,7 +66,7 @@ public class MissionEntity {
   @Column(name = "updated_at")
   private Instant updatedAt;
 
-  public MissionEntity() {}
+  protected MissionEntity() {}
 
   public MissionEntity(
       UUID id,

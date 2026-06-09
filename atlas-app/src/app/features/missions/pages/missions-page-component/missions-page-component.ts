@@ -123,7 +123,7 @@ export class MissionsPageComponent implements OnInit, OnDestroy {
       nonNullable: true,
       validators: [Validators.maxLength(4000)],
     }),
-    status: new FormControl<MissionStatus>('not_started', {
+    status: new FormControl<MissionStatus>('created', {
       nonNullable: true,
       validators: [Validators.required],
     }),
@@ -141,8 +141,13 @@ export class MissionsPageComponent implements OnInit, OnDestroy {
   });
 
   protected readonly missionStatusOptions: readonly { value: MissionStatus; label: string }[] = [
-    { value: 'not_started', label: 'Not started' },
+    { value: 'created', label: 'Created' },
+    { value: 'analysed', label: 'Analysed' },
+    { value: 'planned', label: 'Planned' },
+    { value: 'started', label: 'Started' },
     { value: 'in_progress', label: 'In progress' },
+    { value: 'finalized', label: 'Finalized' },
+    { value: 'shipped', label: 'Shipped' },
     { value: 'completed', label: 'Completed' },
   ];
 
@@ -310,12 +315,24 @@ export class MissionsPageComponent implements OnInit, OnDestroy {
 
   protected statusLabel(status: MissionStatus): string {
     switch (status) {
+      case 'created':
+        return 'Created';
+      case 'analysed':
+        return 'Analysed';
+      case 'planned':
+        return 'Planned';
+      case 'started':
+        return 'Started';
+      case 'finalized':
+        return 'Finalized';
+      case 'shipped':
+        return 'Shipped';
       case 'completed':
         return 'Completed';
       case 'in_progress':
         return 'In progress';
       default:
-        return 'Not started';
+        return 'Created';
     }
   }
 
@@ -375,14 +392,7 @@ export class MissionsPageComponent implements OnInit, OnDestroy {
   }
 
   protected missionProgress(mission: MissionResponse): number {
-    switch (mission.status) {
-      case 'completed':
-        return 92;
-      case 'in_progress':
-        return 60;
-      default:
-        return mission.priority === 'high' ? 35 : 20;
-    }
+    return mission.progress;
   }
 
   protected trackMission(_: number, mission: MissionResponse): string {
@@ -448,11 +458,11 @@ export class MissionsPageComponent implements OnInit, OnDestroy {
             startDate: mission.startDate,
             deadline: mission.deadline ?? '',
           }
-        : {
+          : {
             title: '',
             roleInProject: '',
             description: '',
-            status: 'not_started',
+            status: 'created',
             priority: 'medium',
             startDate: '',
             deadline: '',

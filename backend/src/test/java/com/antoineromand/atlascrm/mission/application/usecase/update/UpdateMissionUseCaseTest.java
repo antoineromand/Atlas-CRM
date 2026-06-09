@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 import com.antoineromand.atlascrm.account.application.usecase.account.PatchValue;
 import com.antoineromand.atlascrm.mission.application.exceptions.MissionNotFoundException;
 import com.antoineromand.atlascrm.mission.domain.Mission;
+import com.antoineromand.atlascrm.mission.domain.MissionStatus;
 import com.antoineromand.atlascrm.mission.domain.repository.IMissionRepository;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -38,7 +39,7 @@ class UpdateMissionUseCaseTest {
             "Initial title",
             "Lead developer",
             "Initial description",
-            "not_started",
+            "created",
             "medium",
             LocalDate.of(2026, 6, 1),
             LocalDate.of(2026, 6, 30),
@@ -83,6 +84,7 @@ class UpdateMissionUseCaseTest {
     assertEquals("Updated title", saved.getTitle());
     assertEquals("Lead developer", saved.getRoleInProject());
     assertEquals("Updated description", saved.getDescription());
+    assertEquals(MissionStatus.IN_PROGRESS, saved.getMissionStatus());
     assertEquals("in_progress", saved.getStatus());
     assertEquals("high", saved.getPriority());
     assertEquals(LocalDate.of(2026, 6, 2), saved.getStartDate());

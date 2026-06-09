@@ -169,7 +169,7 @@ class MissionRepositoryImplTest extends AbstractPostgresJpaTest {
             "Mobile app",
             null,
             null,
-            "not_started",
+            "created",
             "medium",
             LocalDate.of(2026, 6, 1),
             null,
