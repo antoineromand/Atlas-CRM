@@ -1,4 +1,4 @@
-import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
@@ -47,13 +47,14 @@ interface MissionStatCard {
   templateUrl: './missions-page-component.html',
   styleUrl: './missions-page-component.scss',
 })
-export class MissionsPageComponent implements OnInit {
+export class MissionsPageComponent implements OnInit, OnDestroy {
   private readonly missionPageFacade = inject(MissionPageFacade);
   private readonly missionService = inject(MissionService);
   private readonly notificationService = inject(NotificationService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private drawerCloseTimer: ReturnType<typeof setTimeout> | null = null;
 
   protected readonly missions = this.missionPageFacade.missions;
   protected readonly pagination = this.missionPageFacade.pagination;
@@ -64,6 +65,7 @@ export class MissionsPageComponent implements OnInit {
   protected readonly searchTerm = this.missionPageFacade.searchTerm;
   protected readonly searchWarning = this.missionPageFacade.searchWarning;
   protected readonly viewMode = this.missionPageFacade.viewMode;
+  protected readonly drawerVisible = signal(false);
   protected readonly drawerOpen = signal(false);
   protected readonly deleteTarget = signal<MissionResponse | null>(null);
   protected readonly editingMissionId = signal<string | null>(null);
@@ -160,6 +162,10 @@ export class MissionsPageComponent implements OnInit {
     });
   }
 
+  ngOnDestroy(): void {
+    this.clearDrawerCloseTimer();
+  }
+
   protected reload(): void {
     this.missionPageFacade.reload();
     this.missionPageFacade.reloadSummary();
@@ -178,10 +184,10 @@ export class MissionsPageComponent implements OnInit {
   }
 
   protected openCreateDrawer(syncQueryParams = true): void {
+    this.openDrawer();
     this.editingMissionId.set(null);
     this.deleteTarget.set(null);
     this.patchMissionForm(null);
-    this.drawerOpen.set(true);
 
     if (syncQueryParams) {
       void this.router.navigate([], {
@@ -193,10 +199,10 @@ export class MissionsPageComponent implements OnInit {
   }
 
   protected openEditDrawer(mission: MissionResponse): void {
+    this.openDrawer();
     this.editingMissionId.set(mission.id);
     this.deleteTarget.set(null);
     this.patchMissionForm(mission);
-    this.drawerOpen.set(true);
 
     void this.router.navigate([], {
       relativeTo: this.route,
@@ -207,7 +213,12 @@ export class MissionsPageComponent implements OnInit {
 
   protected closeDrawer(): void {
     this.drawerOpen.set(false);
-    this.editingMissionId.set(null);
+    this.clearDrawerCloseTimer();
+    this.drawerCloseTimer = setTimeout(() => {
+      this.drawerVisible.set(false);
+      this.editingMissionId.set(null);
+      this.drawerCloseTimer = null;
+    }, 240);
     this.missionForm.markAsPristine();
     this.missionForm.markAsUntouched();
 
@@ -451,6 +462,21 @@ export class MissionsPageComponent implements OnInit {
 
     this.missionForm.markAsPristine();
     this.missionForm.markAsUntouched();
+  }
+
+  private openDrawer(): void {
+    this.clearDrawerCloseTimer();
+    this.drawerVisible.set(true);
+    queueMicrotask(() => this.drawerOpen.set(true));
+  }
+
+  private clearDrawerCloseTimer(): void {
+    if (!this.drawerCloseTimer) {
+      return;
+    }
+
+    clearTimeout(this.drawerCloseTimer);
+    this.drawerCloseTimer = null;
   }
 
   private buildPayload(): CreateMissionPayload {

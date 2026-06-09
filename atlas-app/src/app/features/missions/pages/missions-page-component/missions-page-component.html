@@ -289,9 +289,15 @@
     </section>
   }
 
-  @if (drawerOpen()) {
-    <div class="missions-page__overlay" (click)="closeDrawer()"></div>
-    <aside class="missions-page__drawer surface-card" role="dialog" aria-modal="true" aria-label="Mission form">
+  @if (drawerVisible()) {
+    <div class="missions-page__overlay" [class.is-open]="drawerOpen()" (click)="closeDrawer()"></div>
+    <aside
+      class="missions-page__drawer surface-card"
+      [class.is-open]="drawerOpen()"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Mission form"
+    >
       <div class="missions-page__drawer-header">
         <div>
           <p class="missions-page__eyebrow">{{ isCreating ? 'Create mission' : 'Edit mission' }}</p>
