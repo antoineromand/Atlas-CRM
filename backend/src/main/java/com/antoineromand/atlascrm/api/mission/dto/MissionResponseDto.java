@@ -6,6 +6,7 @@ import java.util.UUID;
 
 public record MissionResponseDto(
     UUID id,
+    UUID clientId,
     String title,
     String roleInProject,
     String description,

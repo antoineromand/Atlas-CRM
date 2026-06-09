@@ -1,5 +1,7 @@
 package com.antoineromand.atlascrm.mission.application.usecase.update;
 
+import com.antoineromand.atlascrm.client.application.exceptions.ClientNotFoundException;
+import com.antoineromand.atlascrm.client.domain.repository.IClientRepository;
 import com.antoineromand.atlascrm.mission.application.exceptions.MissionNotFoundException;
 import com.antoineromand.atlascrm.mission.domain.Mission;
 import com.antoineromand.atlascrm.mission.domain.repository.IMissionRepository;
@@ -13,9 +15,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class UpdateMissionUseCase implements IUpdateMissionUseCase {
 
   private final IMissionRepository missionRepository;
+  private final IClientRepository clientRepository;
 
-  public UpdateMissionUseCase(IMissionRepository missionRepository) {
+  public UpdateMissionUseCase(IMissionRepository missionRepository, IClientRepository clientRepository) {
     this.missionRepository = missionRepository;
+    this.clientRepository = clientRepository;
   }
 
   @Override
@@ -29,6 +33,7 @@ public class UpdateMissionUseCase implements IUpdateMissionUseCase {
         new Mission(
             existing.getId(),
             existing.getAccountId(),
+            resolveClientId(command.clientId(), existing.getClientId(), accountId),
             resolve(command.title(), existing.getTitle()),
             resolve(command.roleInProject(), existing.getRoleInProject()),
             resolve(command.description(), existing.getDescription()),
@@ -50,5 +55,24 @@ public class UpdateMissionUseCase implements IUpdateMissionUseCase {
       return currentValue;
     }
     return patchValue.value();
+  }
+
+  private UUID resolveClientId(
+      com.antoineromand.atlascrm.account.application.usecase.account.PatchValue<UUID> patchValue,
+      UUID currentValue,
+      UUID accountId) {
+    if (patchValue == null || !patchValue.present()) {
+      return currentValue;
+    }
+
+    UUID nextClientId = patchValue.value();
+    if (nextClientId == null) {
+      return null;
+    }
+
+    return this.clientRepository
+        .findByIdAndAccountId(nextClientId, accountId)
+        .map(client -> client.getId())
+        .orElseThrow(() -> new ClientNotFoundException("CLIENT_NOT_FOUND", "The client does not exist."));
   }
 }

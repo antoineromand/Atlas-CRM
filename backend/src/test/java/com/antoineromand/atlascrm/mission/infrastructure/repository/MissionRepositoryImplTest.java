@@ -11,6 +11,8 @@ import com.antoineromand.atlascrm.authentication.domain.valueobject.RoleName;
 import com.antoineromand.atlascrm.authentication.infrastructure.database.AbstractPostgresJpaTest;
 import com.antoineromand.atlascrm.authentication.infrastructure.model.CredentialsEntity;
 import com.antoineromand.atlascrm.authentication.infrastructure.repository.CredentialsJpaRepository;
+import com.antoineromand.atlascrm.client.infrastructure.model.ClientEntity;
+import com.antoineromand.atlascrm.client.infrastructure.repository.ClientJpaRepository;
 import com.antoineromand.atlascrm.mission.domain.Mission;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -29,16 +31,19 @@ class MissionRepositoryImplTest extends AbstractPostgresJpaTest {
   @Autowired private MissionJpaRepository missionJpaRepository;
   @Autowired private AccountJpaRepository accountJpaRepository;
   @Autowired private CredentialsJpaRepository credentialsJpaRepository;
+  @Autowired private ClientJpaRepository clientJpaRepository;
 
   @Test
   void saveShouldPersistAndFindMethodsShouldMapToDomain() {
     AccountEntity account = persistAccount(uniqueEmail());
+    ClientEntity client = persistClient(account);
     Instant createdAt = Instant.parse("2026-06-01T10:00:00Z");
 
     Mission mission =
         new Mission(
             null,
             account.getId(),
+            client.getId(),
             "Website redesign",
             "Lead developer",
             "Redesign the marketing website",
@@ -57,6 +62,7 @@ class MissionRepositoryImplTest extends AbstractPostgresJpaTest {
 
     assertEquals(missionId, found.getId());
     assertEquals(account.getId(), found.getAccountId());
+    assertEquals(client.getId(), found.getClientId());
     assertEquals("Website redesign", found.getTitle());
     assertEquals("Lead developer", found.getRoleInProject());
     assertEquals("in_progress", found.getStatus());
@@ -213,6 +219,18 @@ class MissionRepositoryImplTest extends AbstractPostgresJpaTest {
             "75000",
             "Paris",
             "France",
+            Instant.now(),
+            null));
+  }
+
+  private ClientEntity persistClient(AccountEntity account) {
+    return clientJpaRepository.save(
+        new ClientEntity(
+            null,
+            account,
+            "JD Consulting",
+            "active",
+            null,
             Instant.now(),
             null));
   }

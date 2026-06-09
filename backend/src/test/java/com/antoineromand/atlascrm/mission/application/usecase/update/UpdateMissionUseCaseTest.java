@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.antoineromand.atlascrm.account.application.usecase.account.PatchValue;
+import com.antoineromand.atlascrm.client.domain.repository.IClientRepository;
 import com.antoineromand.atlascrm.mission.application.exceptions.MissionNotFoundException;
 import com.antoineromand.atlascrm.mission.domain.Mission;
 import com.antoineromand.atlascrm.mission.domain.MissionStatus;
@@ -25,10 +26,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class UpdateMissionUseCaseTest {
 
   @Mock private IMissionRepository missionRepository;
+  @Mock private IClientRepository clientRepository;
 
   @Test
   void executeShouldMergeFieldsAndReturnUpdatedMission() {
-    UpdateMissionUseCase useCase = new UpdateMissionUseCase(missionRepository);
+    UpdateMissionUseCase useCase = new UpdateMissionUseCase(missionRepository, clientRepository);
     UUID accountId = UUID.randomUUID();
     UUID missionId = UUID.randomUUID();
     Instant createdAt = Instant.parse("2026-06-01T10:00:00Z");
@@ -71,6 +73,7 @@ class UpdateMissionUseCaseTest {
                 PatchValue.of("Updated title"),
                 PatchValue.absent(),
                 PatchValue.of("Updated description"),
+                PatchValue.absent(),
                 PatchValue.of("in_progress"),
                 PatchValue.of("high"),
                 PatchValue.of(LocalDate.of(2026, 6, 2)),
@@ -93,7 +96,7 @@ class UpdateMissionUseCaseTest {
 
   @Test
   void executeShouldThrowWhenMissionDoesNotExistForAccount() {
-    UpdateMissionUseCase useCase = new UpdateMissionUseCase(missionRepository);
+    UpdateMissionUseCase useCase = new UpdateMissionUseCase(missionRepository, clientRepository);
     UUID accountId = UUID.randomUUID();
     UUID missionId = UUID.randomUUID();
 
@@ -106,6 +109,7 @@ class UpdateMissionUseCaseTest {
                 accountId,
                 missionId,
                 new UpdateMissionCommand(
+                    PatchValue.absent(),
                     PatchValue.absent(),
                     PatchValue.absent(),
                     PatchValue.absent(),

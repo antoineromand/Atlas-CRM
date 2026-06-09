@@ -75,6 +75,7 @@ public class MissionController {
         this.createMissionUseCase.execute(
             new CreateMissionCommand(
                 account.getId(),
+                dto.clientId(),
                 dto.title(),
                 dto.roleInProject(),
                 dto.description(),
@@ -128,6 +129,7 @@ public class MissionController {
                 this.patchString(body, "title", 200),
                 this.patchString(body, "roleInProject", 150),
                 this.patchString(body, "description", Integer.MAX_VALUE),
+                this.patchUuid(body, "clientId"),
                 this.patchString(body, "status", 32),
                 this.patchString(body, "priority", 16),
                 this.patchDate(body, "startDate"),
@@ -167,6 +169,7 @@ public class MissionController {
   private MissionResponseDto toResponse(Mission mission) {
     return new MissionResponseDto(
         mission.getId(),
+        mission.getClientId(),
         mission.getTitle(),
         mission.getRoleInProject(),
         mission.getDescription(),
@@ -255,5 +258,22 @@ public class MissionController {
     }
 
     return PatchValue.of(LocalDate.parse(value));
+  }
+
+  private PatchValue<UUID> patchUuid(Map<String, Object> body, String fieldName) {
+    if (!body.containsKey(fieldName)) {
+      return PatchValue.absent();
+    }
+
+    Object rawValue = body.get(fieldName);
+    if (rawValue == null) {
+      return PatchValue.of(null);
+    }
+
+    if (!(rawValue instanceof String value)) {
+      throw new IllegalArgumentException(fieldName + " must be a UUID string or null");
+    }
+
+    return PatchValue.of(UUID.fromString(value));
   }
 }

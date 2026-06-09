@@ -151,6 +151,9 @@
           <p class="missions-page__card-role">
             For: {{ mission.roleInProject || 'Role not set yet' }}
           </p>
+          <p class="missions-page__card-client">
+            Client: {{ clientLabel(mission.clientId) }}
+          </p>
 
           <div class="missions-page__card-progress">
             <div class="missions-page__card-progress-header">
@@ -166,6 +169,10 @@
             <div class="missions-page__card-detail">
               <span>Deadline</span>
               <strong>{{ formatDate(mission.deadline) }}</strong>
+            </div>
+            <div class="missions-page__card-detail">
+              <span>Client</span>
+              <strong>{{ clientLabel(mission.clientId) }}</strong>
             </div>
             <div class="missions-page__card-detail">
               <span>Priority</span>
@@ -220,7 +227,7 @@
             <span class="missions-page__list-dot missions-page__list-dot--{{ mission.status }}"></span>
             <div>
               <strong>{{ mission.title }}</strong>
-              <p>{{ mission.roleInProject || 'Role not set yet' }}</p>
+              <p>{{ mission.roleInProject || 'Role not set yet' }} · {{ clientLabel(mission.clientId) }}</p>
             </div>
           </div>
           <div>
@@ -325,6 +332,16 @@
           @if (hasMissionFieldError('roleInProject')) {
             <strong>{{ missionFieldError('roleInProject') }}</strong>
           }
+        </label>
+
+        <label class="missions-page__field">
+          <span>Client</span>
+          <select formControlName="clientId">
+            <option value="">No client</option>
+            @for (client of clients(); track client.id) {
+              <option [value]="client.id">{{ client.companyName }}</option>
+            }
+          </select>
         </label>
 
         <label class="missions-page__field">

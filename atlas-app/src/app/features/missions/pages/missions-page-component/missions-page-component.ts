@@ -6,12 +6,14 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { StatCardComponent } from '../../../../shared/ui/stat-card/stat-card.component';
 import { MissionPageFacade } from '../../services/mission-page.facade';
 import { MissionService } from '../../../../core/services/mission/mission.service';
+import { ClientService } from '../../../../core/services/client/client.service';
 import {
   CreateMissionPayload,
-  MissionPriority,
   MissionResponse,
+  MissionPriority,
   MissionStatus,
 } from '../../../../core/interface/mission.interface';
+import { ClientResponse } from '../../../../core/interface/client.interface';
 import { NotificationService } from '../../../../core/services/notification/notification.service';
 
 type MissionViewMode = 'cards' | 'list';
@@ -25,6 +27,7 @@ interface MissionFormControls {
   title: FormControl<string>;
   roleInProject: FormControl<string>;
   description: FormControl<string>;
+  clientId: FormControl<string>;
   status: FormControl<MissionStatus>;
   priority: FormControl<MissionPriority>;
   startDate: FormControl<string>;
@@ -50,6 +53,7 @@ interface MissionStatCard {
 export class MissionsPageComponent implements OnInit, OnDestroy {
   private readonly missionPageFacade = inject(MissionPageFacade);
   private readonly missionService = inject(MissionService);
+  private readonly clientService = inject(ClientService);
   private readonly notificationService = inject(NotificationService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -70,6 +74,7 @@ export class MissionsPageComponent implements OnInit, OnDestroy {
   protected readonly deleteTarget = signal<MissionResponse | null>(null);
   protected readonly editingMissionId = signal<string | null>(null);
   protected readonly isRefreshing = this.missionPageFacade.isRefreshing;
+  protected readonly clients = signal<ClientResponse[]>([]);
 
   protected readonly missionStats = computed<MissionStatCard[]>(() => {
     const summary = this.missionPageFacade.summary();
@@ -123,6 +128,9 @@ export class MissionsPageComponent implements OnInit, OnDestroy {
       nonNullable: true,
       validators: [Validators.maxLength(4000)],
     }),
+    clientId: new FormControl('', {
+      nonNullable: true,
+    }),
     status: new FormControl<MissionStatus>('created', {
       nonNullable: true,
       validators: [Validators.required],
@@ -159,6 +167,7 @@ export class MissionsPageComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.missionPageFacade.initialize();
+    this.loadClients();
 
     this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       if (params.get('create') === '1') {
@@ -174,6 +183,7 @@ export class MissionsPageComponent implements OnInit, OnDestroy {
   protected reload(): void {
     this.missionPageFacade.reload();
     this.missionPageFacade.reloadSummary();
+    this.loadClients();
   }
 
   protected setSearchTerm(value: string): void {
@@ -395,6 +405,20 @@ export class MissionsPageComponent implements OnInit, OnDestroy {
     return mission.progress;
   }
 
+  protected clientLabel(clientId: string | null): string {
+    if (!clientId) {
+      return 'No client';
+    }
+
+    const client = this.clients().find((item) => item.id === clientId);
+    if (!client) {
+      return 'Unknown client';
+    }
+
+    const contactParts = [client.primaryContactFirstName, client.primaryContactLastName].filter(Boolean);
+    return contactParts.length > 0 ? `${client.companyName} · ${contactParts.join(' ')}` : client.companyName;
+  }
+
   protected trackMission(_: number, mission: MissionResponse): string {
     return mission.id;
   }
@@ -453,6 +477,7 @@ export class MissionsPageComponent implements OnInit, OnDestroy {
             title: mission.title,
             roleInProject: mission.roleInProject ?? '',
             description: mission.description ?? '',
+            clientId: mission.clientId ?? '',
             status: mission.status,
             priority: mission.priority,
             startDate: mission.startDate,
@@ -462,6 +487,7 @@ export class MissionsPageComponent implements OnInit, OnDestroy {
             title: '',
             roleInProject: '',
             description: '',
+            clientId: '',
             status: 'created',
             priority: 'medium',
             startDate: '',
@@ -494,6 +520,7 @@ export class MissionsPageComponent implements OnInit, OnDestroy {
       title: this.normalize(this.missionForm.controls.title.value) ?? '',
       roleInProject: this.normalize(this.missionForm.controls.roleInProject.value),
       description: this.normalize(this.missionForm.controls.description.value),
+      clientId: this.normalize(this.missionForm.controls.clientId.value),
       status: this.missionForm.controls.status.value,
       priority: this.missionForm.controls.priority.value,
       startDate: this.normalize(this.missionForm.controls.startDate.value) ?? '',
@@ -513,6 +540,16 @@ export class MissionsPageComponent implements OnInit, OnDestroy {
 
     const parsed = new Date(`${value}T00:00:00`);
     return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  private loadClients(): void {
+    this.clientService.listMyClients(null, null, 1, 100).subscribe({
+      next: (page) => this.clients.set(page.items),
+      error: (error: any) => {
+        const message = error?.error?.message ?? 'Unable to load clients.';
+        this.notificationService.error(message, 'Clients unavailable');
+      },
+    });
   }
 
 }

@@ -76,6 +76,7 @@ class CreateMissionUseCaseIntegrationTest {
         createMissionUseCase.execute(
             new CreateMissionCommand(
                 accountId,
+                null,
                 "Website redesign",
                 "Lead developer",
                 "Redesign the marketing website",

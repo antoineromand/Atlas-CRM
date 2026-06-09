@@ -7,6 +7,7 @@ import java.util.UUID;
 public class Mission {
   private final UUID id;
   private final UUID accountId;
+  private final UUID clientId;
   private final String title;
   private final String roleInProject;
   private final String description;
@@ -23,6 +24,22 @@ public class Mission {
       String title,
       String roleInProject,
       String description,
+      String status,
+      String priority,
+      LocalDate startDate,
+      LocalDate deadline,
+      Instant createdAt,
+      Instant updatedAt) {
+    this(id, accountId, null, title, roleInProject, description, status, priority, startDate, deadline, createdAt, updatedAt);
+  }
+
+  public Mission(
+      UUID id,
+      UUID accountId,
+      UUID clientId,
+      String title,
+      String roleInProject,
+      String description,
       MissionStatus status,
       String priority,
       LocalDate startDate,
@@ -31,6 +48,7 @@ public class Mission {
       Instant updatedAt) {
     this.id = id;
     this.accountId = accountId;
+    this.clientId = clientId;
     this.title = title;
     this.roleInProject = roleInProject;
     this.description = description;
@@ -48,6 +66,22 @@ public class Mission {
       String title,
       String roleInProject,
       String description,
+      MissionStatus status,
+      String priority,
+      LocalDate startDate,
+      LocalDate deadline,
+      Instant createdAt,
+      Instant updatedAt) {
+    this(id, accountId, null, title, roleInProject, description, status, priority, startDate, deadline, createdAt, updatedAt);
+  }
+
+  public Mission(
+      UUID id,
+      UUID accountId,
+      UUID clientId,
+      String title,
+      String roleInProject,
+      String description,
       String status,
       String priority,
       LocalDate startDate,
@@ -57,6 +91,7 @@ public class Mission {
     this(
         id,
         accountId,
+        clientId,
         title,
         roleInProject,
         description,
@@ -74,6 +109,10 @@ public class Mission {
 
   public UUID getAccountId() {
     return accountId;
+  }
+
+  public UUID getClientId() {
+    return clientId;
   }
 
   public String getTitle() {

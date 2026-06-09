@@ -62,6 +62,7 @@ class MissionControllerTest {
     UUID credentialsId = UUID.randomUUID();
     UUID accountId = UUID.randomUUID();
     UUID missionId = UUID.randomUUID();
+    UUID clientId = UUID.randomUUID();
     Principal principal = () -> credentialsId.toString();
 
     when(getAccountUseCase.execute(credentialsId))
@@ -91,6 +92,7 @@ class MissionControllerTest {
                 "Website redesign",
                 "Lead developer",
                 "Redesign the marketing website",
+                clientId,
                 "in_progress",
                 "high",
                 LocalDate.of(2026, 6, 1),
@@ -105,6 +107,7 @@ class MissionControllerTest {
     assertEquals(missionId, response.getBody().missionId());
     assertEquals("Mission created successfully.", response.getBody().message());
     assertEquals(accountId, command.accountId());
+    assertEquals(clientId, command.clientId());
     assertEquals("Website redesign", command.title());
     assertEquals("Lead developer", command.roleInProject());
     assertEquals("Redesign the marketing website", command.description());

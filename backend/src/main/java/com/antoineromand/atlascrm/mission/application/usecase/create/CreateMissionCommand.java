@@ -5,6 +5,7 @@ import java.util.UUID;
 
 public record CreateMissionCommand(
     UUID accountId,
+    UUID clientId,
     String title,
     String roleInProject,
     String description,

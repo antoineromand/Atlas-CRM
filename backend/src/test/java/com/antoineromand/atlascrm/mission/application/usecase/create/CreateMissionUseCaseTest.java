@@ -9,6 +9,8 @@ import static org.mockito.Mockito.when;
 
 import com.antoineromand.atlascrm.account.domain.Account;
 import com.antoineromand.atlascrm.account.domain.repository.IAccountRepository;
+import com.antoineromand.atlascrm.client.domain.Client;
+import com.antoineromand.atlascrm.client.domain.repository.IClientRepository;
 import com.antoineromand.atlascrm.mission.application.exceptions.MissionCreationException;
 import com.antoineromand.atlascrm.mission.domain.Mission;
 import com.antoineromand.atlascrm.mission.domain.MissionStatus;
@@ -28,11 +30,14 @@ class CreateMissionUseCaseTest {
 
   @Mock private IMissionRepository missionRepository;
   @Mock private IAccountRepository accountRepository;
+  @Mock private IClientRepository clientRepository;
 
   @Test
   void executeShouldPersistMissionAndApplyDefaultsWhenNeeded() {
-    CreateMissionUseCase useCase = new CreateMissionUseCase(missionRepository, accountRepository);
+    CreateMissionUseCase useCase =
+        new CreateMissionUseCase(missionRepository, accountRepository, clientRepository);
     UUID accountId = UUID.randomUUID();
+    UUID clientId = UUID.randomUUID();
     UUID missionId = UUID.randomUUID();
 
     when(accountRepository.findById(accountId))
@@ -49,8 +54,19 @@ class CreateMissionUseCaseTest {
                     null,
                     null,
                     null,
-                    null,
-                    null,
+                null,
+                null,
+                null,
+                Instant.now(),
+                null)));
+    when(clientRepository.findByIdAndAccountId(clientId, accountId))
+        .thenReturn(
+            Optional.of(
+                new Client(
+                    clientId,
+                    accountId,
+                    "JD Consulting",
+                    "active",
                     null,
                     Instant.now(),
                     null)));
@@ -60,6 +76,7 @@ class CreateMissionUseCaseTest {
         useCase.execute(
             new CreateMissionCommand(
                 accountId,
+                clientId,
                 "Website redesign",
                 "Lead developer",
                 "Redesign the marketing website",
@@ -74,6 +91,7 @@ class CreateMissionUseCaseTest {
 
     assertEquals(missionId, result);
     assertEquals(accountId, saved.getAccountId());
+    assertEquals(clientId, saved.getClientId());
     assertEquals("Website redesign", saved.getTitle());
     assertEquals("Lead developer", saved.getRoleInProject());
     assertEquals("Redesign the marketing website", saved.getDescription());
@@ -86,7 +104,8 @@ class CreateMissionUseCaseTest {
 
   @Test
   void executeShouldThrowWhenAccountDoesNotExist() {
-    CreateMissionUseCase useCase = new CreateMissionUseCase(missionRepository, accountRepository);
+    CreateMissionUseCase useCase =
+        new CreateMissionUseCase(missionRepository, accountRepository, clientRepository);
     UUID accountId = UUID.randomUUID();
 
     when(accountRepository.findById(accountId)).thenReturn(Optional.empty());
@@ -98,6 +117,7 @@ class CreateMissionUseCaseTest {
                 useCase.execute(
                     new CreateMissionCommand(
                         accountId,
+                        null,
                         "Website redesign",
                         null,
                         null,

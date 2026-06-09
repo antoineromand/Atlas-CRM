@@ -12,6 +12,7 @@ export type MissionPriority = 'low' | 'medium' | 'high';
 
 export interface MissionResponse {
   id: string;
+  clientId: string | null;
   title: string;
   roleInProject: string | null;
   description: string | null;
@@ -46,6 +47,7 @@ export interface CreateMissionPayload {
   title: string;
   roleInProject: string | null;
   description: string | null;
+  clientId: string | null;
   status: MissionStatus;
   priority: MissionPriority;
   startDate: string;
@@ -56,6 +58,7 @@ export interface UpdateMissionPayload {
   title?: string | null;
   roleInProject?: string | null;
   description?: string | null;
+  clientId?: string | null;
   status?: MissionStatus | null;
   priority?: MissionPriority | null;
   startDate?: string | null;
