@@ -1,33 +1,14 @@
-import { Component, DestroyRef, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { finalize } from 'rxjs';
+import { Component, DestroyRef, OnInit, computed, inject } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { StatCardComponent } from '../../../../shared/ui/stat-card/stat-card.component';
 import { MissionPageFacade } from '../../services/mission-page.facade';
-import { MissionService } from '../../../../core/services/mission/mission.service';
-import { ClientService } from '../../../../core/services/client/client.service';
-import {
-  CreateMissionPayload,
-  MissionResponse,
-  MissionPriority,
-  MissionStatus,
-} from '../../../../core/interface/mission.interface';
-import { ClientResponse } from '../../../../core/interface/client.interface';
-import { NotificationService } from '../../../../core/services/notification/notification.service';
+import { PaginationBarComponent } from '../../../../shared/ui/pagination-bar/pagination-bar.component';
+import { MissionEditorFacade, MissionFormControlName } from '../../services/mission-editor.facade';
+import { MissionPriority, MissionResponse, MissionStatus } from '../../../../core/interface/mission.interface';
 
 type MissionViewMode = 'cards' | 'list';
-
-interface MissionFormControls {
-  title: FormControl<string>;
-  roleInProject: FormControl<string>;
-  description: FormControl<string>;
-  clientId: FormControl<string>;
-  status: FormControl<MissionStatus>;
-  priority: FormControl<MissionPriority>;
-  startDate: FormControl<string>;
-  deadline: FormControl<string>;
-}
 
 interface MissionStatCard {
   icon: string;
@@ -41,37 +22,38 @@ interface MissionStatCard {
 @Component({
   selector: 'app-missions-page-component',
   standalone: true,
-  imports: [ReactiveFormsModule, StatCardComponent],
+  providers: [MissionEditorFacade],
+  imports: [ReactiveFormsModule, StatCardComponent, PaginationBarComponent],
   templateUrl: './missions-page-component.html',
   styleUrl: './missions-page-component.scss',
 })
-export class MissionsPageComponent implements OnInit, OnDestroy {
+export class MissionsPageComponent implements OnInit {
   private readonly missionPageFacade = inject(MissionPageFacade);
-  private readonly missionService = inject(MissionService);
-  private readonly clientService = inject(ClientService);
-  private readonly notificationService = inject(NotificationService);
+  private readonly missionEditorFacade = inject(MissionEditorFacade);
   private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
-  private drawerCloseTimer: ReturnType<typeof setTimeout> | null = null;
 
   protected readonly missions = this.missionPageFacade.missions;
   protected readonly pagination = this.missionPageFacade.pagination;
   protected readonly isLoading = this.missionPageFacade.isLoading;
-  protected readonly isSaving = signal(false);
-  protected readonly isDeleting = signal(false);
   protected readonly loadError = this.missionPageFacade.loadError;
   protected readonly searchTerm = this.missionPageFacade.searchTerm;
   protected readonly searchWarning = this.missionPageFacade.searchWarning;
   protected readonly viewMode = this.missionPageFacade.viewMode;
-  protected readonly drawerVisible = signal(false);
-  protected readonly drawerOpen = signal(false);
-  protected readonly deleteTarget = signal<MissionResponse | null>(null);
-  protected readonly editingMissionId = signal<string | null>(null);
   protected readonly isRefreshing = this.missionPageFacade.isRefreshing;
-  protected readonly clients = signal<ClientResponse[]>([]);
-  protected readonly clientsLoaded = signal(false);
-  protected readonly clientsLoading = signal(false);
+  protected readonly drawerVisible = this.missionEditorFacade.drawerVisible;
+  protected readonly drawerOpen = this.missionEditorFacade.drawerOpen;
+  protected readonly deleteTarget = this.missionEditorFacade.deleteTarget;
+  protected readonly editingMissionId = this.missionEditorFacade.editingMissionId;
+  protected readonly isSaving = this.missionEditorFacade.isSaving;
+  protected readonly isDeleting = this.missionEditorFacade.isDeleting;
+  protected readonly clients = this.missionEditorFacade.clients;
+  protected readonly clientsLoaded = this.missionEditorFacade.clientsLoaded;
+  protected readonly clientsLoading = this.missionEditorFacade.clientsLoading;
+  protected readonly missionForm = this.missionEditorFacade.missionForm;
+  protected readonly missionStatusOptions = this.missionEditorFacade.missionStatusOptions;
+  protected readonly missionPriorityOptions = this.missionEditorFacade.missionPriorityOptions;
+  protected readonly isCreating = this.missionEditorFacade.isCreating;
 
   protected readonly missionStats = computed<MissionStatCard[]>(() => {
     const summary = this.missionPageFacade.summary();
@@ -112,59 +94,9 @@ export class MissionsPageComponent implements OnInit, OnDestroy {
     ];
   });
 
-  protected readonly missionForm = new FormGroup<MissionFormControls>({
-    title: new FormControl('', {
-      nonNullable: true,
-      validators: [Validators.required, Validators.minLength(3), Validators.maxLength(200)],
-    }),
-    roleInProject: new FormControl('', {
-      nonNullable: true,
-      validators: [Validators.maxLength(150)],
-    }),
-    description: new FormControl('', {
-      nonNullable: true,
-      validators: [Validators.maxLength(4000)],
-    }),
-    clientId: new FormControl('', {
-      nonNullable: true,
-    }),
-    status: new FormControl<MissionStatus>('created', {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
-    priority: new FormControl<MissionPriority>('medium', {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
-    startDate: new FormControl('', {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
-    deadline: new FormControl('', {
-      nonNullable: true,
-    }),
-  });
-
-  protected readonly missionStatusOptions: readonly { value: MissionStatus; label: string }[] = [
-    { value: 'created', label: 'Created' },
-    { value: 'analysed', label: 'Analysed' },
-    { value: 'planned', label: 'Planned' },
-    { value: 'started', label: 'Started' },
-    { value: 'in_progress', label: 'In progress' },
-    { value: 'finalized', label: 'Finalized' },
-    { value: 'shipped', label: 'Shipped' },
-    { value: 'completed', label: 'Completed' },
-  ];
-
-  protected readonly missionPriorityOptions: readonly { value: MissionPriority; label: string }[] = [
-    { value: 'low', label: 'Low' },
-    { value: 'medium', label: 'Medium' },
-    { value: 'high', label: 'High' },
-  ];
-
   ngOnInit(): void {
     this.missionPageFacade.initialize();
-    this.loadClients();
+    this.missionEditorFacade.initialize();
 
     this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       if (params.get('create') === '1') {
@@ -173,14 +105,9 @@ export class MissionsPageComponent implements OnInit, OnDestroy {
     });
   }
 
-  ngOnDestroy(): void {
-    this.clearDrawerCloseTimer();
-  }
-
   protected reload(): void {
     this.missionPageFacade.reload();
     this.missionPageFacade.reloadSummary();
-    this.loadClients();
   }
 
   protected setSearchTerm(value: string): void {
@@ -196,128 +123,31 @@ export class MissionsPageComponent implements OnInit, OnDestroy {
   }
 
   protected openCreateDrawer(syncQueryParams = true): void {
-    this.openDrawer();
-    this.editingMissionId.set(null);
-    this.deleteTarget.set(null);
-    this.patchMissionForm(null);
-
-    if (syncQueryParams) {
-      void this.router.navigate([], {
-        relativeTo: this.route,
-        queryParams: { create: '1' },
-        queryParamsHandling: 'merge',
-      });
-    }
+    this.missionEditorFacade.openCreateDrawer(syncQueryParams);
   }
 
   protected openEditDrawer(mission: MissionResponse): void {
-    this.openDrawer();
-    this.editingMissionId.set(mission.id);
-    this.deleteTarget.set(null);
-    this.patchMissionForm(mission);
-
-    void this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { create: null },
-      queryParamsHandling: 'merge',
-    });
+    this.missionEditorFacade.openEditDrawer(mission);
   }
 
   protected closeDrawer(): void {
-    this.drawerOpen.set(false);
-    this.clearDrawerCloseTimer();
-    this.drawerCloseTimer = setTimeout(() => {
-      this.drawerVisible.set(false);
-      this.editingMissionId.set(null);
-      this.drawerCloseTimer = null;
-    }, 240);
-    this.missionForm.markAsPristine();
-    this.missionForm.markAsUntouched();
-
-    void this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { create: null },
-      queryParamsHandling: 'merge',
-    });
+    this.missionEditorFacade.closeDrawer();
   }
 
   protected submitMission(): void {
-    if (this.missionForm.invalid) {
-      this.missionForm.markAllAsTouched();
-      return;
-    }
-
-    const payload = this.buildPayload();
-    this.isSaving.set(true);
-
-    if (this.editingMissionId()) {
-      this.missionService
-        .updateMission(this.editingMissionId()!, payload)
-        .pipe(finalize(() => this.isSaving.set(false)))
-        .subscribe({
-          next: () => {
-            this.notificationService.success('Mission updated.');
-            this.closeDrawer();
-            this.missionPageFacade.refreshCurrentPage();
-            this.missionPageFacade.reloadSummary();
-          },
-          error: (error: any) => {
-            const message = error?.error?.message ?? 'Unable to save mission.';
-            this.notificationService.error(message);
-          },
-        });
-      return;
-    }
-
-    this.missionService
-      .createMission(payload)
-      .pipe(finalize(() => this.isSaving.set(false)))
-      .subscribe({
-        next: () => {
-          this.notificationService.success('Mission created.');
-          this.closeDrawer();
-          this.missionPageFacade.resetToFirstPage();
-          this.missionPageFacade.reloadSummary();
-        },
-        error: (error: any) => {
-          const message = error?.error?.message ?? 'Unable to save mission.';
-          this.notificationService.error(message);
-        },
-      });
+    this.missionEditorFacade.submitMission();
   }
 
   protected requestDelete(mission: MissionResponse): void {
-    this.deleteTarget.set(mission);
+    this.missionEditorFacade.requestDelete(mission);
   }
 
   protected cancelDelete(): void {
-    this.deleteTarget.set(null);
+    this.missionEditorFacade.cancelDelete();
   }
 
   protected confirmDelete(): void {
-    const target = this.deleteTarget();
-
-    if (!target) {
-      return;
-    }
-
-    this.isDeleting.set(true);
-
-    this.missionService
-      .deleteMission(target.id)
-      .pipe(finalize(() => this.isDeleting.set(false)))
-      .subscribe({
-        next: () => {
-          this.notificationService.success('Mission deleted.');
-          this.deleteTarget.set(null);
-          this.missionPageFacade.refreshCurrentPage();
-          this.missionPageFacade.reloadSummary();
-        },
-        error: (error: any) => {
-          const message = error?.error?.message ?? 'Unable to delete mission.';
-          this.notificationService.error(message);
-        },
-      });
+    this.missionEditorFacade.confirmDelete();
   }
 
   protected statusLabel(status: MissionStatus): string {
@@ -352,6 +182,15 @@ export class MissionsPageComponent implements OnInit, OnDestroy {
       default:
         return 'Low';
     }
+  }
+
+  private parseDate(value: string | null): Date | null {
+    if (!value) {
+      return null;
+    }
+
+    const parsed = new Date(`${value}T00:00:00`);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
   }
 
   protected formatDate(value: string | null): string {
@@ -403,52 +242,23 @@ export class MissionsPageComponent implements OnInit, OnDestroy {
   }
 
   protected clientLabel(clientId: string | null): string {
-    if (!clientId) {
-      return 'No client';
-    }
-
-    const client = this.clients().find((item) => item.id === clientId);
-    if (!client) {
-      return 'Unknown client';
-    }
-
-    const contactParts = [client.primaryContactFirstName, client.primaryContactLastName].filter(Boolean);
-    return contactParts.length > 0 ? `${client.companyName} · ${contactParts.join(' ')}` : client.companyName;
+    return this.missionEditorFacade.clientLabel(clientId);
   }
 
   protected trackMission(_: number, mission: MissionResponse): string {
     return mission.id;
   }
 
-  protected hasMissionFieldError(controlName: keyof MissionFormControls): boolean {
-    const control = this.missionForm.controls[controlName];
-    return control.invalid && (control.dirty || control.touched);
+  protected hasMissionFieldError(controlName: MissionFormControlName): boolean {
+    return this.missionEditorFacade.hasMissionFieldError(controlName);
   }
 
-  protected missionFieldError(controlName: keyof MissionFormControls): string {
-    const control = this.missionForm.controls[controlName];
-
-    if (!control.errors) {
-      return '';
-    }
-
-    if (control.errors['required']) {
-      return 'This field is required.';
-    }
-
-    if (control.errors['minlength']) {
-      return `Use at least ${control.errors['minlength'].requiredLength} characters.`;
-    }
-
-    if (control.errors['maxlength']) {
-      return `Use at most ${control.errors['maxlength'].requiredLength} characters.`;
-    }
-
-    return 'Please check this field.';
+  protected missionFieldError(controlName: MissionFormControlName): string {
+    return this.missionEditorFacade.missionFieldError(controlName);
   }
 
   protected get isCreating(): boolean {
-    return this.editingMissionId() === null;
+    return this.missionEditorFacade.isCreating();
   }
 
   protected goToPreviousPage(): void {
@@ -458,110 +268,4 @@ export class MissionsPageComponent implements OnInit, OnDestroy {
   protected goToNextPage(): void {
     this.missionPageFacade.goToNextPage();
   }
-
-  private patchMissionForm(mission: MissionResponse | null): void {
-    this.missionForm.patchValue(
-      mission
-        ? {
-            title: mission.title,
-            roleInProject: mission.roleInProject ?? '',
-            description: mission.description ?? '',
-            clientId: mission.clientId ?? '',
-            status: mission.status,
-            priority: mission.priority,
-            startDate: mission.startDate,
-            deadline: mission.deadline ?? '',
-          }
-          : {
-            title: '',
-            roleInProject: '',
-            description: '',
-            clientId: '',
-            status: 'created',
-            priority: 'medium',
-            startDate: '',
-            deadline: '',
-          },
-      { emitEvent: false }
-    );
-
-    this.missionForm.markAsPristine();
-    this.missionForm.markAsUntouched();
-  }
-
-  private openDrawer(): void {
-    this.clearDrawerCloseTimer();
-    this.drawerVisible.set(true);
-    queueMicrotask(() => this.drawerOpen.set(true));
-  }
-
-  private clearDrawerCloseTimer(): void {
-    if (!this.drawerCloseTimer) {
-      return;
-    }
-
-    clearTimeout(this.drawerCloseTimer);
-    this.drawerCloseTimer = null;
-  }
-
-  private buildPayload(): CreateMissionPayload {
-    return {
-      title: this.normalize(this.missionForm.controls.title.value) ?? '',
-      roleInProject: this.normalize(this.missionForm.controls.roleInProject.value),
-      description: this.normalize(this.missionForm.controls.description.value),
-      clientId: this.normalize(this.missionForm.controls.clientId.value),
-      status: this.missionForm.controls.status.value,
-      priority: this.missionForm.controls.priority.value,
-      startDate: this.normalize(this.missionForm.controls.startDate.value) ?? '',
-      deadline: this.normalize(this.missionForm.controls.deadline.value),
-    };
-  }
-
-  private normalize(value: string | null | undefined): string | null {
-    const trimmed = value?.trim() ?? '';
-    return trimmed.length > 0 ? trimmed : null;
-  }
-
-  private parseDate(value: string | null): Date | null {
-    if (!value) {
-      return null;
-    }
-
-    const parsed = new Date(`${value}T00:00:00`);
-    return Number.isNaN(parsed.getTime()) ? null : parsed;
-  }
-
-  private loadClients(): void {
-    if (this.clientsLoading() || this.clientsLoaded()) {
-      return;
-    }
-
-    this.clientsLoading.set(true);
-    const collectedClients: ClientResponse[] = [];
-
-    const loadPage = (page: number): void => {
-      this.clientService.listMyClients(null, null, page, 50).subscribe({
-        next: (result) => {
-          collectedClients.push(...result.items);
-
-          if (result.hasNext) {
-            loadPage(page + 1);
-            return;
-          }
-
-          this.clients.set(collectedClients);
-          this.clientsLoaded.set(true);
-          this.clientsLoading.set(false);
-        },
-        error: (error: any) => {
-          this.clientsLoading.set(false);
-          const message = error?.error?.message ?? 'Unable to load clients.';
-          this.notificationService.error(message, 'Clients unavailable');
-        },
-      });
-    };
-
-    loadPage(1);
-  }
-
 }

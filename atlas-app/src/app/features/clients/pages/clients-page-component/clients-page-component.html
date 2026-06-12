@@ -201,37 +201,15 @@
     </section>
   }
 
-  @if (paginationState) {
-    <section class="clients-page__pagination" aria-label="Client pagination">
-      <span class="clients-page__pagination-info">
-        Showing {{ clients().length }} of {{ paginationState.totalElements }} clients
-      </span>
-
-      @if (paginationState.totalPages > 1) {
-        <div class="clients-page__pagination-controls">
-          <button
-            class="clients-page__pagination-button"
-            type="button"
-            (click)="goToPreviousPage()"
-            [disabled]="!paginationState.hasPrevious || isRefreshing()"
-          >
-            <span class="material-symbols-outlined" aria-hidden="true">chevron_left</span>
-          </button>
-
-          <span class="clients-page__pagination-page">{{ paginationState.page }}</span>
-
-          <button
-            class="clients-page__pagination-button"
-            type="button"
-            (click)="goToNextPage()"
-            [disabled]="!paginationState.hasNext || isRefreshing()"
-          >
-            <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
-          </button>
-        </div>
-      }
-    </section>
-  }
+  <app-pagination-bar
+    [pagination]="paginationState"
+    [itemCount]="clients().length"
+    collectionLabel="clients"
+    ariaLabel="Client pagination"
+    [isRefreshing]="isRefreshing()"
+    (previous)="goToPreviousPage()"
+    (next)="goToNextPage()"
+  />
 
   @if (drawerOpen()) {
     <div class="clients-page__overlay" (click)="closeDrawer()"></div>

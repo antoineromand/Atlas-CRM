@@ -13,6 +13,7 @@ import {
   CreateClientResponse,
 } from '../../../../core/interface/client.interface';
 import { NotificationService } from '../../../../core/services/notification/notification.service';
+import { PaginationBarComponent } from '../../../../shared/ui/pagination-bar/pagination-bar.component';
 
 type ClientFilterStatus = ClientStatus | 'all';
 type ClientDrawerMode = 'create' | 'edit';
@@ -32,7 +33,7 @@ interface HeroCard {
 @Component({
   selector: 'app-clients-page-component',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, PaginationBarComponent],
   templateUrl: './clients-page-component.html',
   styleUrl: './clients-page-component.scss',
 })

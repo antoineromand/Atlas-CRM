@@ -1,4 +1,6 @@
 <div class="missions-page">
+  @let paginationState = pagination();
+
   <section class="missions-page__header">
     <div class="missions-page__header-copy">
       <h1 class="missions-page__title">Active Missions</h1>
@@ -52,7 +54,7 @@
     <div class="missions-page__search-group">
       <div class="missions-page__search-label-row">
         <span class="missions-page__search-label">Mission search</span>
-        <span class="missions-page__search-count">{{ pagination()?.totalElements ?? missions().length }} total</span>
+        <span class="missions-page__search-count">{{ paginationState?.totalElements ?? missions().length }} total</span>
       </div>
 
       <label
@@ -246,37 +248,15 @@
     </section>
   }
 
-  @if (pagination()) {
-    <section class="missions-page__pagination" aria-label="Mission pagination">
-      <span class="missions-page__pagination-info">
-        Showing {{ missions().length }} of {{ pagination()!.totalElements }} missions
-      </span>
-
-      @if (pagination()!.totalPages > 1) {
-        <div class="missions-page__pagination-controls">
-          <button
-            class="missions-page__pagination-button"
-            type="button"
-            (click)="goToPreviousPage()"
-            [disabled]="!pagination()!.hasPrevious || isRefreshing()"
-          >
-            <span class="material-symbols-outlined" aria-hidden="true">chevron_left</span>
-          </button>
-
-          <span class="missions-page__pagination-page">{{ pagination()!.page }}</span>
-
-          <button
-            class="missions-page__pagination-button"
-            type="button"
-            (click)="goToNextPage()"
-            [disabled]="!pagination()!.hasNext || isRefreshing()"
-          >
-            <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
-          </button>
-        </div>
-      }
-    </section>
-  }
+  <app-pagination-bar
+    [pagination]="paginationState"
+    [itemCount]="missions().length"
+    collectionLabel="missions"
+    ariaLabel="Mission pagination"
+    [isRefreshing]="isRefreshing()"
+    (previous)="goToPreviousPage()"
+    (next)="goToNextPage()"
+  />
 
   @if (drawerVisible()) {
     <div class="missions-page__overlay" [class.is-open]="drawerOpen()" (click)="closeDrawer()"></div>

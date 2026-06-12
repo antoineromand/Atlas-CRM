@@ -573,45 +573,6 @@
   width: 10rem;
 }
 
-.clients-page__pagination {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.8rem 0.25rem;
-}
-
-.clients-page__pagination-info {
-  color: #505f76;
-  font-size: 0.9rem;
-}
-
-.clients-page__pagination-controls {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.clients-page__pagination-button {
-  display: inline-grid;
-  place-items: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 0.6rem;
-  border: 1px solid #e2e8f0;
-  background: #ffffff;
-  color: #505f76;
-}
-
-.clients-page__pagination-page {
-  min-width: 2rem;
-  text-align: center;
-  color: #091426;
-  font-family: var(--font-label);
-  font-size: 0.95rem;
-  font-weight: 700;
-}
-
 .clients-page__overlay {
   position: fixed;
   inset: 0;
@@ -733,8 +694,7 @@
   }
 
   .clients-page__stat-card--wide,
-  .clients-page__empty-state,
-  .clients-page__pagination {
+  .clients-page__empty-state {
     flex-direction: column;
     align-items: flex-start;
   }

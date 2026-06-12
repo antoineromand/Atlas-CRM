@@ -1,11 +1,7 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { finalize } from 'rxjs';
 import { MissionService } from '../../../core/services/mission/mission.service';
-import {
-  MissionPageResponse,
-  MissionResponse,
-  MissionSummaryResponse,
-} from '../../../core/interface/mission.interface';
+import { MissionPageResponse, MissionResponse, MissionSummaryResponse } from '../../../core/interface/mission.interface';
 import { NotificationService } from '../../../core/services/notification/notification.service';
 
 type MissionViewMode = 'cards' | 'list';
