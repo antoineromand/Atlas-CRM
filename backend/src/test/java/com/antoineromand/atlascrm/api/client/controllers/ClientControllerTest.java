@@ -9,15 +9,23 @@ import static org.mockito.Mockito.when;
 import com.antoineromand.atlascrm.account.application.usecase.account.IGetAccountUseCase;
 import com.antoineromand.atlascrm.account.application.usecase.account.PatchValue;
 import com.antoineromand.atlascrm.account.domain.Account;
+import com.antoineromand.atlascrm.api.client.dto.ClientActivityResponseDto;
 import com.antoineromand.atlascrm.api.client.dto.ClientContactResponseDto;
 import com.antoineromand.atlascrm.api.client.dto.CreateClientContactRequestDto;
 import com.antoineromand.atlascrm.api.client.dto.ClientPageResponseDto;
 import com.antoineromand.atlascrm.api.client.dto.ClientResponseDto;
 import com.antoineromand.atlascrm.api.client.dto.CreateClientRequestDto;
 import com.antoineromand.atlascrm.api.client.dto.CreateClientResponseDto;
+import com.antoineromand.atlascrm.api.client.dto.CreateClientActivityRequestDto;
 import com.antoineromand.atlascrm.api.client.dto.UpdateClientContactRequestDto;
+import com.antoineromand.atlascrm.api.client.dto.UpdateClientActivityRequestDto;
 import com.antoineromand.atlascrm.client.application.usecase.create.CreateClientCommand;
 import com.antoineromand.atlascrm.client.application.usecase.create.ICreateClientUseCase;
+import com.antoineromand.atlascrm.client.application.usecase.activity.create.CreateClientActivityCommand;
+import com.antoineromand.atlascrm.client.application.usecase.activity.create.ICreateClientActivityUseCase;
+import com.antoineromand.atlascrm.client.application.usecase.activity.delete.IDeleteClientActivityUseCase;
+import com.antoineromand.atlascrm.client.application.usecase.activity.update.IUpdateClientActivityUseCase;
+import com.antoineromand.atlascrm.client.application.usecase.activity.update.UpdateClientActivityCommand;
 import com.antoineromand.atlascrm.client.application.usecase.contact.create.CreateClientContactCommand;
 import com.antoineromand.atlascrm.client.application.usecase.contact.create.ICreateClientContactUseCase;
 import com.antoineromand.atlascrm.client.application.usecase.contact.delete.IDeleteClientContactUseCase;
@@ -58,24 +66,34 @@ class ClientControllerTest {
   @Mock private IGetClientUseCase getClientUseCase;
   @Mock private IUpdateClientUseCase updateClientUseCase;
   @Mock private IDeleteClientUseCase deleteClientUseCase;
+  @Mock private ICreateClientActivityUseCase createClientActivityUseCase;
+  @Mock private IUpdateClientActivityUseCase updateClientActivityUseCase;
+  @Mock private IDeleteClientActivityUseCase deleteClientActivityUseCase;
   @Mock private ICreateClientContactUseCase createClientContactUseCase;
   @Mock private IUpdateClientContactUseCase updateClientContactUseCase;
   @Mock private IDeleteClientContactUseCase deleteClientContactUseCase;
   @Mock private IListClientUseCase listClientUseCase;
 
+  private ClientController createController() {
+    return new ClientController(
+        createClientUseCase,
+        getAccountUseCase,
+        getClientUseCase,
+        updateClientUseCase,
+        deleteClientUseCase,
+        createClientActivityUseCase,
+        updateClientActivityUseCase,
+        deleteClientActivityUseCase,
+        createClientContactUseCase,
+        updateClientContactUseCase,
+        deleteClientContactUseCase,
+        listClientUseCase);
+  }
+
   @Test
   void createClientShouldResolveCurrentAccountAndReturnCreatedResponse() {
     ClientController controller =
-        new ClientController(
-            createClientUseCase,
-            getAccountUseCase,
-            getClientUseCase,
-            updateClientUseCase,
-            deleteClientUseCase,
-            createClientContactUseCase,
-            updateClientContactUseCase,
-            deleteClientContactUseCase,
-            listClientUseCase);
+        createController();
     UUID credentialsId = UUID.randomUUID();
     UUID accountId = UUID.randomUUID();
     UUID clientId = UUID.randomUUID();
@@ -120,16 +138,7 @@ class ClientControllerTest {
   @Test
   void listMyClientsShouldResolveCurrentAccountAndReturnPagedResponse() {
     ClientController controller =
-        new ClientController(
-            createClientUseCase,
-            getAccountUseCase,
-            getClientUseCase,
-            updateClientUseCase,
-            deleteClientUseCase,
-            createClientContactUseCase,
-            updateClientContactUseCase,
-            deleteClientContactUseCase,
-            listClientUseCase);
+        createController();
     UUID credentialsId = UUID.randomUUID();
     UUID accountId = UUID.randomUUID();
     Principal principal = () -> credentialsId.toString();
@@ -187,16 +196,7 @@ class ClientControllerTest {
   @Test
   void listMyClientsShouldForwardNormalizedQueryToUseCase() {
     ClientController controller =
-        new ClientController(
-            createClientUseCase,
-            getAccountUseCase,
-            getClientUseCase,
-            updateClientUseCase,
-            deleteClientUseCase,
-            createClientContactUseCase,
-            updateClientContactUseCase,
-            deleteClientContactUseCase,
-            listClientUseCase);
+        createController();
     UUID credentialsId = UUID.randomUUID();
     UUID accountId = UUID.randomUUID();
     Principal principal = () -> credentialsId.toString();
@@ -235,16 +235,7 @@ class ClientControllerTest {
   @Test
   void updateClientShouldResolveCurrentAccountAndReturnUpdatedClient() {
     ClientController controller =
-        new ClientController(
-            createClientUseCase,
-            getAccountUseCase,
-            getClientUseCase,
-            updateClientUseCase,
-            deleteClientUseCase,
-            createClientContactUseCase,
-            updateClientContactUseCase,
-            deleteClientContactUseCase,
-            listClientUseCase);
+        createController();
     UUID credentialsId = UUID.randomUUID();
     UUID accountId = UUID.randomUUID();
     UUID clientId = UUID.randomUUID();
@@ -305,18 +296,154 @@ class ClientControllerTest {
   }
 
   @Test
+  void createClientActivityShouldReturnCreatedActivity() {
+    ClientController controller = createController();
+    UUID credentialsId = UUID.randomUUID();
+    UUID accountId = UUID.randomUUID();
+    UUID clientId = UUID.randomUUID();
+    UUID activityId = UUID.randomUUID();
+    Principal principal = () -> credentialsId.toString();
+
+    when(getAccountUseCase.execute(credentialsId))
+        .thenReturn(
+            new Account(
+                accountId,
+                credentialsId,
+                "John",
+                "Doe",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                Instant.now(),
+                null));
+    when(
+            createClientActivityUseCase.execute(
+                any(UUID.class), any(UUID.class), any(CreateClientActivityCommand.class)))
+        .thenReturn(
+            new ClientActivity(
+                activityId,
+                clientId,
+                "call",
+                "Kickoff call",
+                "Initial call",
+                Instant.parse("2026-06-01T09:00:00Z"),
+                Instant.parse("2026-06-01T09:00:00Z"),
+                null));
+
+    ResponseEntity<ClientActivityResponseDto> response =
+        controller.createClientActivity(
+            principal,
+            clientId,
+            new CreateClientActivityRequestDto(
+                "call", "Kickoff call", "Initial call", Instant.parse("2026-06-01T09:00:00Z")));
+
+    assertEquals(HttpStatus.CREATED, response.getStatusCode());
+    assertEquals(activityId, response.getBody().id());
+    assertEquals("Kickoff call", response.getBody().title());
+  }
+
+  @Test
+  void updateClientActivityShouldReturnUpdatedActivity() {
+    ClientController controller = createController();
+    UUID credentialsId = UUID.randomUUID();
+    UUID accountId = UUID.randomUUID();
+    UUID clientId = UUID.randomUUID();
+    UUID activityId = UUID.randomUUID();
+    Principal principal = () -> credentialsId.toString();
+
+    when(getAccountUseCase.execute(credentialsId))
+        .thenReturn(
+            new Account(
+                accountId,
+                credentialsId,
+                "John",
+                "Doe",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                Instant.now(),
+                null));
+    when(
+            updateClientActivityUseCase.execute(
+                any(UUID.class), any(UUID.class), any(UUID.class), any(UpdateClientActivityCommand.class)))
+        .thenReturn(
+            new ClientActivity(
+                activityId,
+                clientId,
+                "meeting",
+                "Client review",
+                "Updated notes",
+                Instant.parse("2026-06-01T11:00:00Z"),
+                Instant.parse("2026-06-01T09:00:00Z"),
+                Instant.parse("2026-06-01T11:00:00Z")));
+
+    ResponseEntity<ClientActivityResponseDto> response =
+        controller.updateClientActivity(
+            principal,
+            clientId,
+            activityId,
+            new UpdateClientActivityRequestDto(
+                "meeting",
+                "Client review",
+                "Updated notes",
+                Instant.parse("2026-06-01T11:00:00Z")));
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals(activityId, response.getBody().id());
+    assertEquals("meeting", response.getBody().activityType());
+  }
+
+  @Test
+  void deleteClientActivityShouldReturnNoContent() {
+    ClientController controller = createController();
+    UUID credentialsId = UUID.randomUUID();
+    UUID accountId = UUID.randomUUID();
+    UUID clientId = UUID.randomUUID();
+    UUID activityId = UUID.randomUUID();
+    Principal principal = () -> credentialsId.toString();
+
+    when(getAccountUseCase.execute(credentialsId))
+        .thenReturn(
+            new Account(
+                accountId,
+                credentialsId,
+                "John",
+                "Doe",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                Instant.now(),
+                null));
+
+    ResponseEntity<Void> response = controller.deleteClientActivity(principal, clientId, activityId);
+
+    verify(deleteClientActivityUseCase).execute(accountId, clientId, activityId);
+    assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+    assertNull(response.getBody());
+  }
+
+  @Test
   void deleteClientShouldResolveCurrentAccountAndReturnNoContent() {
     ClientController controller =
-        new ClientController(
-            createClientUseCase,
-            getAccountUseCase,
-            getClientUseCase,
-            updateClientUseCase,
-            deleteClientUseCase,
-            createClientContactUseCase,
-            updateClientContactUseCase,
-            deleteClientContactUseCase,
-            listClientUseCase);
+        createController();
     UUID credentialsId = UUID.randomUUID();
     UUID accountId = UUID.randomUUID();
     UUID clientId = UUID.randomUUID();
@@ -351,16 +478,7 @@ class ClientControllerTest {
   @Test
   void getMyClientByIdShouldReturnClientDetails() {
     ClientController controller =
-        new ClientController(
-            createClientUseCase,
-            getAccountUseCase,
-            getClientUseCase,
-            updateClientUseCase,
-            deleteClientUseCase,
-            createClientContactUseCase,
-            updateClientContactUseCase,
-            deleteClientContactUseCase,
-            listClientUseCase);
+        createController();
     UUID credentialsId = UUID.randomUUID();
     UUID accountId = UUID.randomUUID();
     UUID clientId = UUID.randomUUID();
@@ -460,16 +578,7 @@ class ClientControllerTest {
   @Test
   void createClientContactShouldReturnCreatedContact() {
     ClientController controller =
-        new ClientController(
-            createClientUseCase,
-            getAccountUseCase,
-            getClientUseCase,
-            updateClientUseCase,
-            deleteClientUseCase,
-            createClientContactUseCase,
-            updateClientContactUseCase,
-            deleteClientContactUseCase,
-            listClientUseCase);
+        createController();
     UUID credentialsId = UUID.randomUUID();
     UUID accountId = UUID.randomUUID();
     UUID clientId = UUID.randomUUID();
@@ -527,16 +636,7 @@ class ClientControllerTest {
   @Test
   void updateClientContactShouldReturnUpdatedContact() {
     ClientController controller =
-        new ClientController(
-            createClientUseCase,
-            getAccountUseCase,
-            getClientUseCase,
-            updateClientUseCase,
-            deleteClientUseCase,
-            createClientContactUseCase,
-            updateClientContactUseCase,
-            deleteClientContactUseCase,
-            listClientUseCase);
+        createController();
     UUID credentialsId = UUID.randomUUID();
     UUID accountId = UUID.randomUUID();
     UUID clientId = UUID.randomUUID();
@@ -601,16 +701,7 @@ class ClientControllerTest {
   @Test
   void deleteClientContactShouldReturnNoContent() {
     ClientController controller =
-        new ClientController(
-            createClientUseCase,
-            getAccountUseCase,
-            getClientUseCase,
-            updateClientUseCase,
-            deleteClientUseCase,
-            createClientContactUseCase,
-            updateClientContactUseCase,
-            deleteClientContactUseCase,
-            listClientUseCase);
+        createController();
     UUID credentialsId = UUID.randomUUID();
     UUID accountId = UUID.randomUUID();
     UUID clientId = UUID.randomUUID();

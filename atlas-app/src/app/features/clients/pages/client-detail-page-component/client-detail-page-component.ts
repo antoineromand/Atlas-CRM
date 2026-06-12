@@ -4,8 +4,10 @@ import { finalize } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ClientEditorDrawerComponent } from '../../components/client-editor-drawer/client-editor-drawer.component';
 import { ClientContactEditorDrawerComponent } from '../../components/client-contact-editor-drawer/client-contact-editor-drawer.component';
+import { ClientActivityEditorDrawerComponent } from '../../components/client-activity-editor-drawer/client-activity-editor-drawer.component';
 import { ClientEditorFacade } from '../../services/client-editor.facade';
 import { ClientContactEditorFacade } from '../../services/client-contact-editor.facade';
+import { ClientActivityEditorFacade } from '../../services/client-activity-editor.facade';
 import { ClientService } from '../../../../core/services/client/client.service';
 import {
   ClientActivityResponse,
@@ -41,16 +43,17 @@ interface MissionCard {
 @Component({
   selector: 'app-client-detail-page-component',
   standalone: true,
-  imports: [ClientEditorDrawerComponent, ClientContactEditorDrawerComponent],
+  imports: [ClientEditorDrawerComponent, ClientContactEditorDrawerComponent, ClientActivityEditorDrawerComponent],
   templateUrl: './client-detail-page-component.html',
   styleUrl: './client-detail-page-component.scss',
-  providers: [ClientEditorFacade, ClientContactEditorFacade],
+  providers: [ClientEditorFacade, ClientContactEditorFacade, ClientActivityEditorFacade],
 })
 export class ClientDetailPageComponent implements OnInit {
   private readonly clientService = inject(ClientService);
   private readonly notificationService = inject(NotificationService);
   private readonly clientEditor = inject(ClientEditorFacade);
   private readonly clientContactEditor = inject(ClientContactEditorFacade);
+  private readonly clientActivityEditor = inject(ClientActivityEditorFacade);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
@@ -60,6 +63,8 @@ export class ClientDetailPageComponent implements OnInit {
   protected readonly loadError = signal<string | null>(null);
   protected readonly contactDeleteTarget = signal<ClientContactResponse | null>(null);
   protected readonly isDeletingContact = signal(false);
+  protected readonly activityDeleteTarget = signal<ClientActivityResponse | null>(null);
+  protected readonly isDeletingActivity = signal(false);
   private currentClientId: string | null = null;
 
   protected readonly client = computed(() => this.clientDetail()?.client ?? null);
@@ -162,6 +167,14 @@ export class ClientDetailPageComponent implements OnInit {
 
       this.loadClient(event.clientId);
     });
+
+    this.clientActivityEditor.mutationCompleted.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      if (event.clientId !== this.currentClientId) {
+        return;
+      }
+
+      this.loadClient(event.clientId);
+    });
   }
 
   protected goBack(): void {
@@ -193,6 +206,24 @@ export class ClientDetailPageComponent implements OnInit {
     }
 
     this.clientContactEditor.openEditDrawer(client.id, contact);
+  }
+
+  protected openCreateActivityDrawer(): void {
+    const client = this.client();
+    if (!client) {
+      return;
+    }
+
+    this.clientActivityEditor.openCreateDrawer(client.id);
+  }
+
+  protected openEditActivityDrawer(activity: ClientActivityResponse): void {
+    const client = this.client();
+    if (!client) {
+      return;
+    }
+
+    this.clientActivityEditor.openEditDrawer(client.id, activity);
   }
 
   protected requestDeleteContact(contact: ClientContactResponse): void {
@@ -230,6 +261,45 @@ export class ClientDetailPageComponent implements OnInit {
         error: (error: unknown) => {
           const message = this.extractErrorMessage(error, 'Unable to delete contact.');
           this.notificationService.error(message, 'Contacts unavailable');
+      },
+    });
+  }
+
+  protected requestDeleteActivity(activity: ClientActivityResponse): void {
+    this.activityDeleteTarget.set(activity);
+  }
+
+  protected cancelDeleteActivity(): void {
+    this.activityDeleteTarget.set(null);
+  }
+
+  protected confirmDeleteActivity(): void {
+    const client = this.client();
+    const activity = this.activityDeleteTarget();
+
+    if (!client || !activity) {
+      return;
+    }
+
+    this.isDeletingActivity.set(true);
+    this.clientService
+      .deleteClientActivity(client.id, activity.id)
+      .pipe(
+        finalize(() => {
+          this.isDeletingActivity.set(false);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: () => {
+          this.notificationService.success('Activity deleted.');
+          this.activityDeleteTarget.set(null);
+          this.clientActivityEditor.closeDrawer();
+          this.loadClient(client.id);
+        },
+        error: (error: unknown) => {
+          const message = this.extractErrorMessage(error, 'Unable to delete activity.');
+          this.notificationService.error(message, 'Activities unavailable');
         },
       });
   }
@@ -376,6 +446,16 @@ export class ClientDetailPageComponent implements OnInit {
       };
     }
 
+    if (kind.includes('task') || kind.includes('follow') || kind.includes('status')) {
+      return {
+        icon: 'check_circle',
+        tone: 'secondary',
+        title: activity.title,
+        description: activity.description ?? 'Operational update recorded.',
+        meta: this.formatTimeAgo(activity.occurredAt),
+      };
+    }
+
     return {
       icon: 'calendar_month',
       tone: 'primary',
@@ -383,6 +463,13 @@ export class ClientDetailPageComponent implements OnInit {
       description: activity.description ?? 'Timeline entry recorded.',
       meta: this.formatTimeAgo(activity.occurredAt),
     };
+  }
+
+  protected formatActivityType(activityType: string): string {
+    return activityType
+      .split(/[_-]/)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
   }
 
   protected trackByContact(_index: number, contact: ClientContactResponse): string {

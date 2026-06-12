@@ -89,6 +89,20 @@ export interface UpdateClientContactPayload {
   primary: boolean;
 }
 
+export interface CreateClientActivityPayload {
+  activityType: string;
+  title: string;
+  description: string | null;
+  occurredAt: string;
+}
+
+export interface UpdateClientActivityPayload {
+  activityType: string;
+  title: string;
+  description: string | null;
+  occurredAt: string;
+}
+
 export interface CreateClientResponse {
   clientId: string;
   message: string;

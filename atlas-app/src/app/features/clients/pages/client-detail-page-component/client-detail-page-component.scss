@@ -529,6 +529,22 @@
   line-height: 1.55;
 }
 
+.timeline-item__type {
+  margin: 0 0 0.3rem;
+  color: #004c6e;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.timeline-item__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.75rem;
+}
+
 .bento-card--accent .snapshot-stack,
 .bento-card--accent .snapshot-grid-small,
 .bento-card--accent .notes-copy {

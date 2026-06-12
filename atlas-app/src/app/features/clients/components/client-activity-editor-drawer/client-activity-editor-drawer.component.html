@@ -1,0 +1,98 @@
+@if (clientActivityEditor.drawerVisible()) {
+  <div
+    class="client-activity-editor-drawer__overlay"
+    [class.is-open]="clientActivityEditor.drawerOpen()"
+    (click)="clientActivityEditor.closeDrawer()"
+  ></div>
+  <aside
+    class="client-activity-editor-drawer surface-card"
+    [class.is-open]="clientActivityEditor.drawerOpen()"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Client activity form"
+  >
+    <div class="client-activity-editor-drawer__header">
+      <div>
+        <p class="client-activity-editor-drawer__eyebrow">
+          {{ clientActivityEditor.isEditing() ? 'Edit activity' : 'Create activity' }}
+        </p>
+        <h2 class="client-activity-editor-drawer__title">
+          {{ clientActivityEditor.isEditing() ? 'Update client activity' : 'Add a new activity' }}
+        </h2>
+        <p class="client-activity-editor-drawer__copy">
+          {{ clientActivityEditor.isEditing()
+            ? 'Adjust the details of this logged activity.'
+            : 'Log a new interaction, milestone, or internal note for this client.' }}
+        </p>
+      </div>
+
+      <button
+        class="client-activity-editor-drawer__icon-button"
+        type="button"
+        aria-label="Close form"
+        (click)="clientActivityEditor.closeDrawer()"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">close</span>
+      </button>
+    </div>
+
+    <div class="client-activity-editor-drawer__body">
+      <form
+        class="client-activity-editor-drawer__form"
+        [formGroup]="clientActivityEditor.activityForm"
+        (ngSubmit)="clientActivityEditor.submitActivity()"
+      >
+        <div class="client-activity-editor-drawer__fields">
+          <label class="client-activity-editor-drawer__field">
+            <span>Activity type</span>
+            <select formControlName="activityType">
+              <option value="" disabled>Select a type</option>
+              @for (option of clientActivityEditor.activityTypeOptions; track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
+            @if (clientActivityEditor.hasActivityFieldError('activityType')) {
+              <strong>{{ clientActivityEditor.activityFieldError('activityType') }}</strong>
+            }
+          </label>
+
+          <label class="client-activity-editor-drawer__field">
+            <span>Title</span>
+            <input type="text" formControlName="title" placeholder="Kickoff call" />
+            @if (clientActivityEditor.hasActivityFieldError('title')) {
+              <strong>{{ clientActivityEditor.activityFieldError('title') }}</strong>
+            }
+          </label>
+
+          <label class="client-activity-editor-drawer__field">
+            <span>Occurred at</span>
+            <input type="datetime-local" formControlName="occurredAt" />
+            @if (clientActivityEditor.hasActivityFieldError('occurredAt')) {
+              <strong>{{ clientActivityEditor.activityFieldError('occurredAt') }}</strong>
+            }
+          </label>
+
+          <label class="client-activity-editor-drawer__field client-activity-editor-drawer__field--wide">
+            <span>Description</span>
+            <textarea formControlName="description" rows="5" placeholder="Meeting notes, follow-up actions, context..."></textarea>
+            @if (clientActivityEditor.hasActivityFieldError('description')) {
+              <strong>{{ clientActivityEditor.activityFieldError('description') }}</strong>
+            }
+          </label>
+        </div>
+
+        <footer class="client-activity-editor-drawer__footer">
+          <button class="btn btn--secondary" type="button" (click)="clientActivityEditor.closeDrawer()">Cancel</button>
+          <button class="btn btn--primary" type="submit" [disabled]="clientActivityEditor.isSaving()">
+            @if (clientActivityEditor.isSaving()) {
+              <span class="material-symbols-outlined" aria-hidden="true">progress_activity</span>
+            } @else {
+              <span class="material-symbols-outlined" aria-hidden="true">{{ clientActivityEditor.isEditing() ? 'save' : 'add' }}</span>
+            }
+            {{ clientActivityEditor.isEditing() ? 'Save changes' : 'Create activity' }}
+          </button>
+        </footer>
+      </form>
+    </div>
+  </aside>
+}

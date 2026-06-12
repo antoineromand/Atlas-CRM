@@ -5,6 +5,7 @@ import com.antoineromand.atlascrm.account.application.usecase.account.PatchValue
 import com.antoineromand.atlascrm.account.domain.Account;
 import com.antoineromand.atlascrm.api.client.dto.CreateClientRequestDto;
 import com.antoineromand.atlascrm.api.client.dto.CreateClientResponseDto;
+import com.antoineromand.atlascrm.api.client.dto.CreateClientActivityRequestDto;
 import com.antoineromand.atlascrm.api.client.dto.CreateClientContactRequestDto;
 import com.antoineromand.atlascrm.api.client.dto.ClientActivityResponseDto;
 import com.antoineromand.atlascrm.api.client.dto.ClientContactResponseDto;
@@ -12,10 +13,16 @@ import com.antoineromand.atlascrm.api.client.dto.ClientDetailResponseDto;
 import com.antoineromand.atlascrm.api.client.dto.ClientPageResponseDto;
 import com.antoineromand.atlascrm.api.client.dto.ClientResponseDto;
 import com.antoineromand.atlascrm.api.client.dto.ClientTagResponseDto;
+import com.antoineromand.atlascrm.api.client.dto.UpdateClientActivityRequestDto;
 import com.antoineromand.atlascrm.api.client.dto.UpdateClientContactRequestDto;
 import com.antoineromand.atlascrm.api.mission.dto.MissionResponseDto;
 import com.antoineromand.atlascrm.client.application.usecase.create.CreateClientCommand;
 import com.antoineromand.atlascrm.client.application.usecase.create.ICreateClientUseCase;
+import com.antoineromand.atlascrm.client.application.usecase.activity.create.CreateClientActivityCommand;
+import com.antoineromand.atlascrm.client.application.usecase.activity.create.ICreateClientActivityUseCase;
+import com.antoineromand.atlascrm.client.application.usecase.activity.delete.IDeleteClientActivityUseCase;
+import com.antoineromand.atlascrm.client.application.usecase.activity.update.IUpdateClientActivityUseCase;
+import com.antoineromand.atlascrm.client.application.usecase.activity.update.UpdateClientActivityCommand;
 import com.antoineromand.atlascrm.client.application.usecase.delete.IDeleteClientUseCase;
 import com.antoineromand.atlascrm.client.application.usecase.get.ClientDetailResult;
 import com.antoineromand.atlascrm.client.application.usecase.get.IGetClientUseCase;
@@ -58,6 +65,9 @@ public class ClientController {
   private final IGetClientUseCase getClientUseCase;
   private final IUpdateClientUseCase updateClientUseCase;
   private final IDeleteClientUseCase deleteClientUseCase;
+  private final ICreateClientActivityUseCase createClientActivityUseCase;
+  private final IUpdateClientActivityUseCase updateClientActivityUseCase;
+  private final IDeleteClientActivityUseCase deleteClientActivityUseCase;
   private final ICreateClientContactUseCase createClientContactUseCase;
   private final IUpdateClientContactUseCase updateClientContactUseCase;
   private final IDeleteClientContactUseCase deleteClientContactUseCase;
@@ -69,6 +79,9 @@ public class ClientController {
       IGetClientUseCase getClientUseCase,
       IUpdateClientUseCase updateClientUseCase,
       IDeleteClientUseCase deleteClientUseCase,
+      ICreateClientActivityUseCase createClientActivityUseCase,
+      IUpdateClientActivityUseCase updateClientActivityUseCase,
+      IDeleteClientActivityUseCase deleteClientActivityUseCase,
       ICreateClientContactUseCase createClientContactUseCase,
       IUpdateClientContactUseCase updateClientContactUseCase,
       IDeleteClientContactUseCase deleteClientContactUseCase,
@@ -78,6 +91,9 @@ public class ClientController {
     this.getClientUseCase = getClientUseCase;
     this.updateClientUseCase = updateClientUseCase;
     this.deleteClientUseCase = deleteClientUseCase;
+    this.createClientActivityUseCase = createClientActivityUseCase;
+    this.updateClientActivityUseCase = updateClientActivityUseCase;
+    this.deleteClientActivityUseCase = deleteClientActivityUseCase;
     this.createClientContactUseCase = createClientContactUseCase;
     this.updateClientContactUseCase = updateClientContactUseCase;
     this.deleteClientContactUseCase = deleteClientContactUseCase;
@@ -136,6 +152,46 @@ public class ClientController {
                 this.patchString(body, "status", 32),
                 this.patchString(body, "notes", Integer.MAX_VALUE)));
     return ResponseEntity.ok(this.toResponse(updated));
+  }
+
+  @PostMapping("/{clientId}/activities")
+  public ResponseEntity<ClientActivityResponseDto> createClientActivity(
+      Principal principal,
+      @PathVariable UUID clientId,
+      @Valid @RequestBody CreateClientActivityRequestDto dto) {
+    Account account = this.getAccountUseCase.execute(this.extractCredentialsId(principal));
+    ClientActivity activity =
+        this.createClientActivityUseCase.execute(
+            account.getId(),
+            clientId,
+            new CreateClientActivityCommand(
+                dto.activityType(), dto.title(), dto.description(), dto.occurredAt()));
+    return ResponseEntity.status(HttpStatus.CREATED).body(this.toResponse(activity));
+  }
+
+  @PatchMapping("/{clientId}/activities/{activityId}")
+  public ResponseEntity<ClientActivityResponseDto> updateClientActivity(
+      Principal principal,
+      @PathVariable UUID clientId,
+      @PathVariable UUID activityId,
+      @Valid @RequestBody UpdateClientActivityRequestDto dto) {
+    Account account = this.getAccountUseCase.execute(this.extractCredentialsId(principal));
+    ClientActivity activity =
+        this.updateClientActivityUseCase.execute(
+            account.getId(),
+            clientId,
+            activityId,
+            new UpdateClientActivityCommand(
+                dto.activityType(), dto.title(), dto.description(), dto.occurredAt()));
+    return ResponseEntity.ok(this.toResponse(activity));
+  }
+
+  @DeleteMapping("/{clientId}/activities/{activityId}")
+  public ResponseEntity<Void> deleteClientActivity(
+      Principal principal, @PathVariable UUID clientId, @PathVariable UUID activityId) {
+    Account account = this.getAccountUseCase.execute(this.extractCredentialsId(principal));
+    this.deleteClientActivityUseCase.execute(account.getId(), clientId, activityId);
+    return ResponseEntity.noContent().build();
   }
 
   @PostMapping("/{clientId}/contacts")

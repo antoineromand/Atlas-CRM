@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {
+  CreateClientActivityPayload,
   CreateClientContactPayload,
   CreateClientPayload,
   CreateClientResponse,
@@ -9,6 +10,7 @@ import {
   ClientContactResponse,
   ClientPageResponse,
   ClientStatus,
+  UpdateClientActivityPayload,
   UpdateClientContactPayload,
   UpdateClientPayload,
 } from '../../interface/client.interface';
@@ -66,6 +68,19 @@ export class ClientService {
     });
   }
 
+  createClientActivity(
+    clientId: string,
+    payload: CreateClientActivityPayload,
+  ): Observable<ClientDetailResponse['activities'][number]> {
+    return this.httpClient.post<ClientDetailResponse['activities'][number]>(
+      `${this.baseUrl}/${clientId}/activities`,
+      payload,
+      {
+        withCredentials: true,
+      },
+    );
+  }
+
   updateClientContact(
     clientId: string,
     contactId: string,
@@ -76,8 +91,28 @@ export class ClientService {
     });
   }
 
+  updateClientActivity(
+    clientId: string,
+    activityId: string,
+    payload: UpdateClientActivityPayload,
+  ): Observable<ClientDetailResponse['activities'][number]> {
+    return this.httpClient.patch<ClientDetailResponse['activities'][number]>(
+      `${this.baseUrl}/${clientId}/activities/${activityId}`,
+      payload,
+      {
+        withCredentials: true,
+      },
+    );
+  }
+
   deleteClientContact(clientId: string, contactId: string): Observable<void> {
     return this.httpClient.delete<void>(`${this.baseUrl}/${clientId}/contacts/${contactId}`, {
+      withCredentials: true,
+    });
+  }
+
+  deleteClientActivity(clientId: string, activityId: string): Observable<void> {
+    return this.httpClient.delete<void>(`${this.baseUrl}/${clientId}/activities/${activityId}`, {
       withCredentials: true,
     });
   }
