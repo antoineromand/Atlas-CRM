@@ -16,7 +16,7 @@
       <p>{{ loadError() }}</p>
       <div class="client-actions client-actions--center">
         <button type="button" class="client-button client-button--ghost" (click)="goBack()">Back to clients</button>
-        <button type="button" class="client-button client-button--primary" (click)="editClient()">Edit Profile</button>
+        <button type="button" class="client-button client-button--primary" (click)="reloadClient()">Retry</button>
       </div>
     </section>
   } @else {
@@ -63,6 +63,8 @@
         </button>
       </div>
     </section>
+
+    <app-client-editor-drawer />
 
     <section class="client-summary-grid">
       @for (card of currentSummaryCards; track card.label) {

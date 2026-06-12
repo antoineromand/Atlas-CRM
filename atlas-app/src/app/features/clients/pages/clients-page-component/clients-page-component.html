@@ -211,70 +211,7 @@
     (next)="goToNextPage()"
   />
 
-  @if (drawerOpen()) {
-    <div class="clients-page__overlay" (click)="closeDrawer()"></div>
-    <aside class="clients-page__drawer surface-card" role="dialog" aria-modal="true" aria-label="Client form">
-      <div class="clients-page__drawer-header">
-        <div>
-          <p class="clients-page__eyebrow">{{ isEditing ? 'Edit client' : 'Create client' }}</p>
-          <h2 class="clients-page__drawer-title">{{ isEditing ? 'Update client profile' : 'Add a new client' }}</h2>
-          <p class="clients-page__drawer-copy">
-            {{ isEditing
-              ? 'Adjust the company name, status, and notes for this client.'
-              : 'Create the company record that will be used across the CRM.' }}
-          </p>
-        </div>
-        <button class="clients-page__icon-button" type="button" aria-label="Close form" (click)="closeDrawer()">
-          <span class="material-symbols-outlined" aria-hidden="true">close</span>
-        </button>
-      </div>
-
-      @if (drawerLoading()) {
-        <div class="clients-page__drawer-loading">
-          <span class="clients-page__refresh-pill">Loading client data</span>
-        </div>
-      } @else {
-        <form class="clients-page__form" [formGroup]="clientForm" (ngSubmit)="submitClient()">
-          <label class="clients-page__field clients-page__field--wide">
-            <span>Company name</span>
-            <input type="text" formControlName="companyName" placeholder="Nova Studio" />
-            @if (hasClientFieldError('companyName')) {
-              <strong>{{ clientFieldError('companyName') }}</strong>
-            }
-          </label>
-
-          <label class="clients-page__field">
-            <span>Status</span>
-            <select formControlName="status">
-              @for (status of clientStatusOptions; track status.value) {
-                <option [value]="status.value">{{ status.label }}</option>
-              }
-            </select>
-          </label>
-
-          <label class="clients-page__field clients-page__field--wide">
-            <span>Notes</span>
-            <textarea formControlName="notes" rows="6" placeholder="Internal CRM notes..."></textarea>
-            @if (hasClientFieldError('notes')) {
-              <strong>{{ clientFieldError('notes') }}</strong>
-            }
-          </label>
-
-          <footer class="clients-page__drawer-footer">
-            <button class="btn btn--secondary" type="button" (click)="closeDrawer()">Cancel</button>
-            <button class="btn btn--primary" type="submit" [disabled]="isSaving()">
-              @if (isSaving()) {
-                <span class="material-symbols-outlined" aria-hidden="true">progress_activity</span>
-              } @else {
-                <span class="material-symbols-outlined" aria-hidden="true">{{ isEditing ? 'save' : 'add' }}</span>
-              }
-              {{ isEditing ? 'Save changes' : 'Create client' }}
-            </button>
-          </footer>
-        </form>
-      }
-    </aside>
-  }
+  <app-client-editor-drawer />
 
   @if (deleteTarget()) {
     <div class="clients-page__overlay" (click)="cancelDelete()"></div>

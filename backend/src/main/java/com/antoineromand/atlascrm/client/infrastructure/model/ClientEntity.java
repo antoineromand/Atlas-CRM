@@ -71,6 +71,12 @@ public class ClientEntity {
     this.updatedAt = updatedAt;
   }
 
+  public void updateFields(String companyName, String status, String notes) {
+    this.companyName = companyName;
+    this.status = status;
+    this.notes = notes;
+  }
+
   public static ClientEntity fromDomain(Client client, AccountEntity account) {
     return new ClientEntity(
         client.getId(),

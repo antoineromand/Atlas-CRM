@@ -1,28 +1,16 @@
 import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ClientEditorDrawerComponent } from '../../components/client-editor-drawer/client-editor-drawer.component';
+import { ClientEditorFacade } from '../../services/client-editor.facade';
 import { ClientPageFacade } from '../../services/client-page.facade';
 import { ClientService } from '../../../../core/services/client/client.service';
-import {
-  ClientDetailResponse,
-  ClientResponse,
-  ClientStatus,
-  CreateClientPayload,
-  CreateClientResponse,
-} from '../../../../core/interface/client.interface';
+import { ClientResponse, ClientStatus } from '../../../../core/interface/client.interface';
 import { NotificationService } from '../../../../core/services/notification/notification.service';
 import { PaginationBarComponent } from '../../../../shared/ui/pagination-bar/pagination-bar.component';
 
 type ClientFilterStatus = ClientStatus | 'all';
-type ClientDrawerMode = 'create' | 'edit';
-
-interface ClientFormControls {
-  companyName: FormControl<string>;
-  status: FormControl<ClientStatus>;
-  notes: FormControl<string>;
-}
 
 interface HeroCard {
   eyebrow: string;
@@ -33,12 +21,14 @@ interface HeroCard {
 @Component({
   selector: 'app-clients-page-component',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, PaginationBarComponent],
+  imports: [RouterLink, PaginationBarComponent, ClientEditorDrawerComponent],
   templateUrl: './clients-page-component.html',
   styleUrl: './clients-page-component.scss',
+  providers: [ClientEditorFacade],
 })
 export class ClientsPageComponent implements OnInit {
   private readonly clientPageFacade = inject(ClientPageFacade);
+  private readonly clientEditor = inject(ClientEditorFacade);
   private readonly clientService = inject(ClientService);
   private readonly notificationService = inject(NotificationService);
   private readonly router = inject(Router);
@@ -53,13 +43,7 @@ export class ClientsPageComponent implements OnInit {
   protected readonly searchTerm = this.clientPageFacade.searchTerm;
   protected readonly searchWarning = this.clientPageFacade.searchWarning;
   protected readonly selectedStatus = this.clientPageFacade.selectedStatus;
-
-  protected readonly drawerOpen = signal(false);
-  protected readonly drawerLoading = signal(false);
-  protected readonly drawerMode = signal<ClientDrawerMode>('create');
-  protected readonly editingClientId = signal<string | null>(null);
   protected readonly deleteTarget = signal<ClientResponse | null>(null);
-  protected readonly isSaving = signal(false);
   protected readonly isDeleting = signal(false);
 
   protected readonly statusFilters: readonly { value: ClientFilterStatus; label: string }[] = [
@@ -68,13 +52,6 @@ export class ClientsPageComponent implements OnInit {
     { value: 'prospect', label: 'Pending' },
     { value: 'inactive', label: 'Inactive' },
     { value: 'archived', label: 'Completed' },
-  ];
-
-  protected readonly clientStatusOptions: readonly { value: ClientStatus; label: string }[] = [
-    { value: 'prospect', label: 'Prospect' },
-    { value: 'active', label: 'Active' },
-    { value: 'inactive', label: 'Inactive' },
-    { value: 'archived', label: 'Archived' },
   ];
 
   protected readonly heroCards = computed<HeroCard[]>(() => {
@@ -103,21 +80,6 @@ export class ClientsPageComponent implements OnInit {
     return total > 0 ? Math.round((active / total) * 1000) / 10 : 0;
   });
 
-  protected readonly clientForm = new FormGroup<ClientFormControls>({
-    companyName: new FormControl('', {
-      nonNullable: true,
-      validators: [Validators.required, Validators.minLength(2), Validators.maxLength(200)],
-    }),
-    status: new FormControl<ClientStatus>('prospect', {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
-    notes: new FormControl('', {
-      nonNullable: true,
-      validators: [Validators.maxLength(4000)],
-    }),
-  });
-
   ngOnInit(): void {
     this.clientPageFacade.initialize();
 
@@ -126,12 +88,23 @@ export class ClientsPageComponent implements OnInit {
       const editParam = params.get('edit');
 
       if (editParam) {
-        void this.openEditDrawer(editParam, false);
+        const isSameEdit =
+          this.clientEditor.drawerVisible() &&
+          this.clientEditor.drawerMode() === 'edit' &&
+          this.clientEditor.editingClientId() === editParam;
+
+        if (!isSameEdit) {
+          this.clientEditor.openEditDrawer(editParam, false);
+        }
         return;
       }
 
       if (createParam === '1') {
-        this.openCreateDrawer(false);
+        const isSameCreate = this.clientEditor.drawerVisible() && this.clientEditor.drawerMode() === 'create';
+
+        if (!isSameCreate) {
+          this.clientEditor.openCreateDrawer(false);
+        }
       }
     });
   }
@@ -152,14 +125,6 @@ export class ClientsPageComponent implements OnInit {
     this.clientPageFacade.setStatus(status);
   }
 
-  protected resetFilters(): void {
-    this.clientPageFacade.resetFilters();
-  }
-
-  protected goToPage(page: number): void {
-    this.clientPageFacade.goToPage(page);
-  }
-
   protected goToPreviousPage(): void {
     this.clientPageFacade.goToPreviousPage();
   }
@@ -173,109 +138,11 @@ export class ClientsPageComponent implements OnInit {
   }
 
   protected openCreateDrawer(syncQueryParams = true): void {
-    this.drawerMode.set('create');
-    this.editingClientId.set(null);
-    this.deleteTarget.set(null);
-    this.patchClientForm(null);
-    this.drawerLoading.set(false);
-    this.drawerOpen.set(true);
-
-    if (syncQueryParams) {
-      void this.router.navigate([], {
-        relativeTo: this.route,
-        queryParams: { create: '1', edit: null },
-        queryParamsHandling: 'merge',
-      });
-    }
+    this.clientEditor.openCreateDrawer(syncQueryParams);
   }
 
   protected openEditDrawer(clientId: string, syncQueryParams = true): void {
-    this.drawerMode.set('edit');
-    this.deleteTarget.set(null);
-    this.drawerLoading.set(true);
-    this.editingClientId.set(clientId);
-
-    this.clientService.getClientById(clientId).subscribe({
-      next: (detail) => {
-        this.patchClientForm(detail.client);
-        this.drawerLoading.set(false);
-        this.drawerOpen.set(true);
-
-        if (syncQueryParams) {
-          void this.router.navigate([], {
-            relativeTo: this.route,
-            queryParams: { create: null, edit: clientId },
-            queryParamsHandling: 'merge',
-          });
-        }
-      },
-      error: (error: any) => {
-        this.drawerLoading.set(false);
-        this.editingClientId.set(null);
-        this.drawerOpen.set(false);
-        const message = error?.error?.message ?? 'Unable to load client for editing.';
-        this.notificationService.error(message, 'Clients unavailable');
-      },
-    });
-  }
-
-  protected closeDrawer(): void {
-    this.drawerOpen.set(false);
-    this.drawerLoading.set(false);
-    this.drawerMode.set('create');
-    this.editingClientId.set(null);
-    this.clientForm.markAsPristine();
-    this.clientForm.markAsUntouched();
-
-    void this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { create: null, edit: null },
-      queryParamsHandling: 'merge',
-    });
-  }
-
-  protected submitClient(): void {
-    if (this.drawerLoading() || this.clientForm.invalid) {
-      this.clientForm.markAllAsTouched();
-      return;
-    }
-
-    const payload = this.buildPayload();
-    this.isSaving.set(true);
-
-    if (this.editingClientId()) {
-      this.clientService
-        .updateClient(this.editingClientId()!, payload)
-        .pipe(finalize(() => this.isSaving.set(false)))
-        .subscribe({
-          next: () => {
-            this.notificationService.success('Client updated.');
-            this.closeDrawer();
-            this.clientPageFacade.reload();
-          },
-          error: (error: any) => {
-            const message = error?.error?.message ?? 'Unable to update client.';
-            this.notificationService.error(message, 'Clients unavailable');
-          },
-        });
-      return;
-    }
-
-    this.clientService
-      .createClient(payload)
-      .pipe(finalize(() => this.isSaving.set(false)))
-      .subscribe({
-        next: (response: CreateClientResponse) => {
-          this.notificationService.success(response.message || 'Client created.');
-          this.closeDrawer();
-          this.clientPageFacade.goToPage(1);
-          void this.router.navigate(['/dashboard/clients', response.clientId]);
-        },
-        error: (error: any) => {
-          const message = error?.error?.message ?? 'Unable to create client.';
-          this.notificationService.error(message, 'Clients unavailable');
-        },
-      });
+    this.clientEditor.openEditDrawer(clientId, syncQueryParams);
   }
 
   protected requestDelete(client: ClientResponse): void {
@@ -303,8 +170,8 @@ export class ClientsPageComponent implements OnInit {
           this.deleteTarget.set(null);
           this.clientPageFacade.reload();
         },
-        error: (error: any) => {
-          const message = error?.error?.message ?? 'Unable to delete client.';
+        error: (error: unknown) => {
+          const message = this.extractErrorMessage(error, 'Unable to delete client.');
           this.notificationService.error(message, 'Clients unavailable');
         },
       });
@@ -352,67 +219,8 @@ export class ClientsPageComponent implements OnInit {
     return statusBasedCount[client.status] ?? Math.max(1, 4 - index);
   }
 
-  protected hasClientFieldError(controlName: keyof ClientFormControls): boolean {
-    const control = this.clientForm.controls[controlName];
-    return control.invalid && (control.dirty || control.touched);
-  }
-
-  protected clientFieldError(controlName: keyof ClientFormControls): string {
-    const control = this.clientForm.controls[controlName];
-
-    if (!control.errors) {
-      return '';
-    }
-
-    if (control.errors['required']) {
-      return 'This field is required.';
-    }
-
-    if (control.errors['minlength']) {
-      return `Use at least ${control.errors['minlength'].requiredLength} characters.`;
-    }
-
-    if (control.errors['maxlength']) {
-      return `Use at most ${control.errors['maxlength'].requiredLength} characters.`;
-    }
-
-    return 'Please check this field.';
-  }
-
-  protected get isEditing(): boolean {
-    return this.drawerMode() === 'edit';
-  }
-
-  private patchClientForm(client: ClientDetailResponse['client'] | ClientResponse | null): void {
-    this.clientForm.patchValue(
-      client
-        ? {
-            companyName: client.companyName ?? '',
-            status: client.status,
-            notes: client.notes ?? '',
-          }
-        : {
-            companyName: '',
-            status: 'prospect',
-            notes: '',
-          },
-      { emitEvent: false },
-    );
-
-    this.clientForm.markAsPristine();
-    this.clientForm.markAsUntouched();
-  }
-
-  private buildPayload(): CreateClientPayload {
-    return {
-      companyName: this.normalize(this.clientForm.controls.companyName.value) ?? '',
-      status: this.clientForm.controls.status.value,
-      notes: this.normalize(this.clientForm.controls.notes.value),
-    };
-  }
-
-  private normalize(value: string | null | undefined): string | null {
-    const trimmed = value?.trim() ?? '';
-    return trimmed.length > 0 ? trimmed : null;
+  private extractErrorMessage(error: unknown, fallback: string): string {
+    const response = error as { error?: { message?: string } } | null | undefined;
+    return response?.error?.message ?? fallback;
   }
 }

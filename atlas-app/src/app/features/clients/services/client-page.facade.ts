@@ -5,11 +5,6 @@ import { ClientPageResponse, ClientStatus } from '../../../core/interface/client
 import { NotificationService } from '../../../core/services/notification/notification.service';
 
 type ClientFilterStatus = ClientStatus | 'all';
-type ClientPaginationItem = {
-  key: string;
-  kind: 'page' | 'ellipsis';
-  page: number;
-};
 
 @Injectable({
   providedIn: 'root',
@@ -111,47 +106,6 @@ export class ClientPageFacade {
     this.loadClients('', 'all', 1);
   }
 
-  paginationItems(): ClientPaginationItem[] {
-    const pagination = this.paginatedClients();
-    if (!pagination || pagination.totalPages <= 0) {
-      return [];
-    }
-
-    const totalPages = pagination.totalPages;
-    const currentPage = pagination.page;
-    const items: ClientPaginationItem[] = [];
-    const pushPage = (page: number): void => {
-      items.push({ key: `page-${page}`, kind: 'page', page });
-    };
-
-    if (totalPages <= 7) {
-      for (let page = 1; page <= totalPages; page += 1) {
-        pushPage(page);
-      }
-      return items;
-    }
-
-    pushPage(1);
-
-    const left = Math.max(2, currentPage - 1);
-    const right = Math.min(totalPages - 1, currentPage + 1);
-
-    if (left > 2) {
-      items.push({ key: 'ellipsis-left', kind: 'ellipsis', page: -1 });
-    }
-
-    for (let page = left; page <= right; page += 1) {
-      pushPage(page);
-    }
-
-    if (right < totalPages - 1) {
-      items.push({ key: 'ellipsis-right', kind: 'ellipsis', page: -1 });
-    }
-
-    pushPage(totalPages);
-    return items;
-  }
-
   private loadClients(
     search: string | null | undefined = this.searchTerm(),
     status: ClientFilterStatus = this.selectedStatus(),
@@ -179,8 +133,8 @@ export class ClientPageFacade {
           this.paginatedClients.set(paginatedClients);
           this.currentPage.set(paginatedClients.page);
         },
-        error: (error: any) => {
-          const message = error?.error?.message ?? 'Unable to load clients.';
+        error: (error: unknown) => {
+          const message = this.extractErrorMessage(error, 'Unable to load clients.');
 
           if (hasExistingContent) {
             this.notificationService.error(message, 'Clients unavailable');
@@ -220,5 +174,10 @@ export class ClientPageFacade {
 
     clearTimeout(this.searchDebounceTimer);
     this.searchDebounceTimer = null;
+  }
+
+  private extractErrorMessage(error: unknown, fallback: string): string {
+    const response = error as { error?: { message?: string } } | null | undefined;
+    return response?.error?.message ?? fallback;
   }
 }

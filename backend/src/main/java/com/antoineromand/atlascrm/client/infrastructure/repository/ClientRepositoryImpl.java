@@ -29,7 +29,20 @@ public class ClientRepositoryImpl implements IClientRepository {
         this.accountJpaRepository
             .findById(client.getAccountId())
             .orElseThrow(() -> new IllegalArgumentException("Account not found"));
-    ClientEntity saved = this.clientJpaRepository.save(ClientEntity.fromDomain(client, account));
+
+    ClientEntity entity =
+        client.getId() == null
+            ? ClientEntity.fromDomain(client, account)
+            : this.clientJpaRepository
+                .findByIdAndAccount_Id(client.getId(), account.getId())
+                .map(
+                    existing -> {
+                      existing.updateFields(client.getCompanyName(), client.getStatus(), client.getNotes());
+                      return existing;
+                    })
+                .orElseThrow(() -> new IllegalArgumentException("Client not found"));
+
+    ClientEntity saved = this.clientJpaRepository.save(entity);
     return saved.getId();
   }
 

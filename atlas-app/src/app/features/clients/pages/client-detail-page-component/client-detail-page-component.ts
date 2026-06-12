@@ -2,6 +2,8 @@ import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angula
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ClientEditorDrawerComponent } from '../../components/client-editor-drawer/client-editor-drawer.component';
+import { ClientEditorFacade } from '../../services/client-editor.facade';
 import { ClientService } from '../../../../core/services/client/client.service';
 import {
   ClientActivityResponse,
@@ -28,13 +30,15 @@ interface TimelineItem {
 @Component({
   selector: 'app-client-detail-page-component',
   standalone: true,
-  imports: [],
+  imports: [ClientEditorDrawerComponent],
   templateUrl: './client-detail-page-component.html',
   styleUrl: './client-detail-page-component.scss',
+  providers: [ClientEditorFacade],
 })
 export class ClientDetailPageComponent implements OnInit {
   private readonly clientService = inject(ClientService);
   private readonly notificationService = inject(NotificationService);
+  private readonly clientEditor = inject(ClientEditorFacade);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
@@ -42,6 +46,7 @@ export class ClientDetailPageComponent implements OnInit {
   protected readonly clientDetail = signal<ClientDetailResponse | null>(null);
   protected readonly isLoading = signal(true);
   protected readonly loadError = signal<string | null>(null);
+  private currentClientId: string | null = null;
 
   protected readonly client = computed(() => this.clientDetail()?.client ?? null);
   protected readonly contacts = computed(() => this.clientDetail()?.contacts ?? []);
@@ -117,13 +122,23 @@ export class ClientDetailPageComponent implements OnInit {
       const clientId = params.get('clientId');
 
       if (!clientId) {
+        this.currentClientId = null;
         this.loadError.set('Missing client identifier.');
         this.isLoading.set(false);
         this.clientDetail.set(null);
         return;
       }
 
+      this.currentClientId = clientId;
       this.loadClient(clientId);
+    });
+
+    this.clientEditor.mutationCompleted.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      if (event.kind !== 'saved' || event.clientId !== this.currentClientId) {
+        return;
+      }
+
+      this.loadClient(event.clientId);
     });
   }
 
@@ -137,9 +152,15 @@ export class ClientDetailPageComponent implements OnInit {
       return;
     }
 
-    void this.router.navigate(['/dashboard/clients'], {
-      queryParams: { edit: client.id },
-    });
+    this.clientEditor.openEditDrawer(client.id, false);
+  }
+
+  protected reloadClient(): void {
+    if (!this.currentClientId) {
+      return;
+    }
+
+    this.loadClient(this.currentClientId);
   }
 
   private loadClient(clientId: string): void {
@@ -158,9 +179,9 @@ export class ClientDetailPageComponent implements OnInit {
         next: (detail) => {
           this.clientDetail.set(detail);
         },
-        error: (error: any) => {
+        error: (error: unknown) => {
           this.clientDetail.set(null);
-          const message = error?.error?.message ?? 'Unable to load client details.';
+          const message = this.extractErrorMessage(error, 'Unable to load client details.');
           this.loadError.set(message);
           this.notificationService.error(message, 'Client unavailable');
         },
@@ -242,6 +263,11 @@ export class ClientDetailPageComponent implements OnInit {
 
   protected clientUpdatedAtLabel(client: ClientDetailResponse['client'] | null): string {
     return this.formatTimeAgo(client?.updatedAt);
+  }
+
+  private extractErrorMessage(error: unknown, fallback: string): string {
+    const response = error as { error?: { message?: string } } | null | undefined;
+    return response?.error?.message ?? fallback;
   }
 
   protected clientNotes(client: ClientDetailResponse['client'] | null): string {
