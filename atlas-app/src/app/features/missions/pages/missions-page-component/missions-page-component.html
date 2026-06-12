@@ -52,9 +52,7 @@
     <div class="missions-page__search-group">
       <div class="missions-page__search-label-row">
         <span class="missions-page__search-label">Mission search</span>
-        <span class="missions-page__visible-pill pill">
-          {{ pagination()?.totalElements ?? missions().length }} total
-        </span>
+        <span class="missions-page__search-count">{{ pagination()?.totalElements ?? missions().length }} total</span>
       </div>
 
       <label
@@ -144,7 +142,6 @@
             <div class="missions-page__card-badge missions-page__card-badge--{{ mission.priority }}">
               {{ priorityLabel(mission.priority) }}
             </div>
-            <button class="missions-page__menu-button material-symbols-outlined" type="button" aria-label="More actions">more_vert</button>
           </div>
 
           <h2 class="missions-page__card-title">{{ mission.title }}</h2>
@@ -184,11 +181,10 @@
           </div>
 
           <footer class="missions-page__card-footer">
-            <div class="missions-page__assignees" aria-hidden="true">
-              <span class="missions-page__avatar missions-page__avatar--primary"></span>
-              <span class="missions-page__avatar missions-page__avatar--secondary"></span>
-              <span class="missions-page__avatar missions-page__avatar--tertiary"></span>
-            </div>
+            <button class="missions-page__details-link" type="button" (click)="requestDelete(mission)">
+              <span class="material-symbols-outlined" aria-hidden="true">delete_forever</span>
+              Delete
+            </button>
             <button class="missions-page__details-link" type="button" (click)="openEditDrawer(mission)">
               View Details
               <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
@@ -253,7 +249,7 @@
   @if (pagination()) {
     <section class="missions-page__pagination" aria-label="Mission pagination">
       <span class="missions-page__pagination-info">
-        Showing page {{ pagination()!.page }} of {{ pagination()!.totalPages }}
+        Showing {{ missions().length }} of {{ pagination()!.totalElements }} missions
       </span>
 
       @if (pagination()!.totalPages > 1) {
@@ -267,21 +263,7 @@
             <span class="material-symbols-outlined" aria-hidden="true">chevron_left</span>
           </button>
 
-          @for (item of paginationItems(); track item.key) {
-            @if (item.kind === 'ellipsis') {
-              <span class="missions-page__pagination-ellipsis">…</span>
-            } @else {
-              <button
-                class="missions-page__pagination-button missions-page__pagination-button--page"
-                type="button"
-                [class.is-active]="item.page === pagination()!.page"
-                (click)="goToPage(item.page)"
-                [disabled]="isRefreshing()"
-              >
-                {{ item.page }}
-              </button>
-            }
-          }
+          <span class="missions-page__pagination-page">{{ pagination()!.page }}</span>
 
           <button
             class="missions-page__pagination-button"

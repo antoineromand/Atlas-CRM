@@ -17,11 +17,6 @@ import { ClientResponse } from '../../../../core/interface/client.interface';
 import { NotificationService } from '../../../../core/services/notification/notification.service';
 
 type MissionViewMode = 'cards' | 'list';
-type MissionPaginationItem = {
-  key: string;
-  kind: 'page' | 'ellipsis';
-  page: number;
-};
 
 interface MissionFormControls {
   title: FormControl<string>;
@@ -75,6 +70,8 @@ export class MissionsPageComponent implements OnInit, OnDestroy {
   protected readonly editingMissionId = signal<string | null>(null);
   protected readonly isRefreshing = this.missionPageFacade.isRefreshing;
   protected readonly clients = signal<ClientResponse[]>([]);
+  protected readonly clientsLoaded = signal(false);
+  protected readonly clientsLoading = signal(false);
 
   protected readonly missionStats = computed<MissionStatCard[]>(() => {
     const summary = this.missionPageFacade.summary();
@@ -454,20 +451,12 @@ export class MissionsPageComponent implements OnInit, OnDestroy {
     return this.editingMissionId() === null;
   }
 
-  protected goToPage(page: number): void {
-    this.missionPageFacade.goToPage(page);
-  }
-
   protected goToPreviousPage(): void {
     this.missionPageFacade.goToPreviousPage();
   }
 
   protected goToNextPage(): void {
     this.missionPageFacade.goToNextPage();
-  }
-
-  protected paginationItems(): MissionPaginationItem[] {
-    return this.missionPageFacade.paginationItems();
   }
 
   private patchMissionForm(mission: MissionResponse | null): void {
@@ -543,13 +532,36 @@ export class MissionsPageComponent implements OnInit, OnDestroy {
   }
 
   private loadClients(): void {
-    this.clientService.listMyClients(null, null, 1, 100).subscribe({
-      next: (page) => this.clients.set(page.items),
-      error: (error: any) => {
-        const message = error?.error?.message ?? 'Unable to load clients.';
-        this.notificationService.error(message, 'Clients unavailable');
-      },
-    });
+    if (this.clientsLoading() || this.clientsLoaded()) {
+      return;
+    }
+
+    this.clientsLoading.set(true);
+    const collectedClients: ClientResponse[] = [];
+
+    const loadPage = (page: number): void => {
+      this.clientService.listMyClients(null, null, page, 50).subscribe({
+        next: (result) => {
+          collectedClients.push(...result.items);
+
+          if (result.hasNext) {
+            loadPage(page + 1);
+            return;
+          }
+
+          this.clients.set(collectedClients);
+          this.clientsLoaded.set(true);
+          this.clientsLoading.set(false);
+        },
+        error: (error: any) => {
+          this.clientsLoading.set(false);
+          const message = error?.error?.message ?? 'Unable to load clients.';
+          this.notificationService.error(message, 'Clients unavailable');
+        },
+      });
+    };
+
+    loadPage(1);
   }
 
 }

@@ -96,18 +96,17 @@
 }
 
 .missions-page__toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  padding: 1rem;
+  display: grid;
   gap: 1rem;
-  padding: 0.1rem 0 0;
+  border-radius: 1rem;
+  background: #f2f4f6;
 }
 
 .missions-page__search-group {
   display: grid;
   gap: 0.55rem;
   min-width: 0;
-  flex: 1 1 auto;
 }
 
 .missions-page__search-label-row {
@@ -126,36 +125,27 @@
   text-transform: uppercase;
 }
 
-.missions-page__visible-pill,
-.missions-page__refresh-pill {
+.missions-page__search-count {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
   min-height: 2rem;
   padding: 0 0.75rem;
   border-radius: 9999px;
-  background: #f2f4f6;
+  background: #ffffff;
   color: #091426;
   font-family: var(--font-label);
   font-size: 0.75rem;
   font-weight: 700;
 }
 
-.missions-page__pill-dot {
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 9999px;
-  background: currentColor;
-  opacity: 0.7;
-}
-
 .missions-page__search {
   display: flex;
   align-items: center;
   gap: 0.8rem;
-  min-height: 3.25rem;
-  padding: 0.25rem 0.35rem;
-  border-radius: 1rem;
+  min-height: 4rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 1.15rem;
   background: #ffffff;
   border: 1px solid #e2e8f0;
   box-shadow: 0 4px 20px rgba(30, 41, 59, 0.05);
@@ -176,8 +166,8 @@
 .missions-page__search-clear {
   display: inline-grid;
   place-items: center;
-  width: 2rem;
-  height: 2rem;
+  width: 2.5rem;
+  height: 2.5rem;
   border-radius: 9999px;
   flex: 0 0 auto;
 }
@@ -190,16 +180,32 @@
 .missions-page__search input {
   width: 100%;
   min-width: 0;
+  flex: 1 1 auto;
   border: 0;
   outline: 0;
   background: transparent;
   color: #091426;
   font-family: var(--font-body);
-  font-size: 0.95rem;
+  font-size: 1.05rem;
+  line-height: 1.4;
+}
+
+.missions-page__search input::-webkit-search-decoration,
+.missions-page__search input::-webkit-search-cancel-button,
+.missions-page__search input::-webkit-search-results-button,
+.missions-page__search input::-webkit-search-results-decoration {
+  display: none;
+  -webkit-appearance: none;
 }
 
 .missions-page__search-clear {
+  display: inline-grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
   border: 0;
+  padding: 0;
+  border-radius: 9999px;
   background: #f1f5f9;
   color: #54647a;
 }
@@ -222,10 +228,16 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
   position: relative;
+  align-content: start;
+  min-height: clamp(24rem, 48vh, 36rem);
 }
 
 .missions-page__grid--loading {
   grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.missions-page__grid--refreshing {
+  min-height: clamp(24rem, 48vh, 36rem);
 }
 
 .missions-page__card,
@@ -506,6 +518,7 @@
 .missions-page__list {
   overflow: hidden;
   position: relative;
+  min-height: clamp(18rem, 36vh, 28rem);
 }
 
 .missions-page__list-head,
@@ -657,20 +670,13 @@
   color: #505f76;
 }
 
-.missions-page__pagination-button--page {
+.missions-page__pagination-page {
   min-width: 2rem;
-  width: auto;
-  padding: 0 0.65rem;
-}
-
-.missions-page__pagination-button--page.is-active {
-  background: #091426;
-  color: #ffffff;
-  border-color: #091426;
-}
-
-.missions-page__pagination-ellipsis {
-  color: #94a3b8;
+  text-align: center;
+  color: #091426;
+  font-family: var(--font-label);
+  font-size: 0.95rem;
+  font-weight: 700;
 }
 
 .missions-page__message {
@@ -904,11 +910,41 @@
     grid-template-columns: 1fr;
   }
 
+  .missions-page__grid,
+  .missions-page__grid--loading,
+  .missions-page__grid--refreshing {
+    min-height: clamp(22rem, 42vh, 32rem);
+  }
+
+  .missions-page__list {
+    min-height: clamp(16rem, 30vh, 24rem);
+  }
+
   .missions-page__toolbar,
   .missions-page__message,
   .missions-page__pagination {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .missions-page__toolbar {
+    align-items: stretch;
+  }
+
+  .missions-page__search-group {
+    gap: 0.9rem;
+    padding: 1rem;
+  }
+
+  .missions-page__search-label-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .missions-page__search {
+    width: 100%;
+    min-height: 3.5rem;
+    padding: 0.35rem 0.5rem;
   }
 
   .missions-page__list-head {
@@ -929,6 +965,16 @@
     padding: 1rem;
   }
 
+  .missions-page__grid,
+  .missions-page__grid--loading,
+  .missions-page__grid--refreshing {
+    min-height: clamp(18rem, 34vh, 28rem);
+  }
+
+  .missions-page__list {
+    min-height: clamp(14rem, 26vh, 22rem);
+  }
+
   .missions-page__header,
   .missions-page__header-actions {
     flex-direction: column;
@@ -946,6 +992,33 @@
 
   .missions-page__create-button {
     width: 100%;
+  }
+
+  .missions-page__toolbar {
+    width: 100%;
+    gap: 0.85rem;
+    padding: 0.85rem;
+  }
+
+  .missions-page__search-group {
+    width: 100%;
+    padding: 0.9rem;
+    border-radius: 1.25rem;
+  }
+
+  .missions-page__search-label-row {
+    gap: 0.75rem;
+  }
+
+  .missions-page__search {
+    width: 100%;
+    min-height: 3.35rem;
+    padding: 0.3rem 0.45rem;
+    border-radius: 1rem;
+  }
+
+  .missions-page__search-count {
+    align-self: flex-start;
   }
 
   .missions-page__drawer {
