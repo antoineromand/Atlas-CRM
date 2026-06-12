@@ -26,7 +26,6 @@ import com.antoineromand.atlascrm.mission.domain.Mission;
 import jakarta.validation.Valid;
 import java.security.Principal;
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;

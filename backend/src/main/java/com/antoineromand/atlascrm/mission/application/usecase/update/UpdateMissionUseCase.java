@@ -4,7 +4,6 @@ import com.antoineromand.atlascrm.client.application.exceptions.ClientNotFoundEx
 import com.antoineromand.atlascrm.client.domain.repository.IClientRepository;
 import com.antoineromand.atlascrm.mission.application.exceptions.MissionNotFoundException;
 import com.antoineromand.atlascrm.mission.domain.Mission;
-import com.antoineromand.atlascrm.mission.domain.MissionStatus;
 import com.antoineromand.atlascrm.mission.domain.repository.IMissionRepository;
 import java.time.Instant;
 import java.util.UUID;

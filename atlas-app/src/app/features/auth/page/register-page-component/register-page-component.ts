@@ -22,7 +22,7 @@ export class RegisterPageComponent {
         Validators.required,
         Validators.minLength(8),
         Validators.pattern(
-          /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[#?!@$%^&*+\-]).{8,}$/
+          /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[#?!@$%^&*+-]).{8,}$/
         ),
       ]),
       firstName: new FormControl<string | null>(null, [Validators.required, Validators.minLength(2)]),
