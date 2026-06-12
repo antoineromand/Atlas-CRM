@@ -65,6 +65,7 @@
     </section>
 
     <app-client-editor-drawer />
+    <app-client-contact-editor-drawer />
 
     <section class="client-summary-grid">
       @for (card of currentSummaryCards; track card.label) {
@@ -86,7 +87,7 @@
         <article class="bento-card">
           <div class="client-card-header">
             <h3 class="font-headline-md text-headline-md text-primary">Team Contacts</h3>
-            <button class="client-link-button" type="button">
+            <button class="client-link-button" type="button" (click)="openCreateContactDrawer()">
               <span class="material-symbols-outlined" aria-hidden="true">person_add</span>
               Add Contact
             </button>
@@ -105,6 +106,16 @@
                     <p>{{ contact.role }}</p>
                   </div>
                 </div>
+                <div class="contact-card__actions">
+                  <button class="contact-card__action-button" type="button" (click)="openEditContactDrawer(contact)">
+                    <span class="material-symbols-outlined" aria-hidden="true">edit</span>
+                    Edit
+                  </button>
+                  <button class="contact-card__action-button contact-card__action-button--danger" type="button" (click)="requestDeleteContact(contact)">
+                    <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+                    Delete
+                  </button>
+                </div>
                 <div class="contact-card__details">
                   <div class="contact-card__row">
                     <span class="material-symbols-outlined" aria-hidden="true">mail</span>
@@ -118,10 +129,10 @@
               </article>
             }
 
-            <article class="contact-card contact-card--placeholder">
+            <button class="contact-card contact-card--placeholder" type="button" (click)="openCreateContactDrawer()">
               <span class="material-symbols-outlined" aria-hidden="true">add_circle</span>
               <span>Add new contact</span>
-            </article>
+            </button>
           </div>
         </article>
 
@@ -227,5 +238,29 @@
         </article>
       </div>
     </section>
+
+    @if (contactDeleteTarget()) {
+      <div class="client-detail-shell__confirm-overlay" (click)="cancelDeleteContact()"></div>
+      <aside class="client-detail-shell__confirm surface-card" role="dialog" aria-modal="true" aria-label="Confirm contact deletion">
+        <p class="client-detail-shell__confirm-eyebrow">Delete contact</p>
+        <h2 class="client-detail-shell__confirm-title">
+          Delete {{ contactDeleteTarget()?.firstName || 'this' }} {{ contactDeleteTarget()?.lastName || 'contact' }}?
+        </h2>
+        <p class="client-detail-shell__confirm-copy">
+          This action permanently removes the contact from the client profile.
+        </p>
+        <footer class="client-detail-shell__confirm-footer">
+          <button class="btn btn--secondary" type="button" (click)="cancelDeleteContact()">Cancel</button>
+          <button class="btn btn--primary" type="button" [disabled]="isDeletingContact()" (click)="confirmDeleteContact()">
+            @if (isDeletingContact()) {
+              <span class="material-symbols-outlined" aria-hidden="true">progress_activity</span>
+            } @else {
+              <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+            }
+            Delete contact
+          </button>
+        </footer>
+      </aside>
+    }
   }
 </div>

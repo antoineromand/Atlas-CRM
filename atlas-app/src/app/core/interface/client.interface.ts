@@ -70,6 +70,24 @@ export interface UpdateClientPayload {
   notes?: string | null;
 }
 
+export interface CreateClientContactPayload {
+  firstName: string;
+  lastName: string;
+  email: string | null;
+  phone: string | null;
+  jobTitle: string | null;
+  primary: boolean;
+}
+
+export interface UpdateClientContactPayload {
+  firstName: string | null;
+  lastName: string | null;
+  email: string | null;
+  phone: string | null;
+  jobTitle: string | null;
+  primary: boolean;
+}
+
 export interface CreateClientResponse {
   clientId: string;
   message: string;

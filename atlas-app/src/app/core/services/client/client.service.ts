@@ -2,11 +2,14 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {
+  CreateClientContactPayload,
   CreateClientPayload,
   CreateClientResponse,
   ClientDetailResponse,
+  ClientContactResponse,
   ClientPageResponse,
   ClientStatus,
+  UpdateClientContactPayload,
   UpdateClientPayload,
 } from '../../interface/client.interface';
 import { environment } from '../../../../environments/environment';
@@ -53,6 +56,28 @@ export class ClientService {
 
   updateClient(clientId: string, payload: UpdateClientPayload): Observable<ClientDetailResponse['client']> {
     return this.httpClient.patch<ClientDetailResponse['client']>(`${this.baseUrl}/${clientId}`, payload, {
+      withCredentials: true,
+    });
+  }
+
+  createClientContact(clientId: string, payload: CreateClientContactPayload): Observable<ClientContactResponse> {
+    return this.httpClient.post<ClientContactResponse>(`${this.baseUrl}/${clientId}/contacts`, payload, {
+      withCredentials: true,
+    });
+  }
+
+  updateClientContact(
+    clientId: string,
+    contactId: string,
+    payload: UpdateClientContactPayload,
+  ): Observable<ClientContactResponse> {
+    return this.httpClient.patch<ClientContactResponse>(`${this.baseUrl}/${clientId}/contacts/${contactId}`, payload, {
+      withCredentials: true,
+    });
+  }
+
+  deleteClientContact(clientId: string, contactId: string): Observable<void> {
+    return this.httpClient.delete<void>(`${this.baseUrl}/${clientId}/contacts/${contactId}`, {
       withCredentials: true,
     });
   }

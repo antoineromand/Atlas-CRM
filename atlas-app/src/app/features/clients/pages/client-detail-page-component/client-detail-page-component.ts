@@ -3,7 +3,9 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ClientEditorDrawerComponent } from '../../components/client-editor-drawer/client-editor-drawer.component';
+import { ClientContactEditorDrawerComponent } from '../../components/client-contact-editor-drawer/client-contact-editor-drawer.component';
 import { ClientEditorFacade } from '../../services/client-editor.facade';
+import { ClientContactEditorFacade } from '../../services/client-contact-editor.facade';
 import { ClientService } from '../../../../core/services/client/client.service';
 import {
   ClientActivityResponse,
@@ -30,15 +32,16 @@ interface TimelineItem {
 @Component({
   selector: 'app-client-detail-page-component',
   standalone: true,
-  imports: [ClientEditorDrawerComponent],
+  imports: [ClientEditorDrawerComponent, ClientContactEditorDrawerComponent],
   templateUrl: './client-detail-page-component.html',
   styleUrl: './client-detail-page-component.scss',
-  providers: [ClientEditorFacade],
+  providers: [ClientEditorFacade, ClientContactEditorFacade],
 })
 export class ClientDetailPageComponent implements OnInit {
   private readonly clientService = inject(ClientService);
   private readonly notificationService = inject(NotificationService);
   private readonly clientEditor = inject(ClientEditorFacade);
+  private readonly clientContactEditor = inject(ClientContactEditorFacade);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
@@ -46,6 +49,8 @@ export class ClientDetailPageComponent implements OnInit {
   protected readonly clientDetail = signal<ClientDetailResponse | null>(null);
   protected readonly isLoading = signal(true);
   protected readonly loadError = signal<string | null>(null);
+  protected readonly contactDeleteTarget = signal<ClientContactResponse | null>(null);
+  protected readonly isDeletingContact = signal(false);
   private currentClientId: string | null = null;
 
   protected readonly client = computed(() => this.clientDetail()?.client ?? null);
@@ -140,6 +145,14 @@ export class ClientDetailPageComponent implements OnInit {
 
       this.loadClient(event.clientId);
     });
+
+    this.clientContactEditor.mutationCompleted.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      if (event.clientId !== this.currentClientId) {
+        return;
+      }
+
+      this.loadClient(event.clientId);
+    });
   }
 
   protected goBack(): void {
@@ -153,6 +166,63 @@ export class ClientDetailPageComponent implements OnInit {
     }
 
     this.clientEditor.openEditDrawer(client.id, false);
+  }
+
+  protected openCreateContactDrawer(): void {
+    const client = this.client();
+    if (!client) {
+      return;
+    }
+
+    this.clientContactEditor.openCreateDrawer(client.id, !this.primaryContact());
+  }
+
+  protected openEditContactDrawer(contact: ClientContactResponse): void {
+    const client = this.client();
+    if (!client) {
+      return;
+    }
+
+    this.clientContactEditor.openEditDrawer(client.id, contact);
+  }
+
+  protected requestDeleteContact(contact: ClientContactResponse): void {
+    this.contactDeleteTarget.set(contact);
+  }
+
+  protected cancelDeleteContact(): void {
+    this.contactDeleteTarget.set(null);
+  }
+
+  protected confirmDeleteContact(): void {
+    const client = this.client();
+    const contact = this.contactDeleteTarget();
+
+    if (!client || !contact) {
+      return;
+    }
+
+    this.isDeletingContact.set(true);
+    this.clientService
+      .deleteClientContact(client.id, contact.id)
+      .pipe(
+        finalize(() => {
+          this.isDeletingContact.set(false);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: () => {
+          this.notificationService.success('Contact deleted.');
+          this.contactDeleteTarget.set(null);
+          this.clientContactEditor.closeDrawer();
+          this.loadClient(client.id);
+        },
+        error: (error: unknown) => {
+          const message = this.extractErrorMessage(error, 'Unable to delete contact.');
+          this.notificationService.error(message, 'Contacts unavailable');
+        },
+      });
   }
 
   protected reloadClient(): void {

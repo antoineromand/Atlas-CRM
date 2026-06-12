@@ -27,6 +27,18 @@ public class ClientContactRepositoryImpl implements IClientContactRepository {
         this.clientJpaRepository
             .findById(contact.getClientId())
             .orElseThrow(() -> new IllegalArgumentException("Client not found"));
+
+    if (contact.isPrimary()) {
+      this.clientContactJpaRepository
+          .findByClient_IdAndPrimaryTrue(contact.getClientId())
+          .filter(existingPrimary -> !existingPrimary.getId().equals(contact.getId()))
+          .ifPresent(
+              existingPrimary -> {
+                existingPrimary.setPrimary(false);
+                this.clientContactJpaRepository.saveAndFlush(existingPrimary);
+              });
+    }
+
     ClientContactEntity saved =
         this.clientContactJpaRepository.save(ClientContactEntity.fromDomain(contact, client));
     return saved.getId();
