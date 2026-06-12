@@ -48,7 +48,6 @@ export interface CreateMissionPayload {
   roleInProject: string | null;
   description: string | null;
   clientId: string | null;
-  status: MissionStatus;
   priority: MissionPriority;
   startDate: string;
   deadline: string | null;
@@ -59,10 +58,13 @@ export interface UpdateMissionPayload {
   roleInProject?: string | null;
   description?: string | null;
   clientId?: string | null;
-  status?: MissionStatus | null;
   priority?: MissionPriority | null;
   startDate?: string | null;
   deadline?: string | null;
+}
+
+export interface UpdateMissionStatusPayload {
+  status: MissionStatus;
 }
 
 export interface CreateMissionResponse {

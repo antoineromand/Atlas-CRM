@@ -51,9 +51,7 @@ export class MissionsPageComponent implements OnInit {
   protected readonly clientsLoaded = this.missionEditorFacade.clientsLoaded;
   protected readonly clientsLoading = this.missionEditorFacade.clientsLoading;
   protected readonly missionForm = this.missionEditorFacade.missionForm;
-  protected readonly missionStatusOptions = this.missionEditorFacade.missionStatusOptions;
   protected readonly missionPriorityOptions = this.missionEditorFacade.missionPriorityOptions;
-  protected readonly isCreating = this.missionEditorFacade.isCreating;
 
   protected readonly missionStats = computed<MissionStatCard[]>(() => {
     const summary = this.missionPageFacade.summary();
@@ -128,6 +126,14 @@ export class MissionsPageComponent implements OnInit {
 
   protected openEditDrawer(mission: MissionResponse): void {
     this.missionEditorFacade.openEditDrawer(mission);
+  }
+
+  protected canMoveMissionStatus(mission: MissionResponse, direction: 'up' | 'down'): boolean {
+    return this.missionEditorFacade.canMoveMissionStatus(mission.status, direction);
+  }
+
+  protected moveMissionStatus(mission: MissionResponse, direction: 'up' | 'down'): void {
+    this.missionEditorFacade.moveMissionStatus(mission, direction);
   }
 
   protected closeDrawer(): void {

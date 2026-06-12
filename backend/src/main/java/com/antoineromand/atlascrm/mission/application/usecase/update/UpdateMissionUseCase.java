@@ -4,6 +4,7 @@ import com.antoineromand.atlascrm.client.application.exceptions.ClientNotFoundEx
 import com.antoineromand.atlascrm.client.domain.repository.IClientRepository;
 import com.antoineromand.atlascrm.mission.application.exceptions.MissionNotFoundException;
 import com.antoineromand.atlascrm.mission.domain.Mission;
+import com.antoineromand.atlascrm.mission.domain.MissionStatus;
 import com.antoineromand.atlascrm.mission.domain.repository.IMissionRepository;
 import java.time.Instant;
 import java.util.UUID;
@@ -37,7 +38,7 @@ public class UpdateMissionUseCase implements IUpdateMissionUseCase {
             resolve(command.title(), existing.getTitle()),
             resolve(command.roleInProject(), existing.getRoleInProject()),
             resolve(command.description(), existing.getDescription()),
-            resolve(command.status(), existing.getStatus()),
+            existing.getMissionStatus(),
             resolve(command.priority(), existing.getPriority()),
             resolve(command.startDate(), existing.getStartDate()),
             resolve(command.deadline(), existing.getDeadline()),

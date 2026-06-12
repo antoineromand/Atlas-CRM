@@ -5,6 +5,7 @@ import com.antoineromand.atlascrm.account.application.usecase.account.PatchValue
 import com.antoineromand.atlascrm.account.domain.Account;
 import com.antoineromand.atlascrm.api.mission.dto.CreateMissionRequestDto;
 import com.antoineromand.atlascrm.api.mission.dto.CreateMissionResponseDto;
+import com.antoineromand.atlascrm.api.mission.dto.UpdateMissionStatusRequestDto;
 import com.antoineromand.atlascrm.api.mission.dto.MissionPageResponseDto;
 import com.antoineromand.atlascrm.api.mission.dto.MissionResponseDto;
 import com.antoineromand.atlascrm.api.mission.dto.MissionSummaryResponseDto;
@@ -18,7 +19,9 @@ import com.antoineromand.atlascrm.mission.application.usecase.list.MissionPageRe
 import com.antoineromand.atlascrm.mission.application.usecase.summary.IGetMissionSummaryUseCase;
 import com.antoineromand.atlascrm.mission.application.usecase.summary.MissionSummaryResult;
 import com.antoineromand.atlascrm.mission.application.usecase.update.IUpdateMissionUseCase;
+import com.antoineromand.atlascrm.mission.application.usecase.update.IUpdateMissionStatusUseCase;
 import com.antoineromand.atlascrm.mission.application.usecase.update.UpdateMissionCommand;
+import com.antoineromand.atlascrm.mission.application.usecase.update.UpdateMissionStatusCommand;
 import com.antoineromand.atlascrm.mission.domain.Mission;
 import jakarta.validation.Valid;
 import java.security.Principal;
@@ -48,6 +51,7 @@ public class MissionController {
   private final IListMissionUseCase listMissionUseCase;
   private final IGetMissionSummaryUseCase getMissionSummaryUseCase;
   private final IUpdateMissionUseCase updateMissionUseCase;
+  private final IUpdateMissionStatusUseCase updateMissionStatusUseCase;
   private final IDeleteMissionUseCase deleteMissionUseCase;
 
   public MissionController(
@@ -57,6 +61,7 @@ public class MissionController {
       IListMissionUseCase listMissionUseCase,
       IGetMissionSummaryUseCase getMissionSummaryUseCase,
       IUpdateMissionUseCase updateMissionUseCase,
+      IUpdateMissionStatusUseCase updateMissionStatusUseCase,
       IDeleteMissionUseCase deleteMissionUseCase) {
     this.createMissionUseCase = createMissionUseCase;
     this.getAccountUseCase = getAccountUseCase;
@@ -64,6 +69,7 @@ public class MissionController {
     this.listMissionUseCase = listMissionUseCase;
     this.getMissionSummaryUseCase = getMissionSummaryUseCase;
     this.updateMissionUseCase = updateMissionUseCase;
+    this.updateMissionStatusUseCase = updateMissionStatusUseCase;
     this.deleteMissionUseCase = deleteMissionUseCase;
   }
 
@@ -79,7 +85,6 @@ public class MissionController {
                 dto.title(),
                 dto.roleInProject(),
                 dto.description(),
-                dto.status(),
                 dto.priority(),
                 dto.startDate(),
                 dto.deadline()));
@@ -130,10 +135,19 @@ public class MissionController {
                 this.patchString(body, "roleInProject", 150),
                 this.patchString(body, "description", Integer.MAX_VALUE),
                 this.patchUuid(body, "clientId"),
-                this.patchString(body, "status", 32),
                 this.patchString(body, "priority", 16),
                 this.patchDate(body, "startDate"),
                 this.patchDate(body, "deadline")));
+    return ResponseEntity.ok(this.toResponse(updated));
+  }
+
+  @PatchMapping("/{missionId}/status")
+  public ResponseEntity<MissionResponseDto> updateMyMissionStatus(
+      Principal principal, @PathVariable UUID missionId, @Valid @RequestBody UpdateMissionStatusRequestDto dto) {
+    Account account = this.getAccountUseCase.execute(this.extractCredentialsId(principal));
+    Mission updated =
+        this.updateMissionStatusUseCase.execute(
+            new UpdateMissionStatusCommand(account.getId(), missionId, dto.status()));
     return ResponseEntity.ok(this.toResponse(updated));
   }
 

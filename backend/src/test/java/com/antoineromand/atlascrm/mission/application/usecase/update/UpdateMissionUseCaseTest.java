@@ -3,6 +3,7 @@ package com.antoineromand.atlascrm.mission.application.usecase.update;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -35,30 +36,32 @@ class UpdateMissionUseCaseTest {
     UUID missionId = UUID.randomUUID();
     Instant createdAt = Instant.parse("2026-06-01T10:00:00Z");
     Mission existing =
-        new Mission(
-            missionId,
-            accountId,
-            "Initial title",
-            "Lead developer",
-            "Initial description",
-            "created",
-            "medium",
-            LocalDate.of(2026, 6, 1),
-            LocalDate.of(2026, 6, 30),
-            createdAt,
+            new Mission(
+                missionId,
+                accountId,
+                null,
+                "Initial title",
+                "Lead developer",
+                "Initial description",
+                MissionStatus.CREATED,
+                "medium",
+                LocalDate.of(2026, 6, 1),
+                LocalDate.of(2026, 6, 30),
+                createdAt,
             null);
     Mission updated =
-        new Mission(
-            missionId,
-            accountId,
-            "Updated title",
-            "Lead developer",
-            "Updated description",
-            "in_progress",
-            "high",
-            LocalDate.of(2026, 6, 2),
-            LocalDate.of(2026, 7, 1),
-            createdAt,
+            new Mission(
+                missionId,
+                accountId,
+                null,
+                "Updated title",
+                "Lead developer",
+                "Updated description",
+                MissionStatus.CREATED,
+                "high",
+                LocalDate.of(2026, 6, 2),
+                LocalDate.of(2026, 7, 1),
+                createdAt,
             Instant.parse("2026-06-01T11:00:00Z"));
 
     when(missionRepository.findByIdAndAccountId(missionId, accountId))
@@ -74,7 +77,6 @@ class UpdateMissionUseCaseTest {
                 PatchValue.absent(),
                 PatchValue.of("Updated description"),
                 PatchValue.absent(),
-                PatchValue.of("in_progress"),
                 PatchValue.of("high"),
                 PatchValue.of(LocalDate.of(2026, 6, 2)),
                 PatchValue.of(LocalDate.of(2026, 7, 1))));
@@ -87,8 +89,6 @@ class UpdateMissionUseCaseTest {
     assertEquals("Updated title", saved.getTitle());
     assertEquals("Lead developer", saved.getRoleInProject());
     assertEquals("Updated description", saved.getDescription());
-    assertEquals(MissionStatus.IN_PROGRESS, saved.getMissionStatus());
-    assertEquals("in_progress", saved.getStatus());
     assertEquals("high", saved.getPriority());
     assertEquals(LocalDate.of(2026, 6, 2), saved.getStartDate());
     assertEquals(LocalDate.of(2026, 7, 1), saved.getDeadline());
@@ -109,7 +109,6 @@ class UpdateMissionUseCaseTest {
                 accountId,
                 missionId,
                 new UpdateMissionCommand(
-                    PatchValue.absent(),
                     PatchValue.absent(),
                     PatchValue.absent(),
                     PatchValue.absent(),

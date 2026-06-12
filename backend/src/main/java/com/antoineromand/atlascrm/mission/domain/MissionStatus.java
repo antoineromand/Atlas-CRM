@@ -30,6 +30,14 @@ public enum MissionStatus {
     return this == COMPLETED;
   }
 
+  public boolean canTransitionTo(MissionStatus nextStatus) {
+    if (nextStatus == null) {
+      return false;
+    }
+
+    return Math.abs(nextStatus.ordinal() - this.ordinal()) <= 1;
+  }
+
   public static MissionStatus fromValue(String value) {
     if (value == null || value.isBlank()) {
       return CREATED;

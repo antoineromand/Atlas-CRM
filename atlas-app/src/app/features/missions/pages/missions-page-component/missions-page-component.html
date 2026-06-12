@@ -147,6 +147,31 @@
           </div>
 
           <h2 class="missions-page__card-title">{{ mission.title }}</h2>
+          <div class="missions-page__card-status-row">
+            <span class="missions-page__status missions-page__status--{{ mission.status }}">
+              {{ statusLabel(mission.status) }}
+            </span>
+            <div class="missions-page__card-status-controls" aria-label="Change mission status">
+              <button
+                class="missions-page__status-step-button"
+                type="button"
+                [disabled]="!canMoveMissionStatus(mission, 'down')"
+                [attr.aria-label]="'Move mission status down'"
+                (click)="moveMissionStatus(mission, 'down')"
+              >
+                <span class="material-symbols-outlined" aria-hidden="true">arrow_downward</span>
+              </button>
+              <button
+                class="missions-page__status-step-button"
+                type="button"
+                [disabled]="!canMoveMissionStatus(mission, 'up')"
+                [attr.aria-label]="'Move mission status up'"
+                (click)="moveMissionStatus(mission, 'up')"
+              >
+                <span class="material-symbols-outlined" aria-hidden="true">arrow_upward</span>
+              </button>
+            </div>
+          </div>
           <p class="missions-page__card-role">
             For: {{ mission.roleInProject || 'Role not set yet' }}
           </p>
@@ -304,18 +329,6 @@
               <option [value]="client.id">{{ client.companyName }}</option>
             }
           </select>
-        </label>
-
-        <label class="missions-page__field">
-          <span>Status</span>
-          <select formControlName="status">
-            @for (option of missionStatusOptions; track option.value) {
-              <option [value]="option.value">{{ option.label }}</option>
-            }
-          </select>
-          @if (hasMissionFieldError('status')) {
-            <strong>{{ missionFieldError('status') }}</strong>
-          }
         </label>
 
         <label class="missions-page__field">

@@ -6,7 +6,6 @@ import com.antoineromand.atlascrm.client.application.exceptions.ClientNotFoundEx
 import com.antoineromand.atlascrm.client.domain.repository.IClientRepository;
 import com.antoineromand.atlascrm.mission.application.exceptions.MissionCreationException;
 import com.antoineromand.atlascrm.mission.domain.Mission;
-import com.antoineromand.atlascrm.mission.domain.MissionStatus;
 import com.antoineromand.atlascrm.mission.domain.repository.IMissionRepository;
 import java.time.Instant;
 import java.util.UUID;
@@ -48,7 +47,7 @@ public class CreateMissionUseCase implements ICreateMissionUseCase {
             command.title(),
             command.roleInProject(),
             command.description(),
-            this.resolveStatus(command.status()),
+            "created",
             this.resolvePriority(command.priority()),
             command.startDate(),
             command.deadline(),
@@ -56,10 +55,6 @@ public class CreateMissionUseCase implements ICreateMissionUseCase {
             null);
 
     return this.missionRepository.save(mission);
-  }
-
-  private String resolveStatus(String status) {
-    return status != null ? status : MissionStatus.CREATED.value();
   }
 
   private UUID resolveClientId(UUID clientId, UUID accountId) {

@@ -81,7 +81,6 @@ class CreateMissionUseCaseTest {
                 "Lead developer",
                 "Redesign the marketing website",
                 null,
-                null,
                 LocalDate.of(2026, 6, 1),
                 LocalDate.of(2026, 6, 30)));
 
@@ -115,16 +114,15 @@ class CreateMissionUseCaseTest {
             MissionCreationException.class,
             () ->
                 useCase.execute(
-                    new CreateMissionCommand(
-                        accountId,
-                        null,
-                        "Website redesign",
-                        null,
-                        null,
-                        null,
-                        null,
-                        LocalDate.of(2026, 6, 1),
-                        null)));
+                new CreateMissionCommand(
+                    accountId,
+                    null,
+                    "Website redesign",
+                    null,
+                    null,
+                    null,
+                    LocalDate.of(2026, 6, 1),
+                    null)));
 
     assertEquals("ACCOUNT_NOT_FOUND", exception.getCode());
     verify(missionRepository, never()).save(any());

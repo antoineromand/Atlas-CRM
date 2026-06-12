@@ -12,6 +12,7 @@ import com.antoineromand.atlascrm.api.mission.dto.CreateMissionResponseDto;
 import com.antoineromand.atlascrm.api.mission.dto.CreateMissionRequestDto;
 import com.antoineromand.atlascrm.api.mission.dto.MissionPageResponseDto;
 import com.antoineromand.atlascrm.api.mission.dto.MissionResponseDto;
+import com.antoineromand.atlascrm.api.mission.dto.UpdateMissionStatusRequestDto;
 import com.antoineromand.atlascrm.mission.application.usecase.create.CreateMissionCommand;
 import com.antoineromand.atlascrm.mission.application.usecase.create.ICreateMissionUseCase;
 import com.antoineromand.atlascrm.mission.application.usecase.delete.IDeleteMissionUseCase;
@@ -21,8 +22,11 @@ import com.antoineromand.atlascrm.mission.application.usecase.list.ListMissionQu
 import com.antoineromand.atlascrm.mission.application.usecase.summary.IGetMissionSummaryUseCase;
 import com.antoineromand.atlascrm.mission.application.usecase.summary.MissionSummaryResult;
 import com.antoineromand.atlascrm.mission.application.usecase.update.IUpdateMissionUseCase;
+import com.antoineromand.atlascrm.mission.application.usecase.update.IUpdateMissionStatusUseCase;
 import com.antoineromand.atlascrm.mission.application.usecase.update.UpdateMissionCommand;
+import com.antoineromand.atlascrm.mission.application.usecase.update.UpdateMissionStatusCommand;
 import com.antoineromand.atlascrm.mission.domain.Mission;
+import com.antoineromand.atlascrm.mission.domain.MissionStatus;
 import java.security.Principal;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -46,19 +50,25 @@ class MissionControllerTest {
   @Mock private IListMissionUseCase listMissionUseCase;
   @Mock private IGetMissionSummaryUseCase getMissionSummaryUseCase;
   @Mock private IUpdateMissionUseCase updateMissionUseCase;
+  @Mock private IUpdateMissionStatusUseCase updateMissionStatusUseCase;
   @Mock private IDeleteMissionUseCase deleteMissionUseCase;
+
+  private MissionController createController() {
+    return new MissionController(
+        createMissionUseCase,
+        getAccountUseCase,
+        getMissionUseCase,
+        listMissionUseCase,
+        getMissionSummaryUseCase,
+        updateMissionUseCase,
+        updateMissionStatusUseCase,
+        deleteMissionUseCase);
+  }
 
   @Test
   void createMissionShouldResolveCurrentAccountAndReturnCreatedResponse() {
     MissionController controller =
-        new MissionController(
-            createMissionUseCase,
-            getAccountUseCase,
-            getMissionUseCase,
-            listMissionUseCase,
-            getMissionSummaryUseCase,
-            updateMissionUseCase,
-            deleteMissionUseCase);
+        createController();
     UUID credentialsId = UUID.randomUUID();
     UUID accountId = UUID.randomUUID();
     UUID missionId = UUID.randomUUID();
@@ -93,7 +103,6 @@ class MissionControllerTest {
                 "Lead developer",
                 "Redesign the marketing website",
                 clientId,
-                "in_progress",
                 "high",
                 LocalDate.of(2026, 6, 1),
                 LocalDate.of(2026, 6, 30)));
@@ -111,7 +120,6 @@ class MissionControllerTest {
     assertEquals("Website redesign", command.title());
     assertEquals("Lead developer", command.roleInProject());
     assertEquals("Redesign the marketing website", command.description());
-    assertEquals("in_progress", command.status());
     assertEquals("high", command.priority());
     assertEquals(LocalDate.of(2026, 6, 1), command.startDate());
     assertEquals(LocalDate.of(2026, 6, 30), command.deadline());
@@ -119,15 +127,7 @@ class MissionControllerTest {
 
   @Test
   void listMyMissionsShouldReturnMissionDtos() {
-    MissionController controller =
-        new MissionController(
-            createMissionUseCase,
-            getAccountUseCase,
-            getMissionUseCase,
-            listMissionUseCase,
-            getMissionSummaryUseCase,
-            updateMissionUseCase,
-            deleteMissionUseCase);
+    MissionController controller = createController();
     UUID credentialsId = UUID.randomUUID();
     UUID accountId = UUID.randomUUID();
     Principal principal = () -> credentialsId.toString();
@@ -184,15 +184,7 @@ class MissionControllerTest {
 
   @Test
   void listMyMissionsShouldForwardSearchToUseCase() {
-    MissionController controller =
-        new MissionController(
-            createMissionUseCase,
-            getAccountUseCase,
-            getMissionUseCase,
-            listMissionUseCase,
-            getMissionSummaryUseCase,
-            updateMissionUseCase,
-            deleteMissionUseCase);
+    MissionController controller = createController();
     UUID credentialsId = UUID.randomUUID();
     UUID accountId = UUID.randomUUID();
     Principal principal = () -> credentialsId.toString();
@@ -235,15 +227,7 @@ class MissionControllerTest {
 
   @Test
   void listMyMissionsShouldRejectShortSearchQueries() {
-    MissionController controller =
-        new MissionController(
-            createMissionUseCase,
-            getAccountUseCase,
-            getMissionUseCase,
-            listMissionUseCase,
-            getMissionSummaryUseCase,
-            updateMissionUseCase,
-            deleteMissionUseCase);
+    MissionController controller = createController();
     UUID credentialsId = UUID.randomUUID();
     UUID accountId = UUID.randomUUID();
     Principal principal = () -> credentialsId.toString();
@@ -272,15 +256,7 @@ class MissionControllerTest {
 
   @Test
   void getMyMissionSummaryShouldReturnGlobalStats() {
-    MissionController controller =
-        new MissionController(
-            createMissionUseCase,
-            getAccountUseCase,
-            getMissionUseCase,
-            listMissionUseCase,
-            getMissionSummaryUseCase,
-            updateMissionUseCase,
-            deleteMissionUseCase);
+    MissionController controller = createController();
     UUID credentialsId = UUID.randomUUID();
     UUID accountId = UUID.randomUUID();
     Principal principal = () -> credentialsId.toString();
@@ -319,15 +295,7 @@ class MissionControllerTest {
 
   @Test
   void getMyMissionShouldReturnMissionDto() {
-    MissionController controller =
-        new MissionController(
-            createMissionUseCase,
-            getAccountUseCase,
-            getMissionUseCase,
-            listMissionUseCase,
-            getMissionSummaryUseCase,
-            updateMissionUseCase,
-            deleteMissionUseCase);
+    MissionController controller = createController();
     UUID credentialsId = UUID.randomUUID();
     UUID accountId = UUID.randomUUID();
     UUID missionId = UUID.randomUUID();
@@ -375,15 +343,7 @@ class MissionControllerTest {
 
   @Test
   void updateMyMissionShouldResolvePatchAndReturnUpdatedResponse() {
-    MissionController controller =
-        new MissionController(
-            createMissionUseCase,
-            getAccountUseCase,
-            getMissionUseCase,
-            listMissionUseCase,
-            getMissionSummaryUseCase,
-            updateMissionUseCase,
-            deleteMissionUseCase);
+    MissionController controller = createController();
     UUID credentialsId = UUID.randomUUID();
     UUID accountId = UUID.randomUUID();
     UUID missionId = UUID.randomUUID();
@@ -436,16 +396,65 @@ class MissionControllerTest {
   }
 
   @Test
+  void updateMyMissionStatusShouldUseDedicatedRoute() {
+    MissionController controller = createController();
+    UUID credentialsId = UUID.randomUUID();
+    UUID accountId = UUID.randomUUID();
+    UUID missionId = UUID.randomUUID();
+    Principal principal = () -> credentialsId.toString();
+
+    when(getAccountUseCase.execute(credentialsId))
+        .thenReturn(
+            new Account(
+                accountId,
+                credentialsId,
+                "John",
+                "Doe",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                Instant.now(),
+                null));
+    when(updateMissionStatusUseCase.execute(any(UpdateMissionStatusCommand.class)))
+        .thenReturn(
+            new Mission(
+                missionId,
+                accountId,
+                null,
+                "Updated title",
+                "Lead developer",
+                "Updated description",
+                MissionStatus.IN_PROGRESS,
+                "high",
+                LocalDate.of(2026, 6, 1),
+                LocalDate.of(2026, 6, 30),
+                Instant.parse("2026-06-01T10:00:00Z"),
+                Instant.parse("2026-06-01T11:00:00Z")));
+
+    ResponseEntity<MissionResponseDto> response =
+        controller.updateMyMissionStatus(principal, missionId, new UpdateMissionStatusRequestDto("in_progress"));
+
+    ArgumentCaptor<UpdateMissionStatusCommand> captor =
+        ArgumentCaptor.forClass(UpdateMissionStatusCommand.class);
+    verify(updateMissionStatusUseCase).execute(captor.capture());
+
+    UpdateMissionStatusCommand command = captor.getValue();
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals("in_progress", response.getBody().status());
+    assertEquals(accountId, command.accountId());
+    assertEquals(missionId, command.missionId());
+    assertEquals("in_progress", command.status());
+  }
+
+  @Test
   void deleteMyMissionShouldReturnNoContent() {
-    MissionController controller =
-        new MissionController(
-            createMissionUseCase,
-            getAccountUseCase,
-            getMissionUseCase,
-            listMissionUseCase,
-            getMissionSummaryUseCase,
-            updateMissionUseCase,
-            deleteMissionUseCase);
+    MissionController controller = createController();
     UUID credentialsId = UUID.randomUUID();
     UUID accountId = UUID.randomUUID();
     UUID missionId = UUID.randomUUID();

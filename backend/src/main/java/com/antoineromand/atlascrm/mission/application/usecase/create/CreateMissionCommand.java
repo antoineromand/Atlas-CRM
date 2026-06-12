@@ -9,7 +9,6 @@ public record CreateMissionCommand(
     String title,
     String roleInProject,
     String description,
-    String status,
     String priority,
     LocalDate startDate,
     LocalDate deadline) {}

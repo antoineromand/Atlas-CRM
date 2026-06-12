@@ -9,7 +9,6 @@ public record UpdateMissionCommand(
     PatchValue<String> roleInProject,
     PatchValue<String> description,
     PatchValue<UUID> clientId,
-    PatchValue<String> status,
     PatchValue<String> priority,
     PatchValue<LocalDate> startDate,
     PatchValue<LocalDate> deadline) {}

@@ -14,12 +14,28 @@ import { MissionService } from '../../../core/services/mission/mission.service';
 import { NotificationService } from '../../../core/services/notification/notification.service';
 import { MissionPageFacade } from './mission-page.facade';
 
+const MISSION_STATUS_FLOW: readonly { value: MissionStatus; label: string }[] = [
+  { value: 'created', label: 'Created' },
+  { value: 'analysed', label: 'Analysed' },
+  { value: 'planned', label: 'Planned' },
+  { value: 'started', label: 'Started' },
+  { value: 'in_progress', label: 'In progress' },
+  { value: 'finalized', label: 'Finalized' },
+  { value: 'shipped', label: 'Shipped' },
+  { value: 'completed', label: 'Completed' },
+];
+
+const MISSION_PRIORITY_FLOW: readonly { value: MissionPriority; label: string }[] = [
+  { value: 'low', label: 'Low' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'high', label: 'High' },
+];
+
 type MissionFormControls = {
   title: FormControl<string>;
   roleInProject: FormControl<string>;
   description: FormControl<string>;
   clientId: FormControl<string>;
-  status: FormControl<MissionStatus>;
   priority: FormControl<MissionPriority>;
   startDate: FormControl<string>;
   deadline: FormControl<string>;
@@ -43,6 +59,7 @@ export class MissionEditorFacade implements OnDestroy {
   readonly drawerOpen = signal(false);
   readonly deleteTarget = signal<MissionResponse | null>(null);
   readonly editingMissionId = signal<string | null>(null);
+  readonly statusUpdatingMissionId = signal<string | null>(null);
   readonly clients = signal<ClientResponse[]>([]);
   readonly clientsLoaded = signal(false);
   readonly clientsLoading = signal(false);
@@ -63,10 +80,6 @@ export class MissionEditorFacade implements OnDestroy {
     clientId: new FormControl('', {
       nonNullable: true,
     }),
-    status: new FormControl<MissionStatus>('created', {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
     priority: new FormControl<MissionPriority>('medium', {
       nonNullable: true,
       validators: [Validators.required],
@@ -80,22 +93,7 @@ export class MissionEditorFacade implements OnDestroy {
     }),
   });
 
-  readonly missionStatusOptions: readonly { value: MissionStatus; label: string }[] = [
-    { value: 'created', label: 'Created' },
-    { value: 'analysed', label: 'Analysed' },
-    { value: 'planned', label: 'Planned' },
-    { value: 'started', label: 'Started' },
-    { value: 'in_progress', label: 'In progress' },
-    { value: 'finalized', label: 'Finalized' },
-    { value: 'shipped', label: 'Shipped' },
-    { value: 'completed', label: 'Completed' },
-  ];
-
-  readonly missionPriorityOptions: readonly { value: MissionPriority; label: string }[] = [
-    { value: 'low', label: 'Low' },
-    { value: 'medium', label: 'Medium' },
-    { value: 'high', label: 'High' },
-  ];
+  readonly missionPriorityOptions = MISSION_PRIORITY_FLOW;
 
   readonly isCreating = computed(() => this.editingMissionId() === null);
 
@@ -219,12 +217,41 @@ export class MissionEditorFacade implements OnDestroy {
     });
   }
 
-  hasMissionFieldError(controlName: keyof MissionFormControls): boolean {
+  canMoveMissionStatus(status: MissionStatus, direction: 'up' | 'down'): boolean {
+    return this.getAdjacentMissionStatus(status, direction) !== null && this.statusUpdatingMissionId() === null;
+  }
+
+  moveMissionStatus(mission: MissionResponse, direction: 'up' | 'down'): void {
+    const nextStatus = this.getAdjacentMissionStatus(mission.status, direction);
+
+    if (!nextStatus || this.statusUpdatingMissionId() !== null) {
+      return;
+    }
+
+    this.statusUpdatingMissionId.set(mission.id);
+
+    this.missionService
+      .updateMissionStatus(mission.id, { status: nextStatus })
+      .pipe(finalize(() => this.statusUpdatingMissionId.set(null)))
+      .subscribe({
+        next: () => {
+          this.notificationService.success('Mission status updated.');
+          this.missionPageFacade.refreshCurrentPage();
+          this.missionPageFacade.reloadSummary();
+        },
+        error: (error: any) => {
+          const message = error?.error?.message ?? 'Unable to update mission status.';
+          this.notificationService.error(message);
+        },
+      });
+  }
+
+  hasMissionFieldError(controlName: MissionFormControlName): boolean {
     const control = this.missionForm.controls[controlName];
     return control.invalid && (control.dirty || control.touched);
   }
 
-  missionFieldError(controlName: keyof MissionFormControls): string {
+  missionFieldError(controlName: MissionFormControlName): string {
     const control = this.missionForm.controls[controlName];
 
     if (!control.errors) {
@@ -305,7 +332,6 @@ export class MissionEditorFacade implements OnDestroy {
             roleInProject: mission.roleInProject ?? '',
             description: mission.description ?? '',
             clientId: mission.clientId ?? '',
-            status: mission.status,
             priority: mission.priority,
             startDate: mission.startDate,
             deadline: mission.deadline ?? '',
@@ -315,7 +341,6 @@ export class MissionEditorFacade implements OnDestroy {
             roleInProject: '',
             description: '',
             clientId: '',
-            status: 'created',
             priority: 'medium',
             startDate: '',
             deadline: '',
@@ -348,7 +373,6 @@ export class MissionEditorFacade implements OnDestroy {
       roleInProject: this.normalize(this.missionForm.controls.roleInProject.value),
       description: this.normalize(this.missionForm.controls.description.value),
       clientId: this.normalize(this.missionForm.controls.clientId.value),
-      status: this.missionForm.controls.status.value,
       priority: this.missionForm.controls.priority.value,
       startDate: this.normalize(this.missionForm.controls.startDate.value) ?? '',
       deadline: this.normalize(this.missionForm.controls.deadline.value),
@@ -358,5 +382,19 @@ export class MissionEditorFacade implements OnDestroy {
   private normalize(value: string | null | undefined): string | null {
     const trimmed = value?.trim() ?? '';
     return trimmed.length > 0 ? trimmed : null;
+  }
+
+  private getAdjacentMissionStatus(currentStatus: MissionStatus, direction: 'up' | 'down'): MissionStatus | null {
+    const currentIndex = MISSION_STATUS_FLOW.findIndex((option) => option.value === currentStatus);
+    if (currentIndex < 0) {
+      return null;
+    }
+
+    const nextIndex = direction === 'up' ? currentIndex + 1 : currentIndex - 1;
+    if (nextIndex < 0 || nextIndex >= MISSION_STATUS_FLOW.length) {
+      return null;
+    }
+
+    return MISSION_STATUS_FLOW[nextIndex].value;
   }
 }

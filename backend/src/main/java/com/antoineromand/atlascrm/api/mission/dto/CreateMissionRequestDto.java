@@ -8,7 +8,6 @@ public record CreateMissionRequestDto(
     String roleInProject,
     String description,
     UUID clientId,
-    String status,
     String priority,
     LocalDate startDate,
     LocalDate deadline) {}
