@@ -13,6 +13,7 @@ import com.antoineromand.atlascrm.api.client.dto.ClientPageResponseDto;
 import com.antoineromand.atlascrm.api.client.dto.ClientResponseDto;
 import com.antoineromand.atlascrm.api.client.dto.ClientTagResponseDto;
 import com.antoineromand.atlascrm.api.client.dto.UpdateClientContactRequestDto;
+import com.antoineromand.atlascrm.api.mission.dto.MissionResponseDto;
 import com.antoineromand.atlascrm.client.application.usecase.create.CreateClientCommand;
 import com.antoineromand.atlascrm.client.application.usecase.create.ICreateClientUseCase;
 import com.antoineromand.atlascrm.client.application.usecase.delete.IDeleteClientUseCase;
@@ -284,7 +285,8 @@ public class ClientController {
         this.toResponse(result.client()),
         result.contacts().stream().map(this::toResponse).toList(),
         result.activities().stream().map(this::toResponse).toList(),
-        result.tags().stream().map(this::toResponse).toList());
+        result.tags().stream().map(this::toResponse).toList(),
+        result.missions().stream().map(this::toResponse).toList());
   }
 
   private ClientContactResponseDto toResponse(ClientContact contact) {
@@ -318,5 +320,21 @@ public class ClientController {
         tag.getColor(),
         tag.getCreatedAt(),
         tag.getUpdatedAt());
+  }
+
+  private MissionResponseDto toResponse(com.antoineromand.atlascrm.mission.domain.Mission mission) {
+    return new MissionResponseDto(
+        mission.getId(),
+        mission.getClientId(),
+        mission.getTitle(),
+        mission.getRoleInProject(),
+        mission.getDescription(),
+        mission.getStatus(),
+        mission.getProgress(),
+        mission.getPriority(),
+        mission.getStartDate(),
+        mission.getDeadline(),
+        mission.getCreatedAt(),
+        mission.getUpdatedAt());
   }
 }

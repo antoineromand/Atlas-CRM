@@ -193,32 +193,41 @@
                 <strong>{{ currentTags.length ? '$2,400.00' : '$0.00' }}</strong>
               </div>
               <div>
-                <p>Active Projects</p>
-                <strong>{{ activeProjectsCount() }}</strong>
+                <p>Missions</p>
+                <strong>{{ missions().length }}</strong>
               </div>
             </div>
           </div>
         </article>
 
         <article class="bento-card">
-          <h3 class="font-label-md text-label-md text-secondary mb-md uppercase tracking-wider">Active Projects</h3>
-          <div class="project-list">
-            <div class="project-card">
-              <div class="project-card__head">
-                <span>Brand Evolution</span>
-                <span>{{ currentTags.length ? '65%' : '45%' }}</span>
+          <div class="client-card-header">
+            <h3 class="font-headline-md text-headline-md text-primary">Client Missions</h3>
+            <span class="client-card-header__count">{{ missions().length }}</span>
+          </div>
+
+          <div class="mission-stack">
+            @for (mission of visibleMissions(); track trackByMission($index, mission)) {
+              <article class="mission-card">
+                <div class="mission-card__head">
+                  <div>
+                    <h4>{{ mission.title }}</h4>
+                    <p>{{ mission.meta }}</p>
+                  </div>
+                  <span class="mission-card__priority">{{ mission.priorityLabel }}</span>
+                </div>
+                <div class="mission-card__footer">
+                  <span class="mission-card__status">{{ mission.statusLabel }}</span>
+                </div>
+              </article>
+            }
+
+            @if (!missions().length) {
+              <div class="mission-card mission-card--empty">
+                <span class="material-symbols-outlined" aria-hidden="true">assignment</span>
+                <p>No missions linked to this client yet.</p>
               </div>
-              <div class="project-card__bar"><div class="project-card__bar-fill" style="width: 65%;"></div></div>
-              <p>Due Oct 15</p>
-            </div>
-            <div class="project-card">
-              <div class="project-card__head">
-                <span>Q4 Social Strategy</span>
-                <span>{{ currentVisibleContacts.length ? '20%' : '10%' }}</span>
-              </div>
-              <div class="project-card__bar"><div class="project-card__bar-fill" style="width: 20%;"></div></div>
-              <p>Due Nov 1</p>
-            </div>
+            }
           </div>
         </article>
 

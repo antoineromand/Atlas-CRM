@@ -35,8 +35,10 @@ import com.antoineromand.atlascrm.client.domain.ClientActivity;
 import com.antoineromand.atlascrm.client.domain.ClientContact;
 import com.antoineromand.atlascrm.client.domain.ClientTag;
 import com.antoineromand.atlascrm.client.domain.Client;
+import com.antoineromand.atlascrm.mission.domain.Mission;
 import java.security.Principal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -424,6 +426,20 @@ class ClientControllerTest {
                         "VIP",
                         "#d97706",
                         Instant.parse("2026-06-01T08:00:00Z"),
+                        null)),
+                List.of(
+                    new Mission(
+                        UUID.randomUUID(),
+                        accountId,
+                        clientId,
+                        "Website refresh",
+                        "Lead designer",
+                        "Design revamp",
+                        "in_progress",
+                        "high",
+                        LocalDate.parse("2026-06-01"),
+                        LocalDate.parse("2026-07-01"),
+                        Instant.parse("2026-06-01T07:00:00Z"),
                         null))));
 
     ResponseEntity<com.antoineromand.atlascrm.api.client.dto.ClientDetailResponseDto> response =
@@ -434,9 +450,11 @@ class ClientControllerTest {
     assertEquals(1, response.getBody().contacts().size());
     assertEquals(1, response.getBody().activities().size());
     assertEquals(1, response.getBody().tags().size());
+    assertEquals(1, response.getBody().missions().size());
     assertEquals("Julie", response.getBody().contacts().get(0).firstName());
     assertEquals("Kickoff call", response.getBody().activities().get(0).title());
     assertEquals("VIP", response.getBody().tags().get(0).name());
+    assertEquals("Website refresh", response.getBody().missions().get(0).title());
   }
 
   @Test

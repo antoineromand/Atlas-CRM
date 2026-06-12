@@ -16,6 +16,8 @@ public interface IMissionRepository {
 
   List<Mission> findAllByAccountId(UUID accountId);
 
+  List<Mission> findAllByClientId(UUID clientId);
+
   List<Mission> findAllByAccountIdAndSearch(UUID accountId, String search);
 
   Page<Mission> findAllByAccountId(UUID accountId, Pageable pageable);

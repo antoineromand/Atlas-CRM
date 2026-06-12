@@ -12,6 +12,7 @@ import {
   ClientContactResponse,
   ClientDetailResponse,
 } from '../../../../core/interface/client.interface';
+import { MissionResponse } from '../../../../core/interface/mission.interface';
 import { NotificationService } from '../../../../core/services/notification/notification.service';
 
 interface SummaryCard {
@@ -26,6 +27,14 @@ interface TimelineItem {
   tone: 'primary' | 'secondary' | 'accent';
   title: string;
   description: string;
+  meta: string;
+}
+
+interface MissionCard {
+  id: string;
+  title: string;
+  statusLabel: string;
+  priorityLabel: string;
   meta: string;
 }
 
@@ -57,6 +66,7 @@ export class ClientDetailPageComponent implements OnInit {
   protected readonly contacts = computed(() => this.clientDetail()?.contacts ?? []);
   protected readonly activities = computed(() => this.clientDetail()?.activities ?? []);
   protected readonly tags = computed(() => this.clientDetail()?.tags ?? []);
+  protected readonly missions = computed(() => this.clientDetail()?.missions ?? []);
 
   protected readonly primaryContact = computed<ClientContactResponse | null>(() => {
     const contacts = this.contacts();
@@ -117,10 +127,9 @@ export class ClientDetailPageComponent implements OnInit {
     })),
   );
 
-  protected readonly activeProjectsCount = computed(() => {
-    const count = this.timelineEntries().length;
-    return count > 2 ? 3 : Math.max(count, 1);
-  });
+  protected readonly visibleMissions = computed<MissionCard[]>(() =>
+    this.missions().slice(0, 4).map((mission) => this.toMissionCard(mission)),
+  );
 
   ngOnInit(): void {
     this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
@@ -382,5 +391,34 @@ export class ClientDetailPageComponent implements OnInit {
 
   protected trackByActivity(_index: number, activity: ClientActivityResponse): string {
     return activity.id;
+  }
+
+  protected trackByMission(_index: number, mission: MissionCard): string {
+    return mission.id;
+  }
+
+  private toMissionCard(mission: MissionResponse): MissionCard {
+    return {
+      id: mission.id,
+      title: mission.title,
+      statusLabel: this.formatMissionStatus(mission.status),
+      priorityLabel: this.formatMissionPriority(mission.priority),
+      meta: this.formatMissionDate(mission.deadline ?? mission.startDate),
+    };
+  }
+
+  private formatMissionStatus(status: string): string {
+    return status
+      .split('_')
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
+  }
+
+  private formatMissionPriority(priority: string): string {
+    return priority.charAt(0).toUpperCase() + priority.slice(1);
+  }
+
+  private formatMissionDate(value: string | null | undefined): string {
+    return this.formatRelativeDate(value);
   }
 }

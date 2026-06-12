@@ -8,6 +8,8 @@ import com.antoineromand.atlascrm.client.domain.repository.IClientActivityReposi
 import com.antoineromand.atlascrm.client.domain.repository.IClientContactRepository;
 import com.antoineromand.atlascrm.client.domain.repository.IClientRepository;
 import com.antoineromand.atlascrm.client.domain.repository.IClientTagRepository;
+import com.antoineromand.atlascrm.mission.domain.Mission;
+import com.antoineromand.atlascrm.mission.domain.repository.IMissionRepository;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
@@ -21,16 +23,19 @@ public class GetClientUseCase implements IGetClientUseCase {
   private final IClientContactRepository clientContactRepository;
   private final IClientActivityRepository clientActivityRepository;
   private final IClientTagRepository clientTagRepository;
+  private final IMissionRepository missionRepository;
 
   public GetClientUseCase(
       IClientRepository clientRepository,
       IClientContactRepository clientContactRepository,
       IClientActivityRepository clientActivityRepository,
-      IClientTagRepository clientTagRepository) {
+      IClientTagRepository clientTagRepository,
+      IMissionRepository missionRepository) {
     this.clientRepository = clientRepository;
     this.clientContactRepository = clientContactRepository;
     this.clientActivityRepository = clientActivityRepository;
     this.clientTagRepository = clientTagRepository;
+    this.missionRepository = missionRepository;
   }
 
   @Override
@@ -52,7 +57,8 @@ public class GetClientUseCase implements IGetClientUseCase {
     List<ClientContact> contacts = this.clientContactRepository.findAllByClientId(clientId);
     List<ClientActivity> activities = this.clientActivityRepository.findAllByClientId(clientId);
     List<ClientTag> tags = this.clientTagRepository.findAllByClientId(clientId);
+    List<Mission> missions = this.missionRepository.findAllByClientId(clientId);
 
-    return new ClientDetailResult(client, contacts, activities, tags);
+    return new ClientDetailResult(client, contacts, activities, tags, missions);
   }
 }

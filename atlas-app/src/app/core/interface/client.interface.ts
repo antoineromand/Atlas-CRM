@@ -56,6 +56,7 @@ export interface ClientDetailResponse {
   contacts: ClientContactResponse[];
   activities: ClientActivityResponse[];
   tags: ClientTagResponse[];
+  missions: import('./mission.interface').MissionResponse[];
 }
 
 export interface CreateClientPayload {

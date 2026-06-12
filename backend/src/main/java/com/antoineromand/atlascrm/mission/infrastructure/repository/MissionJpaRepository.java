@@ -14,6 +14,8 @@ public interface MissionJpaRepository extends JpaRepository<MissionEntity, UUID>
 
   List<MissionEntity> findAllByAccount_IdOrderByCreatedAtDesc(UUID accountId);
 
+  List<MissionEntity> findAllByClientActivity_IdOrderByCreatedAtDesc(UUID clientId);
+
   Page<MissionEntity> findAllByAccount_Id(UUID accountId, Pageable pageable);
 
   @Query("""
