@@ -1,13 +1,23 @@
-export type MissionStatus = 'not_started' | 'in_progress' | 'completed';
+export type MissionStatus =
+  | 'created'
+  | 'analysed'
+  | 'planned'
+  | 'started'
+  | 'in_progress'
+  | 'finalized'
+  | 'shipped'
+  | 'completed';
 
 export type MissionPriority = 'low' | 'medium' | 'high';
 
 export interface MissionResponse {
   id: string;
+  clientId: string | null;
   title: string;
   roleInProject: string | null;
   description: string | null;
   status: MissionStatus;
+  progress: number;
   priority: MissionPriority;
   startDate: string;
   deadline: string | null;
@@ -37,7 +47,7 @@ export interface CreateMissionPayload {
   title: string;
   roleInProject: string | null;
   description: string | null;
-  status: MissionStatus;
+  clientId: string | null;
   priority: MissionPriority;
   startDate: string;
   deadline: string | null;
@@ -47,10 +57,14 @@ export interface UpdateMissionPayload {
   title?: string | null;
   roleInProject?: string | null;
   description?: string | null;
-  status?: MissionStatus | null;
+  clientId?: string | null;
   priority?: MissionPriority | null;
   startDate?: string | null;
   deadline?: string | null;
+}
+
+export interface UpdateMissionStatusPayload {
+  status: MissionStatus;
 }
 
 export interface CreateMissionResponse {

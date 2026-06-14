@@ -1,0 +1,106 @@
+@if (clientContactEditor.drawerVisible()) {
+  <div
+    class="client-contact-editor-drawer__overlay"
+    [class.is-open]="clientContactEditor.drawerOpen()"
+    (click)="clientContactEditor.closeDrawer()"
+  ></div>
+  <aside
+    class="client-contact-editor-drawer surface-card"
+    [class.is-open]="clientContactEditor.drawerOpen()"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Client contact form"
+  >
+    <div class="client-contact-editor-drawer__header">
+      <div>
+        <p class="client-contact-editor-drawer__eyebrow">
+          {{ clientContactEditor.isEditing() ? 'Edit contact' : 'Create contact' }}
+        </p>
+        <h2 class="client-contact-editor-drawer__title">
+          {{ clientContactEditor.isEditing() ? 'Update team contact' : 'Add a new contact' }}
+        </h2>
+        <p class="client-contact-editor-drawer__copy">
+          {{ clientContactEditor.isEditing()
+            ? 'Adjust the contact details used on this client profile.'
+            : 'Create the team contact attached to this client.' }}
+        </p>
+      </div>
+
+      <button
+        class="client-contact-editor-drawer__icon-button"
+        type="button"
+        aria-label="Close form"
+        (click)="clientContactEditor.closeDrawer()"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">close</span>
+      </button>
+    </div>
+
+    <div class="client-contact-editor-drawer__body">
+      <form class="client-contact-editor-drawer__form" [formGroup]="clientContactEditor.contactForm" (ngSubmit)="clientContactEditor.submitContact()">
+        <div class="client-contact-editor-drawer__fields">
+          <label class="client-contact-editor-drawer__field">
+            <span>First name</span>
+            <input type="text" formControlName="firstName" placeholder="Julie" />
+            @if (clientContactEditor.hasContactFieldError('firstName')) {
+              <strong>{{ clientContactEditor.contactFieldError('firstName') }}</strong>
+            }
+          </label>
+
+          <label class="client-contact-editor-drawer__field">
+            <span>Last name</span>
+            <input type="text" formControlName="lastName" placeholder="Martin" />
+            @if (clientContactEditor.hasContactFieldError('lastName')) {
+              <strong>{{ clientContactEditor.contactFieldError('lastName') }}</strong>
+            }
+          </label>
+
+          <label class="client-contact-editor-drawer__field">
+            <span>Email</span>
+            <input type="email" formControlName="email" placeholder="julie.martin@example.com" />
+            @if (clientContactEditor.hasContactFieldError('email')) {
+              <strong>{{ clientContactEditor.contactFieldError('email') }}</strong>
+            }
+          </label>
+
+          <label class="client-contact-editor-drawer__field">
+            <span>Phone</span>
+            <input type="text" formControlName="phone" placeholder="+33 6 10 20 30 40" />
+            @if (clientContactEditor.hasContactFieldError('phone')) {
+              <strong>{{ clientContactEditor.contactFieldError('phone') }}</strong>
+            }
+          </label>
+
+          <label class="client-contact-editor-drawer__field client-contact-editor-drawer__field--wide">
+            <span>Job title</span>
+            <input type="text" formControlName="jobTitle" placeholder="CEO" />
+            @if (clientContactEditor.hasContactFieldError('jobTitle')) {
+              <strong>{{ clientContactEditor.contactFieldError('jobTitle') }}</strong>
+            }
+          </label>
+
+          <label class="client-contact-editor-drawer__checkbox">
+            <input type="checkbox" formControlName="primary" />
+            <span>
+              <strong>Primary contact</strong>
+              <small>This contact will be highlighted as the main contact for the client.</small>
+              <small>Choosing this will replace the current primary contact if there is one.</small>
+            </span>
+          </label>
+        </div>
+
+        <footer class="client-contact-editor-drawer__footer">
+          <button class="btn btn--secondary" type="button" (click)="clientContactEditor.closeDrawer()">Cancel</button>
+          <button class="btn btn--primary" type="submit" [disabled]="clientContactEditor.isSaving()">
+            @if (clientContactEditor.isSaving()) {
+              <span class="material-symbols-outlined" aria-hidden="true">progress_activity</span>
+            } @else {
+              <span class="material-symbols-outlined" aria-hidden="true">{{ clientContactEditor.isEditing() ? 'save' : 'add' }}</span>
+            }
+            {{ clientContactEditor.isEditing() ? 'Save changes' : 'Create contact' }}
+          </button>
+        </footer>
+      </form>
+    </div>
+  </aside>
+}

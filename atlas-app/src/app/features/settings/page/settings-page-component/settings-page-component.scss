@@ -1,9 +1,9 @@
 .settings-page {
   display: grid;
   gap: 1rem;
-  width: min(100%, 88rem);
-  margin-inline: auto;
-  padding: clamp(1rem, 2vw, 2rem);
+  width: 100%;
+  margin: 0;
+  padding: 2rem;
 }
 
 .settings-page > * {
@@ -18,53 +18,62 @@
   animation-delay: 120ms;
 }
 
-.settings-page__hero,
+.settings-page__header,
 .settings-page__error {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 1.25rem;
-  padding: 1.35rem;
-  border-radius: 1.35rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #c5c6cd;
 }
 
-.settings-page__hero-copy {
+.settings-page__header-copy {
   max-width: 42rem;
 }
 
-.settings-page__hero {
-  position: relative;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 22%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(248, 250, 252, 0.96));
-  border: 1px solid rgba(197, 198, 205, 0.34);
-  box-shadow:
-    0 24px 52px rgba(9, 20, 38, 0.07),
-    0 2px 10px rgba(9, 20, 38, 0.04);
+.settings-page__title {
+  margin: 0;
+  color: #091426;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 3vw, 2.75rem);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+  font-weight: 700;
 }
 
-.settings-page__hero::after {
-  content: '';
-  position: absolute;
-  inset: auto -3rem -4rem auto;
-  width: 12rem;
-  height: 12rem;
-  border-radius: 9999px;
-  background: radial-gradient(circle, rgba(9, 20, 38, 0.05), transparent 62%);
-  filter: blur(8px);
-  pointer-events: none;
+.settings-page__subtitle {
+  margin: 0.5rem 0 0;
+  color: #505f76;
+  font-size: 1rem;
+  line-height: 1.65;
 }
 
-.settings-page__hero-actions {
+.settings-page__header-actions {
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
   gap: 0.75rem;
+  justify-content: flex-end;
 }
 
-.settings-page__hero-actions .btn {
+.settings-page__pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.4rem;
+  padding: 0 0.8rem;
+  border-radius: 9999px;
+  background: #d0e1fb;
+  color: #38485d;
+  font-family: var(--font-label);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.settings-page__header-actions .btn {
   min-width: 10.5rem;
 }
 
@@ -115,27 +124,21 @@
 
 @media (max-width: 48rem) {
   .settings-page {
-    padding: 0.85rem;
+    padding: 1rem;
   }
 
-  .settings-page__hero,
+  .settings-page__header,
   .settings-page__error {
     flex-direction: column;
     align-items: flex-start;
   }
 
-  .settings-page__hero::after {
-    inset: auto -5rem -5rem auto;
-    width: 10rem;
-    height: 10rem;
-  }
-
-  .settings-page__hero-actions {
+  .settings-page__header-actions {
     width: 100%;
     justify-content: flex-start;
   }
 
-  .settings-page__hero-actions .btn {
+  .settings-page__header-actions .btn {
     width: 100%;
   }
 }

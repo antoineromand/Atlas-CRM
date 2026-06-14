@@ -7,10 +7,11 @@ import java.util.UUID;
 public class Mission {
   private final UUID id;
   private final UUID accountId;
+  private final UUID clientId;
   private final String title;
   private final String roleInProject;
   private final String description;
-  private final String status;
+  private final MissionStatus status;
   private final String priority;
   private final LocalDate startDate;
   private final LocalDate deadline;
@@ -29,8 +30,25 @@ public class Mission {
       LocalDate deadline,
       Instant createdAt,
       Instant updatedAt) {
+    this(id, accountId, null, title, roleInProject, description, status, priority, startDate, deadline, createdAt, updatedAt);
+  }
+
+  public Mission(
+      UUID id,
+      UUID accountId,
+      UUID clientId,
+      String title,
+      String roleInProject,
+      String description,
+      MissionStatus status,
+      String priority,
+      LocalDate startDate,
+      LocalDate deadline,
+      Instant createdAt,
+      Instant updatedAt) {
     this.id = id;
     this.accountId = accountId;
+    this.clientId = clientId;
     this.title = title;
     this.roleInProject = roleInProject;
     this.description = description;
@@ -42,12 +60,59 @@ public class Mission {
     this.updatedAt = updatedAt;
   }
 
+  public Mission(
+      UUID id,
+      UUID accountId,
+      String title,
+      String roleInProject,
+      String description,
+      MissionStatus status,
+      String priority,
+      LocalDate startDate,
+      LocalDate deadline,
+      Instant createdAt,
+      Instant updatedAt) {
+    this(id, accountId, null, title, roleInProject, description, status, priority, startDate, deadline, createdAt, updatedAt);
+  }
+
+  public Mission(
+      UUID id,
+      UUID accountId,
+      UUID clientId,
+      String title,
+      String roleInProject,
+      String description,
+      String status,
+      String priority,
+      LocalDate startDate,
+      LocalDate deadline,
+      Instant createdAt,
+      Instant updatedAt) {
+    this(
+        id,
+        accountId,
+        clientId,
+        title,
+        roleInProject,
+        description,
+        MissionStatus.fromValue(status),
+        priority,
+        startDate,
+        deadline,
+        createdAt,
+        updatedAt);
+  }
+
   public UUID getId() {
     return id;
   }
 
   public UUID getAccountId() {
     return accountId;
+  }
+
+  public UUID getClientId() {
+    return clientId;
   }
 
   public String getTitle() {
@@ -63,6 +128,10 @@ public class Mission {
   }
 
   public String getStatus() {
+    return status.value();
+  }
+
+  public MissionStatus getMissionStatus() {
     return status;
   }
 
@@ -84,5 +153,9 @@ public class Mission {
 
   public Instant getUpdatedAt() {
     return updatedAt;
+  }
+
+  public int getProgress() {
+    return status.progress();
   }
 }

@@ -1,0 +1,31 @@
+@if (pagination) {
+  <section class="pagination-bar" [attr.aria-label]="ariaLabel">
+    <span class="pagination-bar__info">
+      Showing {{ itemCount }} of {{ pagination.totalElements }} {{ collectionLabel }}
+    </span>
+
+    @if (pagination.totalPages > 1) {
+      <div class="pagination-bar__controls">
+        <button
+          class="pagination-bar__button"
+          type="button"
+          (click)="previous.emit()"
+          [disabled]="!pagination.hasPrevious || isRefreshing"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">chevron_left</span>
+        </button>
+
+        <span class="pagination-bar__page">{{ pagination.page }}</span>
+
+        <button
+          class="pagination-bar__button"
+          type="button"
+          (click)="next.emit()"
+          [disabled]="!pagination.hasNext || isRefreshing"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+        </button>
+      </div>
+    }
+  </section>
+}

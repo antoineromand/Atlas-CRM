@@ -1,0 +1,385 @@
+<div class="client-detail-shell">
+  @if (isLoading()) {
+    <section class="client-state client-state--loading">
+      <div class="client-state__icon">
+        <span class="material-symbols-outlined" aria-hidden="true">progress_activity</span>
+      </div>
+      <h2>Loading client profile</h2>
+      <p>Retrieving contacts, activity, and notes.</p>
+    </section>
+  } @else if (loadError()) {
+    <section class="client-state client-state--error">
+      <div class="client-state__icon">
+        <span class="material-symbols-outlined" aria-hidden="true">error</span>
+      </div>
+      <h2>Unable to load client</h2>
+      <p>{{ loadError() }}</p>
+      <div class="client-actions client-actions--center">
+        <button type="button" class="client-button client-button--ghost" (click)="goBack()">Back to clients</button>
+        <button type="button" class="client-button client-button--primary" (click)="reloadClient()">Retry</button>
+      </div>
+    </section>
+  } @else {
+    @let currentClient = client();
+    @let currentPrimaryContact = primaryContact();
+    @let currentSummaryCards = summaryCards();
+    @let currentVisibleContacts = visibleContacts();
+    @let currentActivityEntries = timelineEntries();
+    @let currentPreviewActivities = visibleTimelineEntries();
+    @let currentTags = tags();
+
+    <section class="client-hero">
+      <div class="client-hero__identity">
+        <div class="client-hero__badge">
+          <span class="material-symbols-outlined" aria-hidden="true">corporate_fare</span>
+        </div>
+        <div>
+          <h2 class="client-hero__title">{{ currentClient?.companyName }}</h2>
+          <div class="client-hero__meta">
+            <span class="client-pill">{{ currentClient ? formatStatus(currentClient.status) : '' }}</span>
+            @if (currentPrimaryContact) {
+              <span class="client-hero__meta-text">
+                {{ currentPrimaryContact.firstName || '' }} {{ currentPrimaryContact.lastName || '' }}
+                @if (currentPrimaryContact.jobTitle) {
+                  <span>• {{ currentPrimaryContact.jobTitle }}</span>
+                }
+              </span>
+            }
+            <span class="client-hero__meta-text">
+              {{ clientUpdatedAtLabel(currentClient) }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="client-actions">
+        <button type="button" class="client-button client-button--outline" (click)="editClient()">Edit Profile</button>
+        <button type="button" class="client-button client-button--primary">
+          <span class="material-symbols-outlined" aria-hidden="true">add</span>
+          New Project
+        </button>
+        <button type="button" class="client-button client-button--primary">
+          <span class="material-symbols-outlined" aria-hidden="true">payments</span>
+          Create Invoice
+        </button>
+      </div>
+    </section>
+
+    <app-client-editor-drawer />
+    <app-client-contact-editor-drawer />
+    <app-client-activity-editor-drawer />
+
+    <section class="client-summary-grid">
+      @for (card of currentSummaryCards; track card.label) {
+        <article class="client-summary-card">
+          <div class="client-summary-card__icon">
+            <span class="material-symbols-outlined" aria-hidden="true">{{ card.icon }}</span>
+          </div>
+          <div class="client-summary-card__body">
+            <p class="client-summary-card__label">{{ card.label }}</p>
+            <h3>{{ card.value }}</h3>
+            <p class="client-summary-card__note">{{ card.note }}</p>
+          </div>
+        </article>
+      }
+    </section>
+
+    <section class="client-grid">
+      <div class="client-column client-column--wide">
+        <article class="bento-card">
+          <div class="client-card-header">
+            <h3 class="font-headline-md text-headline-md text-primary">Team Contacts</h3>
+            <button class="client-link-button" type="button" (click)="openCreateContactDrawer()">
+              <span class="material-symbols-outlined" aria-hidden="true">person_add</span>
+              Add Contact
+            </button>
+          </div>
+
+          <div class="contact-grid">
+            @for (contact of currentVisibleContacts; track trackByContact($index, contact)) {
+              <article class="contact-card">
+                @if (contact.primary) {
+                  <span class="contact-card__flag">Primary</span>
+                }
+                <div class="contact-card__top">
+                  <div class="contact-card__avatar">{{ contact.initials }}</div>
+                  <div>
+                    <h4>{{ contact.displayName }}</h4>
+                    <p>{{ contact.role }}</p>
+                  </div>
+                </div>
+                <div class="contact-card__actions">
+                  <button class="contact-card__action-button" type="button" (click)="openEditContactDrawer(contact)">
+                    <span class="material-symbols-outlined" aria-hidden="true">edit</span>
+                    Edit
+                  </button>
+                  <button class="contact-card__action-button contact-card__action-button--danger" type="button" (click)="requestDeleteContact(contact)">
+                    <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+                    Delete
+                  </button>
+                </div>
+                <div class="contact-card__details">
+                  <div class="contact-card__row">
+                    <span class="material-symbols-outlined" aria-hidden="true">mail</span>
+                    <span>{{ contact.email || 'No email provided' }}</span>
+                  </div>
+                  <div class="contact-card__row">
+                    <span class="material-symbols-outlined" aria-hidden="true">call</span>
+                    <span>{{ contact.phone || 'No phone provided' }}</span>
+                  </div>
+                </div>
+              </article>
+            }
+
+            <button class="contact-card contact-card--placeholder" type="button" (click)="openCreateContactDrawer()">
+              <span class="material-symbols-outlined" aria-hidden="true">add_circle</span>
+              <span>Add new contact</span>
+            </button>
+          </div>
+        </article>
+
+        <article class="bento-card">
+          <div class="client-card-header">
+            <h3 class="font-headline-md text-headline-md text-primary">Client Activities</h3>
+            <div class="client-card-header__actions">
+              @if (currentActivityEntries.length > 4) {
+                <button class="client-link-button" type="button" (click)="openActivityModal()">
+                  <span class="material-symbols-outlined" aria-hidden="true">preview</span>
+                  View all
+                </button>
+              }
+              <button class="client-link-button" type="button" (click)="openCreateActivityDrawer()">
+                <span class="material-symbols-outlined" aria-hidden="true">add_circle</span>
+                Add Activity
+              </button>
+            </div>
+          </div>
+          <div class="timeline">
+            @for (entry of currentPreviewActivities; track trackByActivity($index, entry.activity)) {
+              <div class="timeline-item">
+                <div class="timeline-item__marker timeline-item__marker--{{ entry.item.tone }}">
+                  <span class="material-symbols-outlined" aria-hidden="true">{{ entry.item.icon }}</span>
+                </div>
+                <div class="timeline-item__content">
+                  <div class="timeline-item__heading">
+                    <h4>{{ entry.item.title }}</h4>
+                    <span>{{ entry.item.meta }}</span>
+                  </div>
+                  <p class="timeline-item__type">{{ formatActivityType(entry.activity.activityType) }}</p>
+                  <p>{{ entry.item.description }}</p>
+                  <div class="timeline-item__actions">
+                    <button class="contact-card__action-button" type="button" (click)="openEditActivityDrawer(entry.activity)">
+                      <span class="material-symbols-outlined" aria-hidden="true">edit</span>
+                      Edit
+                    </button>
+                    <button class="contact-card__action-button contact-card__action-button--danger" type="button" (click)="requestDeleteActivity(entry.activity)">
+                      <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            }
+
+            @if (!currentActivityEntries.length) {
+              <div class="timeline-item">
+                <div class="timeline-item__marker timeline-item__marker--primary">
+                  <span class="material-symbols-outlined" aria-hidden="true">calendar_month</span>
+                </div>
+                <div class="timeline-item__content">
+                  <div class="timeline-item__heading">
+                    <h4>No activity yet</h4>
+                    <span>Ready for the first event</span>
+                  </div>
+                  <p>Once activities are logged, they will appear here in chronological order.</p>
+                </div>
+              </div>
+            }
+          </div>
+        </article>
+      </div>
+
+      <div class="client-column">
+        <article class="bento-card bento-card--accent">
+          <h3 class="font-label-md text-label-md text-on-primary-container mb-md">Client Snapshot</h3>
+          <div class="snapshot-stack">
+            <div class="snapshot-row">
+                <p>Total Revenue</p>
+              <div class="snapshot-row__value">
+                <strong>{{ currentClient ? '$' + (currentActivityEntries.length * 14250 + currentVisibleContacts.length * 1200).toLocaleString('en-US') : '$0' }}</strong>
+                <span class="snapshot-row__trend">
+                  <span class="material-symbols-outlined" aria-hidden="true">trending_up</span>
+                  +12%
+                </span>
+              </div>
+            </div>
+
+            <div class="snapshot-grid-small">
+              <div>
+                <p>Outstanding</p>
+                <strong>{{ currentTags.length ? '$2,400.00' : '$0.00' }}</strong>
+              </div>
+              <div>
+                <p>Missions</p>
+                <strong>{{ missions().length }}</strong>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="bento-card">
+          <div class="client-card-header">
+            <h3 class="font-headline-md text-headline-md text-primary">Client Missions</h3>
+            <span class="client-card-header__count">{{ missions().length }}</span>
+          </div>
+
+          <div class="mission-stack">
+            @for (mission of visibleMissions(); track trackByMission($index, mission)) {
+              <article class="mission-card">
+                <div class="mission-card__head">
+                  <div>
+                    <h4>{{ mission.title }}</h4>
+                    <p>{{ mission.meta }}</p>
+                  </div>
+                  <span class="mission-card__priority">{{ mission.priorityLabel }}</span>
+                </div>
+                <div class="mission-card__footer">
+                  <span class="mission-card__status">{{ mission.statusLabel }}</span>
+                </div>
+              </article>
+            }
+
+            @if (!missions().length) {
+              <div class="mission-card mission-card--empty">
+                <span class="material-symbols-outlined" aria-hidden="true">assignment</span>
+                <p>No missions linked to this client yet.</p>
+              </div>
+            }
+          </div>
+        </article>
+
+        <article class="bento-card bento-card--notes">
+          <div class="notes-header">
+            <span class="material-symbols-outlined" aria-hidden="true">lightbulb</span>
+            <h3 class="font-label-md text-label-md font-bold text-primary">Internal Notes</h3>
+          </div>
+          @if (currentClient?.notes) {
+            <p class="notes-copy">{{ clientNotes(currentClient) }}</p>
+          } @else {
+            <p class="notes-copy notes-copy--empty">No internal notes have been added yet.</p>
+          }
+          <div class="notes-footer">
+            <span class="material-symbols-outlined" aria-hidden="true">edit_note</span>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    @if (contactDeleteTarget()) {
+      <div class="client-detail-shell__confirm-overlay" (click)="cancelDeleteContact()"></div>
+      <aside class="client-detail-shell__confirm surface-card" role="dialog" aria-modal="true" aria-label="Confirm contact deletion">
+        <p class="client-detail-shell__confirm-eyebrow">Delete contact</p>
+        <h2 class="client-detail-shell__confirm-title">
+          Delete {{ contactDeleteTarget()?.firstName || 'this' }} {{ contactDeleteTarget()?.lastName || 'contact' }}?
+        </h2>
+        <p class="client-detail-shell__confirm-copy">
+          This action permanently removes the contact from the client profile.
+        </p>
+        <footer class="client-detail-shell__confirm-footer">
+          <button class="btn btn--secondary" type="button" (click)="cancelDeleteContact()">Cancel</button>
+          <button class="btn btn--primary" type="button" [disabled]="isDeletingContact()" (click)="confirmDeleteContact()">
+            @if (isDeletingContact()) {
+              <span class="material-symbols-outlined" aria-hidden="true">progress_activity</span>
+            } @else {
+              <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+            }
+            Delete contact
+          </button>
+        </footer>
+      </aside>
+    }
+
+    @if (activityModalOpen()) {
+      <div class="client-detail-shell__confirm-overlay" (click)="closeActivityModal()"></div>
+      <aside class="client-detail-shell__activity-modal surface-card" role="dialog" aria-modal="true" aria-label="Client activities">
+        <div class="client-detail-shell__activity-modal-header">
+          <div>
+            <p class="client-detail-shell__activity-modal-eyebrow">Activity log</p>
+            <h2 class="client-detail-shell__activity-modal-title">Client activities</h2>
+            <p class="client-detail-shell__activity-modal-copy">
+              Browse the full history without stretching the detail page.
+            </p>
+          </div>
+          <button class="client-detail-shell__activity-modal-close" type="button" aria-label="Close activity log" (click)="closeActivityModal()">
+            <span class="material-symbols-outlined" aria-hidden="true">close</span>
+          </button>
+        </div>
+
+        <div class="client-detail-shell__activity-modal-body">
+          <div class="timeline timeline--modal">
+            @for (entry of activityModalEntries(); track trackByActivity($index, entry.activity)) {
+              <div class="timeline-item timeline-item--modal">
+                <div class="timeline-item__marker timeline-item__marker--{{ entry.item.tone }}">
+                  <span class="material-symbols-outlined" aria-hidden="true">{{ entry.item.icon }}</span>
+                </div>
+                <div class="timeline-item__content">
+                  <div class="timeline-item__heading">
+                    <h4>{{ entry.item.title }}</h4>
+                    <span>{{ entry.item.meta }}</span>
+                  </div>
+                  <p class="timeline-item__type">{{ formatActivityType(entry.activity.activityType) }}</p>
+                  <p>{{ entry.item.description }}</p>
+                  <div class="timeline-item__actions">
+                    <button class="contact-card__action-button" type="button" (click)="openEditActivityDrawer(entry.activity)">
+                      <span class="material-symbols-outlined" aria-hidden="true">edit</span>
+                      Edit
+                    </button>
+                    <button class="contact-card__action-button contact-card__action-button--danger" type="button" (click)="requestDeleteActivity(entry.activity)">
+                      <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <footer class="client-detail-shell__activity-modal-footer">
+          <div class="client-detail-shell__activity-modal-meta">
+            Page {{ activityPage() }} / {{ activityPageCount() }}
+          </div>
+          <div class="client-detail-shell__activity-modal-actions">
+            <button class="btn btn--secondary" type="button" [disabled]="activityPage() <= 1" (click)="previousActivityPage()">Previous</button>
+            <button class="btn btn--secondary" type="button" [disabled]="activityPage() >= activityPageCount()" (click)="nextActivityPage()">Next</button>
+            <button class="btn btn--primary" type="button" (click)="closeActivityModal()">Done</button>
+          </div>
+        </footer>
+      </aside>
+    }
+
+    @if (activityDeleteTarget()) {
+      <div class="client-detail-shell__confirm-overlay" (click)="cancelDeleteActivity()"></div>
+      <aside class="client-detail-shell__confirm surface-card" role="dialog" aria-modal="true" aria-label="Confirm activity deletion">
+        <p class="client-detail-shell__confirm-eyebrow">Delete activity</p>
+        <h2 class="client-detail-shell__confirm-title">
+          Delete {{ activityDeleteTarget()?.title || 'this' }} activity?
+        </h2>
+        <p class="client-detail-shell__confirm-copy">
+          This action permanently removes the activity from the client timeline.
+        </p>
+        <footer class="client-detail-shell__confirm-footer">
+          <button class="btn btn--secondary" type="button" (click)="cancelDeleteActivity()">Cancel</button>
+          <button class="btn btn--primary" type="button" [disabled]="isDeletingActivity()" (click)="confirmDeleteActivity()">
+            @if (isDeletingActivity()) {
+              <span class="material-symbols-outlined" aria-hidden="true">progress_activity</span>
+            } @else {
+              <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+            }
+            Delete activity
+          </button>
+        </footer>
+      </aside>
+    }
+  }
+</div>

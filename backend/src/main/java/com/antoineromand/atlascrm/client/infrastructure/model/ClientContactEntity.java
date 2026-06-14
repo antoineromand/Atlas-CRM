@@ -138,6 +138,10 @@ public class ClientContactEntity {
     return primary;
   }
 
+  public void setPrimary(boolean primary) {
+    this.primary = primary;
+  }
+
   public Instant getCreatedAt() {
     return createdAt;
   }

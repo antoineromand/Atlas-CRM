@@ -8,6 +8,7 @@ import com.antoineromand.atlascrm.authentication.domain.valueobject.CredentialsS
 import com.antoineromand.atlascrm.authentication.domain.valueobject.RoleName;
 import com.antoineromand.atlascrm.authentication.infrastructure.model.CredentialsEntity;
 import com.antoineromand.atlascrm.mission.domain.Mission;
+import com.antoineromand.atlascrm.mission.domain.MissionStatus;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
@@ -45,6 +46,7 @@ class MissionEntityTest {
     assertEquals("Lead developer", entity.getRoleInProject());
     assertEquals("Redesign the marketing website", entity.getDescription());
     assertEquals("in_progress", entity.getStatus());
+    assertEquals(60, mission.getProgress());
     assertEquals("high", entity.getPriority());
     assertEquals(LocalDate.of(2026, 6, 1), entity.getStartDate());
     assertEquals(LocalDate.of(2026, 6, 30), entity.getDeadline());
@@ -108,6 +110,7 @@ class MissionEntityTest {
     assertEquals("Lead developer", mission.getRoleInProject());
     assertEquals("Redesign the marketing website", mission.getDescription());
     assertEquals("in_progress", mission.getStatus());
+    assertEquals(MissionStatus.IN_PROGRESS, mission.getMissionStatus());
     assertEquals("high", mission.getPriority());
     assertEquals(LocalDate.of(2026, 6, 1), mission.getStartDate());
     assertEquals(LocalDate.of(2026, 6, 30), mission.getDeadline());
@@ -152,7 +155,7 @@ class MissionEntityTest {
             "Website redesign",
             null,
             null,
-            "not_started",
+            "created",
             "medium",
             LocalDate.of(2026, 6, 1),
             null,
@@ -166,5 +169,6 @@ class MissionEntityTest {
     assertNull(mission.getDeadline());
     assertNull(mission.getCreatedAt());
     assertNull(mission.getUpdatedAt());
+    assertEquals("created", mission.getStatus());
   }
 }

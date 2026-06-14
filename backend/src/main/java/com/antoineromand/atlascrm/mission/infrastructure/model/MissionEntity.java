@@ -1,7 +1,8 @@
 package com.antoineromand.atlascrm.mission.infrastructure.model;
 
-import com.antoineromand.atlascrm.mission.domain.Mission;
 import com.antoineromand.atlascrm.account.infrastructure.model.AccountEntity;
+import com.antoineromand.atlascrm.client.infrastructure.model.ClientEntity;
+import com.antoineromand.atlascrm.mission.domain.Mission;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -37,6 +38,10 @@ public class MissionEntity {
   @JoinColumn(name = "account_id", nullable = false)
   private AccountEntity account;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "client_id")
+  private ClientEntity clientActivity;
+
   @Column(name = "title", nullable = false, length = 200)
   private String title;
 
@@ -66,7 +71,34 @@ public class MissionEntity {
   @Column(name = "updated_at")
   private Instant updatedAt;
 
-  public MissionEntity() {}
+  protected MissionEntity() {}
+
+  public MissionEntity(
+      UUID id,
+      AccountEntity account,
+      ClientEntity clientActivity,
+      String title,
+      String roleInProject,
+      String description,
+      String status,
+      String priority,
+      LocalDate startDate,
+      LocalDate deadline,
+      Instant createdAt,
+      Instant updatedAt) {
+    this.id = id != null ? id : UUID.randomUUID();
+    this.account = account;
+    this.clientActivity = clientActivity;
+    this.title = title;
+    this.roleInProject = roleInProject;
+    this.description = description;
+    this.status = status;
+    this.priority = priority;
+    this.startDate = startDate;
+    this.deadline = deadline;
+    this.createdAt = createdAt;
+    this.updatedAt = updatedAt;
+  }
 
   public MissionEntity(
       UUID id,
@@ -80,23 +112,19 @@ public class MissionEntity {
       LocalDate deadline,
       Instant createdAt,
       Instant updatedAt) {
-    this.id = id != null ? id : UUID.randomUUID();
-    this.account = account;
-    this.title = title;
-    this.roleInProject = roleInProject;
-    this.description = description;
-    this.status = status;
-    this.priority = priority;
-    this.startDate = startDate;
-    this.deadline = deadline;
-    this.createdAt = createdAt;
-    this.updatedAt = updatedAt;
+    this(id, account, null, title, roleInProject, description, status, priority, startDate, deadline, createdAt, updatedAt);
   }
 
   public static MissionEntity fromDomain(Mission mission, AccountEntity account) {
+    return fromDomain(mission, account, null);
+  }
+
+  public static MissionEntity fromDomain(
+      Mission mission, AccountEntity account, ClientEntity clientActivity) {
     return new MissionEntity(
         mission.getId(),
         account,
+        clientActivity,
         mission.getTitle(),
         mission.getRoleInProject(),
         mission.getDescription(),
@@ -112,6 +140,7 @@ public class MissionEntity {
     return new Mission(
         id,
         account.getId(),
+        clientActivity != null ? clientActivity.getId() : null,
         title,
         roleInProject,
         description,
@@ -129,6 +158,10 @@ public class MissionEntity {
 
   public AccountEntity getAccount() {
     return account;
+  }
+
+  public ClientEntity getClientActivity() {
+    return clientActivity;
   }
 
   public String getTitle() {

@@ -76,10 +76,10 @@ class CreateMissionUseCaseIntegrationTest {
         createMissionUseCase.execute(
             new CreateMissionCommand(
                 accountId,
+                null,
                 "Website redesign",
                 "Lead developer",
                 "Redesign the marketing website",
-                "in_progress",
                 "high",
                 LocalDate.of(2026, 6, 1),
                 LocalDate.of(2026, 6, 30)));
@@ -89,7 +89,7 @@ class CreateMissionUseCaseIntegrationTest {
 
     assertEquals(accountId, mission.getAccountId());
     assertEquals("Website redesign", mission.getTitle());
-    assertEquals("in_progress", mission.getStatus());
+    assertEquals("created", mission.getStatus());
     assertEquals("high", mission.getPriority());
     assertNotNull(persistedAccount.orElseThrow());
   }

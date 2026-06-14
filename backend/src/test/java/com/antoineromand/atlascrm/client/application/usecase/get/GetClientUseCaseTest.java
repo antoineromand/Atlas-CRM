@@ -13,6 +13,8 @@ import com.antoineromand.atlascrm.client.domain.repository.IClientActivityReposi
 import com.antoineromand.atlascrm.client.domain.repository.IClientContactRepository;
 import com.antoineromand.atlascrm.client.domain.repository.IClientRepository;
 import com.antoineromand.atlascrm.client.domain.repository.IClientTagRepository;
+import com.antoineromand.atlascrm.mission.domain.Mission;
+import com.antoineromand.atlascrm.mission.domain.repository.IMissionRepository;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -29,12 +31,17 @@ class GetClientUseCaseTest {
   @Mock private IClientContactRepository clientContactRepository;
   @Mock private IClientActivityRepository clientActivityRepository;
   @Mock private IClientTagRepository clientTagRepository;
+  @Mock private IMissionRepository missionRepository;
 
   @Test
   void executeShouldReturnClientDetails() {
     GetClientUseCase useCase =
         new GetClientUseCase(
-            clientRepository, clientContactRepository, clientActivityRepository, clientTagRepository);
+            clientRepository,
+            clientContactRepository,
+            clientActivityRepository,
+            clientTagRepository,
+            missionRepository);
     UUID accountId = UUID.randomUUID();
     UUID clientId = UUID.randomUUID();
     Client client =
@@ -86,6 +93,22 @@ class GetClientUseCaseTest {
                     "#d97706",
                     Instant.parse("2026-06-01T08:00:00Z"),
                     null)));
+    when(missionRepository.findAllByClientId(clientId))
+        .thenReturn(
+            List.of(
+                new Mission(
+                    UUID.randomUUID(),
+                    accountId,
+                    clientId,
+                    "Website refresh",
+                    "Lead designer",
+                    "Design revamp",
+                    "in_progress",
+                    "high",
+                    java.time.LocalDate.parse("2026-06-01"),
+                    java.time.LocalDate.parse("2026-07-01"),
+                    Instant.parse("2026-06-01T07:00:00Z"),
+                    null)));
 
     ClientDetailResult result = useCase.execute(accountId, clientId);
 
@@ -93,13 +116,18 @@ class GetClientUseCaseTest {
     assertEquals(1, result.contacts().size());
     assertEquals(1, result.activities().size());
     assertEquals(1, result.tags().size());
+    assertEquals(1, result.missions().size());
   }
 
   @Test
   void executeShouldThrowWhenClientDoesNotExist() {
     GetClientUseCase useCase =
         new GetClientUseCase(
-            clientRepository, clientContactRepository, clientActivityRepository, clientTagRepository);
+            clientRepository,
+            clientContactRepository,
+            clientActivityRepository,
+            clientTagRepository,
+            missionRepository);
     UUID accountId = UUID.randomUUID();
     UUID clientId = UUID.randomUUID();
 

@@ -7,8 +7,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.antoineromand.atlascrm.account.application.usecase.account.PatchValue;
+import com.antoineromand.atlascrm.client.domain.repository.IClientRepository;
 import com.antoineromand.atlascrm.mission.application.exceptions.MissionNotFoundException;
 import com.antoineromand.atlascrm.mission.domain.Mission;
+import com.antoineromand.atlascrm.mission.domain.MissionStatus;
 import com.antoineromand.atlascrm.mission.domain.repository.IMissionRepository;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -24,38 +26,41 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class UpdateMissionUseCaseTest {
 
   @Mock private IMissionRepository missionRepository;
+  @Mock private IClientRepository clientRepository;
 
   @Test
   void executeShouldMergeFieldsAndReturnUpdatedMission() {
-    UpdateMissionUseCase useCase = new UpdateMissionUseCase(missionRepository);
+    UpdateMissionUseCase useCase = new UpdateMissionUseCase(missionRepository, clientRepository);
     UUID accountId = UUID.randomUUID();
     UUID missionId = UUID.randomUUID();
     Instant createdAt = Instant.parse("2026-06-01T10:00:00Z");
     Mission existing =
-        new Mission(
-            missionId,
-            accountId,
-            "Initial title",
-            "Lead developer",
-            "Initial description",
-            "not_started",
-            "medium",
-            LocalDate.of(2026, 6, 1),
-            LocalDate.of(2026, 6, 30),
-            createdAt,
+            new Mission(
+                missionId,
+                accountId,
+                null,
+                "Initial title",
+                "Lead developer",
+                "Initial description",
+                MissionStatus.CREATED,
+                "medium",
+                LocalDate.of(2026, 6, 1),
+                LocalDate.of(2026, 6, 30),
+                createdAt,
             null);
     Mission updated =
-        new Mission(
-            missionId,
-            accountId,
-            "Updated title",
-            "Lead developer",
-            "Updated description",
-            "in_progress",
-            "high",
-            LocalDate.of(2026, 6, 2),
-            LocalDate.of(2026, 7, 1),
-            createdAt,
+            new Mission(
+                missionId,
+                accountId,
+                null,
+                "Updated title",
+                "Lead developer",
+                "Updated description",
+                MissionStatus.CREATED,
+                "high",
+                LocalDate.of(2026, 6, 2),
+                LocalDate.of(2026, 7, 1),
+                createdAt,
             Instant.parse("2026-06-01T11:00:00Z"));
 
     when(missionRepository.findByIdAndAccountId(missionId, accountId))
@@ -70,7 +75,7 @@ class UpdateMissionUseCaseTest {
                 PatchValue.of("Updated title"),
                 PatchValue.absent(),
                 PatchValue.of("Updated description"),
-                PatchValue.of("in_progress"),
+                PatchValue.absent(),
                 PatchValue.of("high"),
                 PatchValue.of(LocalDate.of(2026, 6, 2)),
                 PatchValue.of(LocalDate.of(2026, 7, 1))));
@@ -83,7 +88,6 @@ class UpdateMissionUseCaseTest {
     assertEquals("Updated title", saved.getTitle());
     assertEquals("Lead developer", saved.getRoleInProject());
     assertEquals("Updated description", saved.getDescription());
-    assertEquals("in_progress", saved.getStatus());
     assertEquals("high", saved.getPriority());
     assertEquals(LocalDate.of(2026, 6, 2), saved.getStartDate());
     assertEquals(LocalDate.of(2026, 7, 1), saved.getDeadline());
@@ -91,7 +95,7 @@ class UpdateMissionUseCaseTest {
 
   @Test
   void executeShouldThrowWhenMissionDoesNotExistForAccount() {
-    UpdateMissionUseCase useCase = new UpdateMissionUseCase(missionRepository);
+    UpdateMissionUseCase useCase = new UpdateMissionUseCase(missionRepository, clientRepository);
     UUID accountId = UUID.randomUUID();
     UUID missionId = UUID.randomUUID();
 

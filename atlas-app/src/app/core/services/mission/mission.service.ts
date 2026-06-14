@@ -7,6 +7,7 @@ import {
   MissionPageResponse,
   MissionResponse,
   MissionSummaryResponse,
+  UpdateMissionStatusPayload,
   UpdateMissionPayload,
 } from '../../interface/mission.interface';
 import { environment } from '../../../../environments/environment';
@@ -70,6 +71,12 @@ export class MissionService {
 
   updateMission(missionId: string, payload: UpdateMissionPayload): Observable<MissionResponse> {
     return this.httpClient.patch<MissionResponse>(`${this.baseUrl}/${missionId}`, payload, {
+      withCredentials: true,
+    });
+  }
+
+  updateMissionStatus(missionId: string, payload: UpdateMissionStatusPayload): Observable<MissionResponse> {
+    return this.httpClient.patch<MissionResponse>(`${this.baseUrl}/${missionId}/status`, payload, {
       withCredentials: true,
     });
   }

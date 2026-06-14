@@ -1,6 +1,7 @@
 package com.antoineromand.atlascrm.mission.application.usecase.summary;
 
 import com.antoineromand.atlascrm.mission.domain.Mission;
+import com.antoineromand.atlascrm.mission.domain.MissionStatus;
 import com.antoineromand.atlascrm.mission.domain.repository.IMissionRepository;
 import java.time.LocalDate;
 import java.util.List;
@@ -20,7 +21,7 @@ public class GetMissionSummaryUseCase implements IGetMissionSummaryUseCase {
   public MissionSummaryResult execute(UUID accountId) {
     List<Mission> missions = this.missionRepository.findAllByAccountId(accountId);
     long total = missions.size();
-    long completed = missions.stream().filter(mission -> "completed".equals(mission.getStatus())).count();
+    long completed = missions.stream().filter(mission -> mission.getMissionStatus().isCompleted()).count();
     long active = total - completed;
     long dueSoon = this.countDueSoon(missions);
     long highPriority = missions.stream().filter(mission -> "high".equals(mission.getPriority())).count();
@@ -32,7 +33,7 @@ public class GetMissionSummaryUseCase implements IGetMissionSummaryUseCase {
     LocalDate today = LocalDate.now();
 
     return missions.stream()
-        .filter(mission -> !"completed".equals(mission.getStatus()))
+        .filter(mission -> mission.getMissionStatus() != MissionStatus.COMPLETED)
         .filter(mission -> mission.getDeadline() != null)
         .filter(
             mission -> {

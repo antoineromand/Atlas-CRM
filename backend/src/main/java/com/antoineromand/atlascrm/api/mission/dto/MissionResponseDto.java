@@ -6,10 +6,12 @@ import java.util.UUID;
 
 public record MissionResponseDto(
     UUID id,
+    UUID clientId,
     String title,
     String roleInProject,
     String description,
     String status,
+    int progress,
     String priority,
     LocalDate startDate,
     LocalDate deadline,

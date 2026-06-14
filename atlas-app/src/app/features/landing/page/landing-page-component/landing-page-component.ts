@@ -96,13 +96,6 @@ export class LandingPageComponent {
     },
   ];
 
-  protected readonly dashboardPoints = [
-    'Readable cards with plenty of breathing room',
-    'Clear hierarchy for KPIs and activity',
-    'Soft white and slate-blue surfaces',
-    'Consistent spacing and section rhythm',
-  ];
-
   protected readonly testimonials: readonly TestimonialItem[] = [
     {
       quote: 'Atlas changed how I work. I no longer waste time searching for invoices.',

@@ -5,6 +5,7 @@ import com.antoineromand.atlascrm.account.application.usecase.account.PatchValue
 import com.antoineromand.atlascrm.account.domain.Account;
 import com.antoineromand.atlascrm.api.mission.dto.CreateMissionRequestDto;
 import com.antoineromand.atlascrm.api.mission.dto.CreateMissionResponseDto;
+import com.antoineromand.atlascrm.api.mission.dto.UpdateMissionStatusRequestDto;
 import com.antoineromand.atlascrm.api.mission.dto.MissionPageResponseDto;
 import com.antoineromand.atlascrm.api.mission.dto.MissionResponseDto;
 import com.antoineromand.atlascrm.api.mission.dto.MissionSummaryResponseDto;
@@ -18,12 +19,13 @@ import com.antoineromand.atlascrm.mission.application.usecase.list.MissionPageRe
 import com.antoineromand.atlascrm.mission.application.usecase.summary.IGetMissionSummaryUseCase;
 import com.antoineromand.atlascrm.mission.application.usecase.summary.MissionSummaryResult;
 import com.antoineromand.atlascrm.mission.application.usecase.update.IUpdateMissionUseCase;
+import com.antoineromand.atlascrm.mission.application.usecase.update.IUpdateMissionStatusUseCase;
 import com.antoineromand.atlascrm.mission.application.usecase.update.UpdateMissionCommand;
+import com.antoineromand.atlascrm.mission.application.usecase.update.UpdateMissionStatusCommand;
 import com.antoineromand.atlascrm.mission.domain.Mission;
 import jakarta.validation.Valid;
 import java.security.Principal;
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
@@ -48,6 +50,7 @@ public class MissionController {
   private final IListMissionUseCase listMissionUseCase;
   private final IGetMissionSummaryUseCase getMissionSummaryUseCase;
   private final IUpdateMissionUseCase updateMissionUseCase;
+  private final IUpdateMissionStatusUseCase updateMissionStatusUseCase;
   private final IDeleteMissionUseCase deleteMissionUseCase;
 
   public MissionController(
@@ -57,6 +60,7 @@ public class MissionController {
       IListMissionUseCase listMissionUseCase,
       IGetMissionSummaryUseCase getMissionSummaryUseCase,
       IUpdateMissionUseCase updateMissionUseCase,
+      IUpdateMissionStatusUseCase updateMissionStatusUseCase,
       IDeleteMissionUseCase deleteMissionUseCase) {
     this.createMissionUseCase = createMissionUseCase;
     this.getAccountUseCase = getAccountUseCase;
@@ -64,6 +68,7 @@ public class MissionController {
     this.listMissionUseCase = listMissionUseCase;
     this.getMissionSummaryUseCase = getMissionSummaryUseCase;
     this.updateMissionUseCase = updateMissionUseCase;
+    this.updateMissionStatusUseCase = updateMissionStatusUseCase;
     this.deleteMissionUseCase = deleteMissionUseCase;
   }
 
@@ -75,10 +80,10 @@ public class MissionController {
         this.createMissionUseCase.execute(
             new CreateMissionCommand(
                 account.getId(),
+                dto.clientId(),
                 dto.title(),
                 dto.roleInProject(),
                 dto.description(),
-                dto.status(),
                 dto.priority(),
                 dto.startDate(),
                 dto.deadline()));
@@ -128,10 +133,20 @@ public class MissionController {
                 this.patchString(body, "title", 200),
                 this.patchString(body, "roleInProject", 150),
                 this.patchString(body, "description", Integer.MAX_VALUE),
-                this.patchString(body, "status", 32),
+                this.patchUuid(body, "clientId"),
                 this.patchString(body, "priority", 16),
                 this.patchDate(body, "startDate"),
                 this.patchDate(body, "deadline")));
+    return ResponseEntity.ok(this.toResponse(updated));
+  }
+
+  @PatchMapping("/{missionId}/status")
+  public ResponseEntity<MissionResponseDto> updateMyMissionStatus(
+      Principal principal, @PathVariable UUID missionId, @Valid @RequestBody UpdateMissionStatusRequestDto dto) {
+    Account account = this.getAccountUseCase.execute(this.extractCredentialsId(principal));
+    Mission updated =
+        this.updateMissionStatusUseCase.execute(
+            new UpdateMissionStatusCommand(account.getId(), missionId, dto.status()));
     return ResponseEntity.ok(this.toResponse(updated));
   }
 
@@ -167,10 +182,12 @@ public class MissionController {
   private MissionResponseDto toResponse(Mission mission) {
     return new MissionResponseDto(
         mission.getId(),
+        mission.getClientId(),
         mission.getTitle(),
         mission.getRoleInProject(),
         mission.getDescription(),
         mission.getStatus(),
+        mission.getProgress(),
         mission.getPriority(),
         mission.getStartDate(),
         mission.getDeadline(),
@@ -254,5 +271,22 @@ public class MissionController {
     }
 
     return PatchValue.of(LocalDate.parse(value));
+  }
+
+  private PatchValue<UUID> patchUuid(Map<String, Object> body, String fieldName) {
+    if (!body.containsKey(fieldName)) {
+      return PatchValue.absent();
+    }
+
+    Object rawValue = body.get(fieldName);
+    if (rawValue == null) {
+      return PatchValue.of(null);
+    }
+
+    if (!(rawValue instanceof String value)) {
+      throw new IllegalArgumentException(fieldName + " must be a UUID string or null");
+    }
+
+    return PatchValue.of(UUID.fromString(value));
   }
 }

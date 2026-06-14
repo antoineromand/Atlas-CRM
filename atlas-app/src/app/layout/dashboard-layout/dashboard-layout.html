@@ -26,14 +26,14 @@
 
   <nav class="dashboard-sidebar__nav" aria-label="Dashboard navigation">
     @for (item of sidebarItems; track item.label) {
-      @if (!item.disabled && item.route) {
-        <a
-          class="dashboard-sidebar__link"
-          [routerLink]="item.route"
-          routerLinkActive="is-active"
-          [routerLinkActiveOptions]="{ exact: true }"
-          (click)="closeMenu()"
-        >
+        @if (!item.disabled && item.route) {
+          <a
+            class="dashboard-sidebar__link"
+            [routerLink]="item.route"
+            routerLinkActive="is-active"
+            [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
+            (click)="closeMenu()"
+          >
           <span class="material-symbols-outlined" aria-hidden="true">{{ item.icon }}</span>
           <span>{{ item.label }}</span>
         </a>

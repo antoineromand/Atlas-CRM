@@ -5,20 +5,35 @@ import com.antoineromand.atlascrm.account.application.usecase.account.PatchValue
 import com.antoineromand.atlascrm.account.domain.Account;
 import com.antoineromand.atlascrm.api.client.dto.CreateClientRequestDto;
 import com.antoineromand.atlascrm.api.client.dto.CreateClientResponseDto;
+import com.antoineromand.atlascrm.api.client.dto.CreateClientActivityRequestDto;
+import com.antoineromand.atlascrm.api.client.dto.CreateClientContactRequestDto;
 import com.antoineromand.atlascrm.api.client.dto.ClientActivityResponseDto;
 import com.antoineromand.atlascrm.api.client.dto.ClientContactResponseDto;
 import com.antoineromand.atlascrm.api.client.dto.ClientDetailResponseDto;
 import com.antoineromand.atlascrm.api.client.dto.ClientPageResponseDto;
 import com.antoineromand.atlascrm.api.client.dto.ClientResponseDto;
 import com.antoineromand.atlascrm.api.client.dto.ClientTagResponseDto;
+import com.antoineromand.atlascrm.api.client.dto.UpdateClientActivityRequestDto;
+import com.antoineromand.atlascrm.api.client.dto.UpdateClientContactRequestDto;
+import com.antoineromand.atlascrm.api.mission.dto.MissionResponseDto;
 import com.antoineromand.atlascrm.client.application.usecase.create.CreateClientCommand;
 import com.antoineromand.atlascrm.client.application.usecase.create.ICreateClientUseCase;
+import com.antoineromand.atlascrm.client.application.usecase.activity.create.CreateClientActivityCommand;
+import com.antoineromand.atlascrm.client.application.usecase.activity.create.ICreateClientActivityUseCase;
+import com.antoineromand.atlascrm.client.application.usecase.activity.delete.IDeleteClientActivityUseCase;
+import com.antoineromand.atlascrm.client.application.usecase.activity.update.IUpdateClientActivityUseCase;
+import com.antoineromand.atlascrm.client.application.usecase.activity.update.UpdateClientActivityCommand;
 import com.antoineromand.atlascrm.client.application.usecase.delete.IDeleteClientUseCase;
 import com.antoineromand.atlascrm.client.application.usecase.get.ClientDetailResult;
 import com.antoineromand.atlascrm.client.application.usecase.get.IGetClientUseCase;
 import com.antoineromand.atlascrm.client.application.usecase.list.IListClientUseCase;
 import com.antoineromand.atlascrm.client.application.usecase.list.ListClientQuery;
 import com.antoineromand.atlascrm.client.application.usecase.list.ClientPageResult;
+import com.antoineromand.atlascrm.client.application.usecase.contact.create.ICreateClientContactUseCase;
+import com.antoineromand.atlascrm.client.application.usecase.contact.create.CreateClientContactCommand;
+import com.antoineromand.atlascrm.client.application.usecase.contact.delete.IDeleteClientContactUseCase;
+import com.antoineromand.atlascrm.client.application.usecase.contact.update.IUpdateClientContactUseCase;
+import com.antoineromand.atlascrm.client.application.usecase.contact.update.UpdateClientContactCommand;
 import com.antoineromand.atlascrm.client.domain.Client;
 import com.antoineromand.atlascrm.client.domain.ClientActivity;
 import com.antoineromand.atlascrm.client.domain.ClientContact;
@@ -50,6 +65,12 @@ public class ClientController {
   private final IGetClientUseCase getClientUseCase;
   private final IUpdateClientUseCase updateClientUseCase;
   private final IDeleteClientUseCase deleteClientUseCase;
+  private final ICreateClientActivityUseCase createClientActivityUseCase;
+  private final IUpdateClientActivityUseCase updateClientActivityUseCase;
+  private final IDeleteClientActivityUseCase deleteClientActivityUseCase;
+  private final ICreateClientContactUseCase createClientContactUseCase;
+  private final IUpdateClientContactUseCase updateClientContactUseCase;
+  private final IDeleteClientContactUseCase deleteClientContactUseCase;
   private final IListClientUseCase listClientUseCase;
 
   public ClientController(
@@ -58,12 +79,24 @@ public class ClientController {
       IGetClientUseCase getClientUseCase,
       IUpdateClientUseCase updateClientUseCase,
       IDeleteClientUseCase deleteClientUseCase,
+      ICreateClientActivityUseCase createClientActivityUseCase,
+      IUpdateClientActivityUseCase updateClientActivityUseCase,
+      IDeleteClientActivityUseCase deleteClientActivityUseCase,
+      ICreateClientContactUseCase createClientContactUseCase,
+      IUpdateClientContactUseCase updateClientContactUseCase,
+      IDeleteClientContactUseCase deleteClientContactUseCase,
       IListClientUseCase listClientUseCase) {
     this.createClientUseCase = createClientUseCase;
     this.getAccountUseCase = getAccountUseCase;
     this.getClientUseCase = getClientUseCase;
     this.updateClientUseCase = updateClientUseCase;
     this.deleteClientUseCase = deleteClientUseCase;
+    this.createClientActivityUseCase = createClientActivityUseCase;
+    this.updateClientActivityUseCase = updateClientActivityUseCase;
+    this.deleteClientActivityUseCase = deleteClientActivityUseCase;
+    this.createClientContactUseCase = createClientContactUseCase;
+    this.updateClientContactUseCase = updateClientContactUseCase;
+    this.deleteClientContactUseCase = deleteClientContactUseCase;
     this.listClientUseCase = listClientUseCase;
   }
 
@@ -119,6 +152,86 @@ public class ClientController {
                 this.patchString(body, "status", 32),
                 this.patchString(body, "notes", Integer.MAX_VALUE)));
     return ResponseEntity.ok(this.toResponse(updated));
+  }
+
+  @PostMapping("/{clientId}/activities")
+  public ResponseEntity<ClientActivityResponseDto> createClientActivity(
+      Principal principal,
+      @PathVariable UUID clientId,
+      @Valid @RequestBody CreateClientActivityRequestDto dto) {
+    Account account = this.getAccountUseCase.execute(this.extractCredentialsId(principal));
+    ClientActivity activity =
+        this.createClientActivityUseCase.execute(
+            account.getId(),
+            clientId,
+            new CreateClientActivityCommand(
+                dto.activityType(), dto.title(), dto.description(), dto.occurredAt()));
+    return ResponseEntity.status(HttpStatus.CREATED).body(this.toResponse(activity));
+  }
+
+  @PatchMapping("/{clientId}/activities/{activityId}")
+  public ResponseEntity<ClientActivityResponseDto> updateClientActivity(
+      Principal principal,
+      @PathVariable UUID clientId,
+      @PathVariable UUID activityId,
+      @Valid @RequestBody UpdateClientActivityRequestDto dto) {
+    Account account = this.getAccountUseCase.execute(this.extractCredentialsId(principal));
+    ClientActivity activity =
+        this.updateClientActivityUseCase.execute(
+            account.getId(),
+            clientId,
+            activityId,
+            new UpdateClientActivityCommand(
+                dto.activityType(), dto.title(), dto.description(), dto.occurredAt()));
+    return ResponseEntity.ok(this.toResponse(activity));
+  }
+
+  @DeleteMapping("/{clientId}/activities/{activityId}")
+  public ResponseEntity<Void> deleteClientActivity(
+      Principal principal, @PathVariable UUID clientId, @PathVariable UUID activityId) {
+    Account account = this.getAccountUseCase.execute(this.extractCredentialsId(principal));
+    this.deleteClientActivityUseCase.execute(account.getId(), clientId, activityId);
+    return ResponseEntity.noContent().build();
+  }
+
+  @PostMapping("/{clientId}/contacts")
+  public ResponseEntity<ClientContactResponseDto> createClientContact(
+      Principal principal,
+      @PathVariable UUID clientId,
+      @Valid @RequestBody CreateClientContactRequestDto dto) {
+    Account account = this.getAccountUseCase.execute(this.extractCredentialsId(principal));
+    ClientContact contact =
+        this.createClientContactUseCase.execute(
+            account.getId(),
+            clientId,
+            new CreateClientContactCommand(
+                dto.firstName(), dto.lastName(), dto.email(), dto.phone(), dto.jobTitle(), dto.primary()));
+    return ResponseEntity.status(HttpStatus.CREATED).body(this.toResponse(contact));
+  }
+
+  @PatchMapping("/{clientId}/contacts/{contactId}")
+  public ResponseEntity<ClientContactResponseDto> updateClientContact(
+      Principal principal,
+      @PathVariable UUID clientId,
+      @PathVariable UUID contactId,
+      @Valid @RequestBody UpdateClientContactRequestDto dto) {
+    Account account = this.getAccountUseCase.execute(this.extractCredentialsId(principal));
+    ClientContact contact =
+        this.updateClientContactUseCase.execute(
+            account.getId(),
+            clientId,
+            contactId,
+            new UpdateClientContactCommand(
+                dto.firstName(), dto.lastName(), dto.email(), dto.phone(), dto.jobTitle(), dto.primary()));
+    return ResponseEntity.ok(this.toResponse(contact));
+  }
+
+  @DeleteMapping("/{clientId}/contacts/{contactId}")
+  public ResponseEntity<Void> deleteClientContact(
+      Principal principal, @PathVariable UUID clientId, @PathVariable UUID contactId) {
+    Account account = this.getAccountUseCase.execute(this.extractCredentialsId(principal));
+    this.deleteClientContactUseCase.execute(account.getId(), clientId, contactId);
+    return ResponseEntity.noContent().build();
   }
 
   @DeleteMapping("/{clientId}")
@@ -228,7 +341,8 @@ public class ClientController {
         this.toResponse(result.client()),
         result.contacts().stream().map(this::toResponse).toList(),
         result.activities().stream().map(this::toResponse).toList(),
-        result.tags().stream().map(this::toResponse).toList());
+        result.tags().stream().map(this::toResponse).toList(),
+        result.missions().stream().map(this::toResponse).toList());
   }
 
   private ClientContactResponseDto toResponse(ClientContact contact) {
@@ -262,5 +376,21 @@ public class ClientController {
         tag.getColor(),
         tag.getCreatedAt(),
         tag.getUpdatedAt());
+  }
+
+  private MissionResponseDto toResponse(com.antoineromand.atlascrm.mission.domain.Mission mission) {
+    return new MissionResponseDto(
+        mission.getId(),
+        mission.getClientId(),
+        mission.getTitle(),
+        mission.getRoleInProject(),
+        mission.getDescription(),
+        mission.getStatus(),
+        mission.getProgress(),
+        mission.getPriority(),
+        mission.getStartDate(),
+        mission.getDeadline(),
+        mission.getCreatedAt(),
+        mission.getUpdatedAt());
   }
 }

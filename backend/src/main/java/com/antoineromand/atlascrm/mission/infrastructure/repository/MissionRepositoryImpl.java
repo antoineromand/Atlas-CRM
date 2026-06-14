@@ -2,6 +2,8 @@ package com.antoineromand.atlascrm.mission.infrastructure.repository;
 
 import com.antoineromand.atlascrm.account.infrastructure.model.AccountEntity;
 import com.antoineromand.atlascrm.account.infrastructure.repository.AccountJpaRepository;
+import com.antoineromand.atlascrm.client.infrastructure.model.ClientEntity;
+import com.antoineromand.atlascrm.client.infrastructure.repository.ClientJpaRepository;
 import com.antoineromand.atlascrm.mission.domain.Mission;
 import com.antoineromand.atlascrm.mission.domain.repository.IMissionRepository;
 import com.antoineromand.atlascrm.mission.infrastructure.model.MissionEntity;
@@ -17,11 +19,15 @@ public class MissionRepositoryImpl implements IMissionRepository {
 
   private final MissionJpaRepository missionJpaRepository;
   private final AccountJpaRepository accountJpaRepository;
+  private final ClientJpaRepository clientJpaRepository;
 
   public MissionRepositoryImpl(
-      MissionJpaRepository missionJpaRepository, AccountJpaRepository accountJpaRepository) {
+      MissionJpaRepository missionJpaRepository,
+      AccountJpaRepository accountJpaRepository,
+      ClientJpaRepository clientJpaRepository) {
     this.missionJpaRepository = missionJpaRepository;
     this.accountJpaRepository = accountJpaRepository;
+    this.clientJpaRepository = clientJpaRepository;
   }
 
   @Override
@@ -30,7 +36,13 @@ public class MissionRepositoryImpl implements IMissionRepository {
         this.accountJpaRepository
             .findById(mission.getAccountId())
             .orElseThrow(() -> new IllegalArgumentException("Account not found"));
-    MissionEntity saved = this.missionJpaRepository.save(MissionEntity.fromDomain(mission, account));
+    ClientEntity client =
+        mission.getClientId() == null
+            ? null
+            : this.clientJpaRepository
+                .findById(mission.getClientId())
+                .orElseThrow(() -> new IllegalArgumentException("Client not found"));
+    MissionEntity saved = this.missionJpaRepository.save(MissionEntity.fromDomain(mission, account, client));
     return saved.getId();
   }
 
@@ -47,6 +59,13 @@ public class MissionRepositoryImpl implements IMissionRepository {
   @Override
   public List<Mission> findAllByAccountId(UUID accountId) {
     return this.missionJpaRepository.findAllByAccount_IdOrderByCreatedAtDesc(accountId).stream()
+        .map(MissionEntity::toDomain)
+        .toList();
+  }
+
+  @Override
+  public List<Mission> findAllByClientId(UUID clientId) {
+    return this.missionJpaRepository.findAllByClientActivity_IdOrderByCreatedAtDesc(clientId).stream()
         .map(MissionEntity::toDomain)
         .toList();
   }

@@ -50,6 +50,18 @@ export const routes: Routes = [
             .then((m) => m.MissionsPageComponent),
       },
       {
+        path: 'clients',
+        loadComponent: () =>
+          import('./features/clients/pages/clients-page-component/clients-page-component')
+            .then((m) => m.ClientsPageComponent),
+      },
+      {
+        path: 'clients/:clientId',
+        loadComponent: () =>
+          import('./features/clients/pages/client-detail-page-component/client-detail-page-component')
+            .then((m) => m.ClientDetailPageComponent),
+      },
+      {
         path: 'settings',
         loadComponent: () =>
           import('./features/settings/page/settings-page-component/settings-page-component')
