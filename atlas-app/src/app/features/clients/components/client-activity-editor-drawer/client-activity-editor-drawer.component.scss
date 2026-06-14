@@ -8,7 +8,7 @@
   background: rgba(15, 23, 42, 0.28);
   opacity: 0;
   transition: opacity 220ms ease;
-  z-index: 50;
+  z-index: 100;
 }
 
 .client-activity-editor-drawer {
@@ -29,7 +29,7 @@
   transition:
     transform 240ms ease,
     box-shadow 240ms ease;
-  z-index: 60;
+  z-index: 110;
 }
 
 .client-activity-editor-drawer__overlay.is-open {

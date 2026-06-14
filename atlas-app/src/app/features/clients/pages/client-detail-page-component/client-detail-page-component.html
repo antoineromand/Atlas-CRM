@@ -24,7 +24,8 @@
     @let currentPrimaryContact = primaryContact();
     @let currentSummaryCards = summaryCards();
     @let currentVisibleContacts = visibleContacts();
-    @let currentTimelineEntries = timelineEntries();
+    @let currentActivityEntries = timelineEntries();
+    @let currentPreviewActivities = visibleTimelineEntries();
     @let currentTags = tags();
 
     <section class="client-hero">
@@ -140,13 +141,21 @@
         <article class="bento-card">
           <div class="client-card-header">
             <h3 class="font-headline-md text-headline-md text-primary">Client Activities</h3>
-            <button class="client-link-button" type="button" (click)="openCreateActivityDrawer()">
-              <span class="material-symbols-outlined" aria-hidden="true">add_circle</span>
-              Add Activity
-            </button>
+            <div class="client-card-header__actions">
+              @if (currentActivityEntries.length > 4) {
+                <button class="client-link-button" type="button" (click)="openActivityModal()">
+                  <span class="material-symbols-outlined" aria-hidden="true">preview</span>
+                  View all
+                </button>
+              }
+              <button class="client-link-button" type="button" (click)="openCreateActivityDrawer()">
+                <span class="material-symbols-outlined" aria-hidden="true">add_circle</span>
+                Add Activity
+              </button>
+            </div>
           </div>
           <div class="timeline">
-            @for (entry of currentTimelineEntries; track trackByActivity($index, entry.activity)) {
+            @for (entry of currentPreviewActivities; track trackByActivity($index, entry.activity)) {
               <div class="timeline-item">
                 <div class="timeline-item__marker timeline-item__marker--{{ entry.item.tone }}">
                   <span class="material-symbols-outlined" aria-hidden="true">{{ entry.item.icon }}</span>
@@ -172,7 +181,7 @@
               </div>
             }
 
-            @if (!currentTimelineEntries.length) {
+            @if (!currentActivityEntries.length) {
               <div class="timeline-item">
                 <div class="timeline-item__marker timeline-item__marker--primary">
                   <span class="material-symbols-outlined" aria-hidden="true">calendar_month</span>
@@ -195,9 +204,9 @@
           <h3 class="font-label-md text-label-md text-on-primary-container mb-md">Client Snapshot</h3>
           <div class="snapshot-stack">
             <div class="snapshot-row">
-              <p>Total Revenue</p>
+                <p>Total Revenue</p>
               <div class="snapshot-row__value">
-                <strong>{{ currentClient ? '$' + (currentTimelineEntries.length * 14250 + currentVisibleContacts.length * 1200).toLocaleString('en-US') : '$0' }}</strong>
+                <strong>{{ currentClient ? '$' + (currentActivityEntries.length * 14250 + currentVisibleContacts.length * 1200).toLocaleString('en-US') : '$0' }}</strong>
                 <span class="snapshot-row__trend">
                   <span class="material-symbols-outlined" aria-hidden="true">trending_up</span>
                   +12%
@@ -286,6 +295,65 @@
             }
             Delete contact
           </button>
+        </footer>
+      </aside>
+    }
+
+    @if (activityModalOpen()) {
+      <div class="client-detail-shell__confirm-overlay" (click)="closeActivityModal()"></div>
+      <aside class="client-detail-shell__activity-modal surface-card" role="dialog" aria-modal="true" aria-label="Client activities">
+        <div class="client-detail-shell__activity-modal-header">
+          <div>
+            <p class="client-detail-shell__activity-modal-eyebrow">Activity log</p>
+            <h2 class="client-detail-shell__activity-modal-title">Client activities</h2>
+            <p class="client-detail-shell__activity-modal-copy">
+              Browse the full history without stretching the detail page.
+            </p>
+          </div>
+          <button class="client-detail-shell__activity-modal-close" type="button" aria-label="Close activity log" (click)="closeActivityModal()">
+            <span class="material-symbols-outlined" aria-hidden="true">close</span>
+          </button>
+        </div>
+
+        <div class="client-detail-shell__activity-modal-body">
+          <div class="timeline timeline--modal">
+            @for (entry of activityModalEntries(); track trackByActivity($index, entry.activity)) {
+              <div class="timeline-item timeline-item--modal">
+                <div class="timeline-item__marker timeline-item__marker--{{ entry.item.tone }}">
+                  <span class="material-symbols-outlined" aria-hidden="true">{{ entry.item.icon }}</span>
+                </div>
+                <div class="timeline-item__content">
+                  <div class="timeline-item__heading">
+                    <h4>{{ entry.item.title }}</h4>
+                    <span>{{ entry.item.meta }}</span>
+                  </div>
+                  <p class="timeline-item__type">{{ formatActivityType(entry.activity.activityType) }}</p>
+                  <p>{{ entry.item.description }}</p>
+                  <div class="timeline-item__actions">
+                    <button class="contact-card__action-button" type="button" (click)="openEditActivityDrawer(entry.activity)">
+                      <span class="material-symbols-outlined" aria-hidden="true">edit</span>
+                      Edit
+                    </button>
+                    <button class="contact-card__action-button contact-card__action-button--danger" type="button" (click)="requestDeleteActivity(entry.activity)">
+                      <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <footer class="client-detail-shell__activity-modal-footer">
+          <div class="client-detail-shell__activity-modal-meta">
+            Page {{ activityPage() }} / {{ activityPageCount() }}
+          </div>
+          <div class="client-detail-shell__activity-modal-actions">
+            <button class="btn btn--secondary" type="button" [disabled]="activityPage() <= 1" (click)="previousActivityPage()">Previous</button>
+            <button class="btn btn--secondary" type="button" [disabled]="activityPage() >= activityPageCount()" (click)="nextActivityPage()">Next</button>
+            <button class="btn btn--primary" type="button" (click)="closeActivityModal()">Done</button>
+          </div>
         </footer>
       </aside>
     }

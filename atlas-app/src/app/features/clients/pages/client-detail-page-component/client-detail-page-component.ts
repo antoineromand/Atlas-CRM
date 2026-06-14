@@ -65,6 +65,9 @@ export class ClientDetailPageComponent implements OnInit {
   protected readonly isDeletingContact = signal(false);
   protected readonly activityDeleteTarget = signal<ClientActivityResponse | null>(null);
   protected readonly isDeletingActivity = signal(false);
+  protected readonly activityModalOpen = signal(false);
+  protected readonly activityPage = signal(1);
+  protected readonly activityPageSize = 5;
   private currentClientId: string | null = null;
 
   protected readonly client = computed(() => this.clientDetail()?.client ?? null);
@@ -122,6 +125,23 @@ export class ClientDetailPageComponent implements OnInit {
       item: this.toTimelineItem(activity),
     })),
   );
+
+  protected readonly visibleTimelineEntries = computed(() =>
+    this.timelineEntries().slice(0, 4),
+  );
+
+  protected readonly activityPageCount = computed(() => {
+    const total = this.timelineEntries().length;
+    return Math.max(1, Math.ceil(total / this.activityPageSize));
+  });
+
+  protected readonly activityModalEntries = computed(() => {
+    const entries = this.timelineEntries();
+    const pageCount = this.activityPageCount();
+    const currentPage = Math.min(this.activityPage(), pageCount);
+    const startIndex = (currentPage - 1) * this.activityPageSize;
+    return entries.slice(startIndex, startIndex + this.activityPageSize);
+  });
 
   protected readonly visibleContacts = computed(() =>
     this.contacts().slice(0, 3).map((contact) => ({
@@ -214,6 +234,7 @@ export class ClientDetailPageComponent implements OnInit {
       return;
     }
 
+    this.closeActivityModal();
     this.clientActivityEditor.openCreateDrawer(client.id);
   }
 
@@ -223,6 +244,7 @@ export class ClientDetailPageComponent implements OnInit {
       return;
     }
 
+    this.closeActivityModal();
     this.clientActivityEditor.openEditDrawer(client.id, activity);
   }
 
@@ -266,6 +288,7 @@ export class ClientDetailPageComponent implements OnInit {
   }
 
   protected requestDeleteActivity(activity: ClientActivityResponse): void {
+    this.closeActivityModal();
     this.activityDeleteTarget.set(activity);
   }
 
@@ -302,6 +325,23 @@ export class ClientDetailPageComponent implements OnInit {
           this.notificationService.error(message, 'Activities unavailable');
         },
       });
+  }
+
+  protected openActivityModal(): void {
+    this.activityPage.set(1);
+    this.activityModalOpen.set(true);
+  }
+
+  protected closeActivityModal(): void {
+    this.activityModalOpen.set(false);
+  }
+
+  protected previousActivityPage(): void {
+    this.activityPage.update((value) => Math.max(1, value - 1));
+  }
+
+  protected nextActivityPage(): void {
+    this.activityPage.update((value) => Math.min(this.activityPageCount(), value + 1));
   }
 
   protected reloadClient(): void {
